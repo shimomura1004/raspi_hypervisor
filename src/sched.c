@@ -93,6 +93,7 @@ void vm_entering_work() {
 	set_cpu_virtual_interrupt(vcpu);
 }
 
+// todo: だいたいこの関数内でクラッシュしている、アドレス変換ができない
 // VM での処理を抜けてハイパーバイザに処理に入るときに kernel_entry から呼ばれる
 void vm_leaving_work() {
 	struct vcpu_struct *vcpu = current_pcpu()->current_vcpu;
