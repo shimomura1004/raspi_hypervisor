@@ -176,13 +176,15 @@ void hypervisor_main(unsigned long cpuid)
 		initialize_hypervisor();
 		INFO("Raspvisor initialized");
 
-		create_idle_vm(cpuid);
+		create_idle_vm();
 		INFO("Idle VM and idle vCPUs are created");
 
 		prepare_guest_vms();
 		INFO("guest VMs are prepared");
 
 		initialized_flag = 1;
+		asm volatile ("dc civac, %0" : : "r" (&initialized_flag) : "memory");
+		asm volatile ("sev");
 	}
 
 	INFO("pCPU%d start running", cpuid);

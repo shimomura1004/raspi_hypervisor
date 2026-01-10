@@ -23,29 +23,19 @@
 // ここが OS のスタートポイントになる
 .globl _start
 _start:
-    // コア 0 以外のコアは初期化が終わるまで待機
+    // コア 0 のみ初期化を行うため el3_entry へジャンプ
 	mrs	x0, mpidr_el1
 	and	x0, x0,#0xFF		// Check processor id
 	cbz	x0, el3_entry		// Hang for all non-primary CPU
 
-// コア 1,2,3 は無限ループさせて止める
-cmp x0, #1
-b.eq sleep
-cmp x0, #2
-b.eq sleep
-cmp x0, #3
-b.eq sleep
-
-	// コア1は initialized_flag がセットされるのを待って実行
+	// コア 1-3 は initialized_flag がセットされるのを待って実行
 	ldr x0, =initialized_flag
 loop:
+	// コア 0 が hypervisor_main で sev 命令を実行するまで待つ
+	wfe
 	ldr x1, [x0]
 	cbz x1, loop
-	dsb ish
 	b el3_entry
-sleep:
-	wfi
-	b sleep
 
 // EL3 の実質的なスタート
 // 起動直後は EL3 になっているので、必要な設定を行ったあと EL2 に切り替える
