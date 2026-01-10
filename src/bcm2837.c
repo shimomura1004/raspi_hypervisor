@@ -190,7 +190,7 @@ const struct bcm2837_state initial_state = {
 
 #define ADDR_IN_INTCTRL(a)  (IRQ_BASIC_PENDING <= (a) && (a) <= DISABLE_BASIC_IRQS)
 #define ADDR_IN_AUX(a)      (AUX_IRQ <= (a) && (a) <= AUX_MU_BAUD_REG)
-#define ADDR_IN_SYSTIMER(a) (TIMER_CS <= (a) && (a) < TIMER_C3)
+#define ADDR_IN_SYSTIMER(a) (TIMER_CS <= (a) && (a) <= TIMER_C3)
 
 // todo: vcpu ではなく vm だけを引数に取れば十分な関数が多数ある
 //       ただし一気に変更すると変更量が大きくなるので、いったん vcpu を取るまま機能実装
