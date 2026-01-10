@@ -5,6 +5,7 @@
 #include "vm.h"
 #include "arm/sysregs.h"
 #include "hypercall.h"
+#include "printf.h"
 
 // eclass のインデックスに合わせたエラーメッセージ
 static const char *sync_error_reasons[] = {
@@ -175,6 +176,20 @@ sys_fin:
 	return;
 }
 
+static void show_guest_regs(struct vcpu_struct *vcpu) {
+	struct pt_regs *regs = vcpu_pt_regs(vcpu);
+	printf("Guest Registers (vCPU %d):\n", vcpu->vcpu_id);
+	for (int i = 0; i < 31; i+=4) {
+		printf(" x%02d: %016lx x%02d: %016lx x%02d: %016lx x%02d: %016lx\n",
+			   i, regs->regs[i],
+			   i+1, regs->regs[i+1],
+			   i+2, regs->regs[i+2],
+			   i+3, i+3 < 31 ? regs->regs[i+3] : 0);
+	}
+	printf(" PC : %016lx PSTATE: %016lx\n", regs->pc, regs->pstate);
+	printf(" SP : %016lx\n", regs->sp);
+}
+
 // ESR_EL2
 // https://developer.arm.com/documentation/ddi0595/2021-03/AArch64-Registers/ESR-EL2--Exception-Syndrome-Register--EL2-?lang=en#fieldset_0-24_0
 void handle_sync_exception(unsigned long esr, unsigned long elr, unsigned long far) {
@@ -215,6 +230,7 @@ void handle_sync_exception(unsigned long esr, unsigned long elr, unsigned long f
 		}
 		break;
 	default:
+		show_guest_regs(current_pcpu()->current_vcpu);
 		PANIC("uncaught synchronous exception:\n%s\nesr: 0x%lx, address: 0x%lx", sync_error_reasons[eclass], esr, elr);
 		break;
 	}
