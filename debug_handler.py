@@ -1,5 +1,7 @@
 import sys
 import os
+
+# このスクリプトは gdb から使う想定なので、それ以外の環境で起動されたらエラーとする
 try:
     import gdb
 except ImportError:
@@ -58,6 +60,8 @@ def stop_handler(event):
         last_vmid = vmid
 
         # 変わっていればシンボル情報を切り替え
+        # todo: シンボル名だけでなく、ソースコードのパスも切り替えたい
+        #       本来は ./example/vmm/main.c を参照すべきものも gdb/vscode は ./main.c を参照してしまう
         
         if el == 2:
             print(f"\n[GDB Script] Switched to EL2 (Hypervisor)")
