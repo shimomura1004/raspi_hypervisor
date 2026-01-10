@@ -2,7 +2,8 @@
 *.dtb
 *.map
 *.bin
-.vscode/
 build/
 tmp/
 summary.txt
+.vscode/
+!/.vscode/launch.json

@@ -28,7 +28,7 @@ FORCE:
 debug: kernel8.img
 	gdb-multiarch -ex 'target remote :1234' \
 	-ex 'layout asm' \
-	-ex 'add-symbol-file build/kernel8.elf'
+	-ex 'source ./debug_handler.py'
 
 summary:
 	./summary.sh > summary.txt

@@ -5,18 +5,34 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "type": "gdb",
-            "request": "attach",
-            "name": "Attach to qemu",
-            "executable": "./build/kernel8.elf",
-            "target": "localhost:1234",
-            "remote": true,
-            "stopAtConnect": true,
-            "cwd": "${workspaceRoot}",
-            "gdbpath": "gdb-multiarch",
-            "valuesFormatting": "parseText",
-            "autorun": [
+            "name": "Debug Hypervisor (QEMU)",
+            "type": "cppdbg",
+            "request": "launch",
+            "targetArchitecture": "arm64",
+            "program": "${workspaceFolder}/build/kernel8.elf",
+            "cwd": "${workspaceFolder}",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb-multiarch",
+            "miDebuggerServerAddress": "localhost:1234",
+            "miDebuggerArgs": "-x \"${workspaceFolder}/debug_handler.py\"",
+            "stopAtEntry": true,
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "text": "set arch aarch64",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Load VMID switcher script",
+                    "text": "source ${workspaceFolder}/debug_handler.py",
+                    "ignoreFailures": true
+                }
             ]
+
         }
     ]
 }
