@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "systimer.h"
+#include "generic_timer.h"
 #include "entry.h"
 #include "peripherals/irq.h"
 #include "peripherals/mailbox.h"
@@ -29,6 +30,24 @@ const char *entry_error_messages[] = {
 	"DATA_ABORT_ERROR",
 };
 
+// Core 0 Timers interrupt control
+// [7] nCNTVIRQ FIQ control. If set, this bit overrides the IRQ bit (3).
+// [6] nCNTHPIRQ FIQ control. If set, this bit overrides the IRQ bit (2). 
+// [5] nCNTPNSIRQ FIQ control. If set, this bit overrides the IRQ bit (1).
+// [4] nCNTPSIRQ FIQ control. If set, this bit overrides the IRQ bit (0). 
+// [3] nCNTVIRQ IRQ control.
+// [2] nCNTHPIRQ IRQ control.
+// [1] nCNTPNSIRQ IRQ control.
+// [0] nCNTPSIRQ IRQ control.
+//   0b0: disabled
+//   0b1: enabled
+
+// todo: generic_timer.h に移す
+#define CORE0_TIMER_IRQCNTL 0x40000040
+#define CORE1_TIMER_IRQCNTL 0x40000044 
+#define CORE2_TIMER_IRQCNTL 0x40000048 
+#define CORE3_TIMER_IRQCNTL 0x4000004C 
+
 // RPi は割込みの有効・無効の管理用に3つのレジスタを持つ
 //   #define ENABLE_IRQS_1		(PBASE+0x0000B210)
 //   #define ENABLE_IRQS_2		(PBASE+0x0000B214)
@@ -36,14 +55,22 @@ const char *entry_error_messages[] = {
 //   BASIC IRQS はローカル割込み用
 // この関数では全割込みのうちタイマ1,3と UART を有効化する
 //   ちなみにタイマは4個あるが 0 と 2 は GPU で使われる
-void enable_interrupt_controller()
+void enable_interrupt_controller(unsigned long cpuid)
 {
-	put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_1_BIT);
-	put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_3_BIT);
-	put32(ENABLE_IRQS_1, AUX_IRQ_BIT);
+	// Enable Generic Timer (nCNTPNSIRQ)
+	// todo: 0x2 とはなにか？
+	// todo: コードは簡潔だが、それぞれのタイマの定数を使うべきではないか？
+	put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, 0x2);
 
-	// Mailbox 割込みを有効化
-	put32(ENABLE_BASIC_IRQS, MBOX_IRQ_BIT);
+	if (cpuid == 0) {
+		// todo: システムタイマは各 CPU ごとに初期化するべきではない、適切な初期化処理関数に移す
+		// put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_1_BIT);
+		// put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_3_BIT);
+		put32(ENABLE_IRQS_1, AUX_IRQ_BIT);
+
+		// Mailbox 割込みを有効化
+		put32(ENABLE_BASIC_IRQS, MBOX_IRQ_BIT);
+	}
 }
 
 void show_invalid_entry_message(int type, unsigned long esr, unsigned long elr, unsigned long far, unsigned long mpidr)
@@ -59,14 +86,15 @@ static void handle_irq_maincore() {
 
 	if (basic_pending & PENDING_REGISTER_1_BIT) {
 		unsigned int irq = get32(IRQ_PENDING_1);
-		if (irq & SYSTEM_TIMER_IRQ_1_BIT) {
-			irq &= ~SYSTEM_TIMER_IRQ_1_BIT;
-			handle_systimer1_irq();
-		}
-		if (irq & SYSTEM_TIMER_IRQ_3_BIT) {
-			irq &= ~SYSTEM_TIMER_IRQ_3_BIT;
-			handle_systimer3_irq();
-		}
+		// システムタイマ割込みの処理はいったん削除
+		// if (irq & SYSTEM_TIMER_IRQ_1_BIT) {
+		// 	irq &= ~SYSTEM_TIMER_IRQ_1_BIT;
+		// 	handle_systimer1_irq();
+		// }
+		// if (irq & SYSTEM_TIMER_IRQ_3_BIT) {
+		// 	irq &= ~SYSTEM_TIMER_IRQ_3_BIT;
+		// 	handle_systimer3_irq();
+		// }
 		if (irq & AUX_IRQ_BIT) {
 			irq &= ~AUX_IRQ_BIT;
 			handle_uart_irq();
@@ -112,6 +140,14 @@ void handle_irq(void)
 	// たとえばシステムタイマ割込みはコア0が処理する前提になっているが、
 	// Mailbox 割込みとタイミングがぶつかると、コア1で処理されてしまう可能性がある
 	unsigned long cpuid = get_cpuid();
+
+	// Generic Timer (Local Timer)
+	// todo: ここも各タイマの定数を明示的に使うべきではないか？
+	unsigned long source = get32(CORE0_IRQ_SOURCE + 4 * cpuid);
+	if (source & 0x2) {
+		handle_generic_timer_irq();
+	}
+
 	if (cpuid == 0) {
 		handle_irq_maincore();
 	} else {

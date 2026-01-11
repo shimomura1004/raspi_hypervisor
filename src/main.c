@@ -5,6 +5,7 @@
 #include "printf.h"
 #include "utils.h"
 #include "systimer.h"
+#include "generic_timer.h"
 #include "irq.h"
 #include "vm.h"
 #include "sched.h"
@@ -89,6 +90,14 @@ static void initialize_pcpu(unsigned long cpuid) {
 	// VBAR_EL2 レジスタに割込みベクタのアドレスを設定する
 	// 各 CPU コアで呼び出す必要がある
 	irq_vector_init();
+
+	// システムタイマ(Generic Timer)の初期化
+	generic_timer_init();
+
+	// 割込みコントローラの有効化
+	disable_irq();
+	enable_interrupt_controller(cpuid);
+	enable_irq();
 }
 
 // 全コア共通で一度だけ実施する初期化処理
@@ -98,19 +107,18 @@ static void initialize_hypervisor() {
 	uart_init();
 	init_printf(NULL, putc);
 
-	// システムタイマは全コアで共有されるのでここで初期化
-	// todo: generic timer にする
-	systimer_init();
+	// // システムタイマは全コアで共有されるのでここで初期化
+	// systimer_init();
 
-	// Core 1~3 の Core 0 からの MAILBOX の割込みを有効化
-	put32(MBOX_CORE1_CONTROL, MBOX_CONTROL_IRQ_0_BIT);
-	put32(MBOX_CORE2_CONTROL, MBOX_CONTROL_IRQ_0_BIT);
-	put32(MBOX_CORE3_CONTROL, MBOX_CONTROL_IRQ_0_BIT);
+	// // Core 1~3 の Core 0 からの MAILBOX の割込みを有効化
+	// put32(MBOX_CORE1_CONTROL, MBOX_CONTROL_IRQ_0_BIT);
+	// put32(MBOX_CORE2_CONTROL, MBOX_CONTROL_IRQ_0_BIT);
+	// put32(MBOX_CORE3_CONTROL, MBOX_CONTROL_IRQ_0_BIT);
 
-	// 中途半端なところで割込み発生しないようにタイマと UART の有効化が終わるまで割込み禁止
-	disable_irq();
-	enable_interrupt_controller();
-	enable_irq();
+	// // 中途半端なところで割込み発生しないようにタイマと UART の有効化が終わるまで割込み禁止
+	// disable_irq();
+	// enable_interrupt_controller();
+	// enable_irq();
 
 	// SD カードの初期化
 	if (sd_init() < 0) {

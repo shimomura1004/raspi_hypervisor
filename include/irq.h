@@ -2,7 +2,7 @@
 #define	_IRQ_H
 
 
-void enable_interrupt_controller( void );
+void enable_interrupt_controller(unsigned long cpuid);
 
 void irq_vector_init( void );
 void enable_irq( void );
