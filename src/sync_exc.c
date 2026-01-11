@@ -134,7 +134,26 @@ static void handle_trap_system(unsigned long esr) {
 		DEFINE_SYSREG_MSR(csselr_el1, 1, 0, 0, 0);
 	}
 	else if ((op0 & 2) && dir == 1) {
-		// mrs
+		// CNTFRQ_EL0 (Op0=3, Op1=3, CRn=14, CRm=0, Op2=0)
+		if (op1 == 3 && crn == 14 && crm == 0 && op2 == 0) {
+			// CNTPCT(カウンタ)と異なり、通常 CNTFRQ(周波数)は頻繁に読む必要はないのでトラップで十分
+			// ゲストに対して偽の周波数を返したければここで変更する
+			unsigned long frq;
+			asm volatile("mrs %0, cntfrq_el0" : "=r"(frq));
+			regs->regs[rt] = frq;
+			goto sys_fin;
+		}
+		// CNTPCT_EL0 (Op0=3, Op1=3, CRn=14, CRm=0, Op2=1)
+		if (op1 == 3 && crn == 14 && crm == 0 && op2 == 1) {
+			// CNTPCT_EL0 へのアクセスはトラップされるので、ここで値をそのまま返す
+			// VM をサスペンドすると時間が飛んだようにみえるので、オフセットを考慮する場合はここで減算する
+			// ただ、通常ゲストは仮想タイマカウンタ(CNTVCT_EL0)を使うので、これは頻繁には使われない想定
+			// CNTVCT_EL0 へのアクセスはトラップされずオフセットも自動で考慮される
+			unsigned long pct;
+			asm volatile("mrs %0, cntpct_el0" : "=r"(pct));
+			regs->regs[rt] = pct;
+			goto sys_fin;
+		}
 		DEFINE_SYSREG_MRS(actlr_el1, 0, 1, 0, 1);
 		DEFINE_SYSREG_MRS(id_pfr0_el1, 0, 0, 1, 0);
 		DEFINE_SYSREG_MRS(id_pfr1_el1, 0, 0, 1, 1);
