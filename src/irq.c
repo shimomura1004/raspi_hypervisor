@@ -30,35 +30,15 @@ const char *entry_error_messages[] = {
 	"DATA_ABORT_ERROR",
 };
 
-// Core 0 Timers interrupt control
-// [7] nCNTVIRQ FIQ control. If set, this bit overrides the IRQ bit (3).
-// [6] nCNTHPIRQ FIQ control. If set, this bit overrides the IRQ bit (2). 
-// [5] nCNTPNSIRQ FIQ control. If set, this bit overrides the IRQ bit (1).
-// [4] nCNTPSIRQ FIQ control. If set, this bit overrides the IRQ bit (0). 
-// [3] nCNTVIRQ IRQ control.
-// [2] nCNTHPIRQ IRQ control.
-// [1] nCNTPNSIRQ IRQ control.
-// [0] nCNTPSIRQ IRQ control.
-//   0b0: disabled
-//   0b1: enabled
-
-// todo: generic_timer.h に移す
-#define CORE0_TIMER_IRQCNTL 0x40000040
-#define CORE1_TIMER_IRQCNTL 0x40000044 
-#define CORE2_TIMER_IRQCNTL 0x40000048 
-#define CORE3_TIMER_IRQCNTL 0x4000004C 
-
 // RPi は割込みの有効・無効の管理用に3つのレジスタを持つ
 //   #define ENABLE_IRQS_1		(PBASE+0x0000B210)
 //   #define ENABLE_IRQS_2		(PBASE+0x0000B214)
 //   #define ENABLE_BASIC_IRQS	(PBASE+0x0000B218)
 //   BASIC IRQS はローカル割込み用
-// この関数では全割込みのうちタイマ1,3と UART を有効化する
-//   ちなみにタイマは4個あるが 0 と 2 は GPU で使われる
+// この関数では全割込みのうち UART を有効化する
 void enable_interrupt_controller(unsigned long cpuid)
 {
 	// Enable Generic Timer (nCNTPNSIRQ)
-	// todo: 0x2 とはなにか？
 	// todo: コードは簡潔だが、それぞれのタイマの定数を使うべきではないか？
 	put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, 0x2);
 

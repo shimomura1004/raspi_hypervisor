@@ -3,6 +3,8 @@
 
 #include "peripherals/base.h"
 
+// システムタイマは4個あるが 0 と 2 は GPU で使われる
+
 // System Timer Registers
 // CS: System Timer Control/Status
 //       Write a one to the relevant bit to clear the match
