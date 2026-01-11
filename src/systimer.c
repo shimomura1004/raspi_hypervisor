@@ -13,33 +13,33 @@
 
 const unsigned int interval = 20000;
 
-void systimer_init () {
-	// 今のカウンタ値から interval tick 後に発火するように2個目のレジスタに値をセットする
-	put32(TIMER_C1, get32(TIMER_CLO) + interval);
-}
+// void systimer_init () {
+// 	// 今のカウンタ値から interval tick 後に発火するように2個目のレジスタに値をセットする
+// 	put32(TIMER_C1, get32(TIMER_CLO) + interval);
+// }
 
-// VM スイッチ用
-void handle_systimer1_irq() {
-	// 定期的に呼び出されるよう、次の比較値をセットする
-	put32(TIMER_C1, get32(TIMER_CLO) + interval);
-	// 割込みをクリア
-	put32(TIMER_CS, TIMER_CS_M1);
+// // VM スイッチ用
+// void handle_systimer1_irq() {
+// 	// 定期的に呼び出されるよう、次の比較値をセットする
+// 	put32(TIMER_C1, get32(TIMER_CLO) + interval);
+// 	// 割込みをクリア
+// 	put32(TIMER_CS, TIMER_CS_M1);
 
-	// CPU0 以外のコアに mbox 割込みを送ってタスクを切り替えさせる
-	put32(MBOX_CORE1_SET_0, 0x1);
-	put32(MBOX_CORE2_SET_0, 0x1);
-	put32(MBOX_CORE3_SET_0, 0x1);
+// 	// CPU0 以外のコアに mbox 割込みを送ってタスクを切り替えさせる
+// 	put32(MBOX_CORE1_SET_0, 0x1);
+// 	put32(MBOX_CORE2_SET_0, 0x1);
+// 	put32(MBOX_CORE3_SET_0, 0x1);
 
-	// CPU0 の VM 切り替え
-	// このあと yield してしばらく帰ってこなくなるので最後に timer_tick() を呼ぶ
-	timer_tick();
-}
+// 	// CPU0 の VM 切り替え
+// 	// このあと yield してしばらく帰ってこなくなるので最後に timer_tick() を呼ぶ
+// 	timer_tick();
+// }
 
-// VM の割込み用
-void handle_systimer3_irq() {
-	// 割込みをクリア
-	put32(TIMER_CS, TIMER_CS_M3);
-}
+// // VM の割込み用
+// void handle_systimer3_irq() {
+// 	// 割込みをクリア
+// 	put32(TIMER_CS, TIMER_CS_M3);
+// }
 
 // システムタイマのレジスタ CLO/CHI を読み、合わせて64ビット値として返す
 unsigned long get_physical_systimer_count() {
