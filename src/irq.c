@@ -40,7 +40,7 @@ void enable_interrupt_controller(unsigned long cpuid)
 {
 	// Enable Generic Timer (nCNTPNSIRQ)
 	// todo: コードは簡潔だが、それぞれのタイマの定数を使うべきではないか？
-	put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, 0x2);
+	put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, TIMER_IRQCNTL_CNTPNSIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);
 
 	if (cpuid == 0) {
 		// todo: システムタイマは各 CPU ごとに初期化するべきではない、適切な初期化処理関数に移す
@@ -124,7 +124,7 @@ void handle_irq(void)
 	// Generic Timer (Local Timer)
 	// todo: ここも各タイマの定数を明示的に使うべきではないか？
 	unsigned long source = get32(CORE0_IRQ_SOURCE + 4 * cpuid);
-	if (source & 0x2) {
+	if (source & TIMER_IRQCNTL_CNTPNSIRQ_IRQ_ENABLED) {
 		handle_generic_timer_irq();
 	}
 

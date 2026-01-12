@@ -9,19 +9,6 @@ const static unsigned int interval_ms = 20;
 // https://developer.arm.com/documentation/111107/2025-12/AArch64-Registers/CNTFRQ-EL0--Counter-timer-Frequency-Register
 // [31:0] ClockFreq: indicate the effective frequency of the system counter, in Hz.
 
-// CNTP_CTL_EL0: Counter-timer Physical Timer Control register
-// Control register for the EL1 physical timer.
-// https://developer.arm.com/documentation/ddi0601/2025-12/AArch64-Registers/CNTP-CTL-EL0--Counter-timer-Physical-Timer-Control-Register
-// [2] ISTATUS: The status of the timer.
-//   0b0: Timer condition is not met.
-//   0b1: Timer condition is met.
-// [1] IMASK: Timer interrupt mask bit.
-//   0b0: Timer interrupt is not masked by the IMASK bit.
-//   0b1: Timer interrupt is masked by the IMASK bit.
-// [0] ENABLE: Enables the timer.
-//   0b0 Timer disabled.
-//   0b1 Timer enabled.
-
 // CNTP_TVAL_EL0: Counter-timer Physical Timer TimerValue register
 // Holds the timer value for the EL1 physical timer.
 // https://developer.arm.com/documentation/ddi0595/2021-09/AArch64-Registers/CNTP-TVAL-EL0--Counter-timer-Physical-Timer-TimerValue-register?lang=en
@@ -115,6 +102,7 @@ void generic_timer_init() {
 	asm volatile("msr cntvoff_el2, %0" : : "r"(0));
 }
 
+// ハイパーバイザ用の Generic Timer の割込みハンドラ
 void handle_generic_timer_irq() {
 	unsigned long frequency;
 	asm volatile("mrs %0, cntfrq_el0" : "=r"(frequency));
