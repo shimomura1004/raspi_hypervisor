@@ -127,6 +127,9 @@ void handle_irq(void)
 	if (source & TIMER_IRQCNTL_CNTPNSIRQ_IRQ_ENABLED) {
 		handle_generic_timer_irq();
 	}
+	if (source & TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED) {
+		handle_virtual_timer_irq();
+	}
 
 	if (cpuid == 0) {
 		handle_irq_maincore();

@@ -44,5 +44,8 @@
 
 void generic_timer_init(void);
 void handle_generic_timer_irq(void);
+void handle_virtual_timer_irq(void);
+int sync_virtual_timer_irq(void);
+void disable_virtual_timer_irq(void);
 
 #endif

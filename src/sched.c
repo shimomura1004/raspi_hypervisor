@@ -1,6 +1,7 @@
 #include "sched.h"
 #include "irq.h"
 #include "utils.h"
+#include "generic_timer.h"
 #include "mm.h"
 #include "debug.h"
 #include "board.h"
@@ -21,8 +22,19 @@ struct vm_struct2 *vms2[NUMBER_OF_VMS];
 int current_number_of_vms = 1;
 
 void set_cpu_virtual_interrupt(struct vcpu_struct *vcpu) {
-	// もし current の VM に対して irq が発生していたら、仮想割込みを設定する
+	int pending = 0;
+
+	// もしこれから実行する VM 用のエミュレートされたボードで割込みが発生していたら、仮想割込みを設定する
 	if (HAVE_FUNC(vcpu->vm->board_ops, is_irq_asserted) && vcpu->vm->board_ops->is_irq_asserted(vcpu)) {
+		pending = 1;
+	}
+	
+	// もしこれから実行する VM に仮想タイマ割込みが発生していたら、仮想割込みを設定する
+	if (sync_virtual_timer_irq()) {
+		pending = 1;
+	}
+
+	if (pending) {
 		assert_virq();
 	}
 	else {
@@ -102,6 +114,9 @@ void vm_leaving_work() {
 		WARN("vCPU is NULL while leaving from VM");
         return;
     }
+
+	// ハイパーバイザ実行中にゲストのタイマ割込みが発生しないようにマスクする
+	disable_virtual_timer_irq();
 
 	// 今のレジスタの値を控える
 	save_sysregs(&vcpu->cpu_sysregs);
