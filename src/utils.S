@@ -133,9 +133,20 @@ restore_sysregs:
 	ldp x1, x2, [x0], #16
 	msr tpidr_el1, x1
 	msr tpidrro_el0, x2
-	// 最後は1変数しかない
-	ldr x1, [x0]
+	ldp x1, x2, [x0], #16
 	msr vbar_el1, x1
+	msr cntkctl_el1, x2
+	ldp x1, x2, [x0], #16
+	msr cntp_ctl_el0, x1
+	msr cntp_cval_el0, x2
+	ldp x1, x2, [x0], #16
+	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
+	msr cntp_tval_el0, x1
+	msr cntv_ctl_el0, x2
+	ldp x1, x2, [x0], #16
+	msr cntv_cval_el0, x1
+	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
+	msr cntv_tval_el0, x2
 
   	// TTBR を復元してメモリ空間が変わるので、念のためブロックしている？　
 	dsb ish
@@ -189,7 +200,19 @@ save_sysregs:
 	mrs x2, tpidrro_el0
 	stp x1, x2, [x0], #16
 	mrs x1, vbar_el1
-	str x1, [x0]
+	mrs x2, cntkctl_el1
+	stp x1, x2, [x0], #16
+	mrs x1, cntp_ctl_el0
+	mrs x2, cntp_cval_el0
+	stp x1, x2, [x0], #16
+	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
+	mrs x1, cntp_tval_el0
+	mrs x2, cntv_ctl_el0
+	stp x1, x2, [x0], #16
+	mrs x1, cntv_cval_el0
+	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
+	mrs x2, cntv_tval_el0
+	stp x1, x2, [x0], #16
 	ret
 
 .globl get_all_sysregs
@@ -286,10 +309,12 @@ get_all_sysregs:
 	mrs x1, cntp_ctl_el0
 	mrs x2, cntp_cval_el0
 	stp x1, x2, [x0], #16
+	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
 	mrs x1, cntp_tval_el0
 	mrs x2, cntv_ctl_el0
 	stp x1, x2, [x0], #16
 	mrs x1, cntv_cval_el0
+	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
 	mrs x2, cntv_tval_el0
 	stp x1, x2, [x0], #16
 	ret

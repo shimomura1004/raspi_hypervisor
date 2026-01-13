@@ -124,11 +124,13 @@ struct cpu_sysregs {
     unsigned long cntkctl_el1;
     unsigned long cntp_ctl_el0;
     unsigned long cntp_cval_el0;
+    // todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
     unsigned long cntp_tval_el0;
 
     // virtual timers
     unsigned long cntv_ctl_el0;
     unsigned long cntv_cval_el0;
+    // todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
     unsigned long cntv_tval_el0;
 };
 
