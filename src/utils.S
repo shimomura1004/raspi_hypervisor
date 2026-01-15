@@ -141,12 +141,12 @@ restore_sysregs:
 	msr cntp_cval_el0, x2
 	ldp x1, x2, [x0], #16
 	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
-	msr cntp_tval_el0, x1
+	//msr cntp_tval_el0, x1
 	msr cntv_ctl_el0, x2
 	ldp x1, x2, [x0], #16
 	msr cntv_cval_el0, x1
 	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
-	msr cntv_tval_el0, x2
+	//msr cntv_tval_el0, x2
 
   	// TTBR を復元してメモリ空間が変わるので、念のためブロックしている？　
 	dsb ish
@@ -255,67 +255,67 @@ get_all_sysregs:
 	mrs x1, tpidr_el1
 	mrs x2, tpidrro_el0
 	stp x1, x2, [x0], #16
-	mrs x1, vbar_el1		// set_sysregs で戻すのはここまで
-	mrs x2, actlr_el1		// ここから先は控えるだけ
-	stp x1, x2, [x0], #16
-	mrs x1, id_pfr0_el1
-	mrs x2, id_pfr1_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_mmfr0_el1
-	mrs x2, id_mmfr1_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_mmfr2_el1
-	mrs x2, id_mmfr3_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_isar0_el1
-	mrs x2, id_isar1_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_isar2_el1
-	mrs x2, id_isar3_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_isar4_el1
-	mrs x2, id_isar5_el1
-	stp x1, x2, [x0], #16
-	mrs x1, mvfr0_el1
-	mrs x2, mvfr1_el1
-	stp x1, x2, [x0], #16
-	mrs x1, mvfr2_el1
-	mrs x2, id_aa64pfr0_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_aa64pfr1_el1
-	mrs x2, id_aa64dfr0_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_aa64dfr1_el1
-	mrs x2, id_aa64isar0_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_aa64isar1_el1
-	mrs x2, id_aa64mmfr0_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_aa64mmfr1_el1
-	mrs x2, id_aa64afr0_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_aa64afr1_el1
-	mrs x2, ctr_el0
-	stp x1, x2, [x0], #16
-	mrs x1, ccsidr_el1
-	mrs x2, clidr_el1
-	stp x1, x2, [x0], #16
-	mrs x1, csselr_el1
-	mrs x2, aidr_el1
-	stp x1, x2, [x0], #16
-	mrs x1, revidr_el1
+	mrs x1, vbar_el1
 	mrs x2, cntkctl_el1
 	stp x1, x2, [x0], #16
 	mrs x1, cntp_ctl_el0
 	mrs x2, cntp_cval_el0
 	stp x1, x2, [x0], #16
-	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
 	mrs x1, cntp_tval_el0
 	mrs x2, cntv_ctl_el0
 	stp x1, x2, [x0], #16
 	mrs x1, cntv_cval_el0
-	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
 	mrs x2, cntv_tval_el0
+	stp x1, x2, [x0], #16
+
+	// The following registers are only for debugging
+	mrs x1, actlr_el1
+	mrs x2, id_pfr0_el1
+	stp x1, x2, [x0], #16
+	mrs x1, id_pfr1_el1
+	mrs x2, id_mmfr0_el1
+	stp x1, x2, [x0], #16
+	mrs x1, id_mmfr1_el1
+	mrs x2, id_mmfr2_el1
+	stp x1, x2, [x0], #16
+	mrs x1, id_mmfr3_el1
+	mrs x2, id_isar0_el1
+	stp x1, x2, [x0], #16
+	mrs x1, id_isar1_el1
+	mrs x2, id_isar2_el1
+	stp x1, x2, [x0], #16
+	mrs x1, id_isar3_el1
+	mrs x2, id_isar4_el1
+	stp x1, x2, [x0], #16
+	mrs x1, id_isar5_el1
+	mrs x2, mvfr0_el1
+	stp x1, x2, [x0], #16
+	mrs x1, mvfr1_el1
+	mrs x2, mvfr2_el1
+	stp x1, x2, [x0], #16
+	mrs x1, id_aa64pfr0_el1
+	mrs x2, id_aa64pfr1_el1
+	stp x1, x2, [x0], #16
+	mrs x1, id_aa64dfr0_el1
+	mrs x2, id_aa64dfr1_el1
+	stp x1, x2, [x0], #16
+	mrs x1, id_aa64isar0_el1
+	mrs x2, id_aa64isar1_el1
+	stp x1, x2, [x0], #16
+	mrs x1, id_aa64mmfr0_el1
+	mrs x2, id_aa64mmfr1_el1
+	stp x1, x2, [x0], #16
+	mrs x1, id_aa64afr0_el1
+	mrs x2, id_aa64afr1_el1
+	stp x1, x2, [x0], #16
+	mrs x1, ctr_el0
+	mrs x2, ccsidr_el1
+	stp x1, x2, [x0], #16
+	mrs x1, clidr_el1
+	mrs x2, csselr_el1
+	stp x1, x2, [x0], #16
+	mrs x1, aidr_el1
+	mrs x2, revidr_el1
 	stp x1, x2, [x0], #16
 	ret
 
