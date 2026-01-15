@@ -83,11 +83,11 @@ void generic_timer_init() {
     // 周波数の読み取り
 	asm volatile("mrs %0, cntfrq_el0" : "=r"(frequency));
     // interval で指定したミリ秒数に何 tick 必要か計算する
-	unsigned long ticks = (frequency / 1000) * interval_ms;
+	unsigned long ticks = (frequency * interval_ms) / 1000;
     // タイマの初期値セット(ここで指定した tick 数後に最初のタイマ割込みが発生する)
-	asm volatile("msr cntp_tval_el0, %0" : : "r"(ticks));
+	asm volatile("msr cnthp_tval_el2, %0" : : "r"(ticks));
     // タイマの有効化
-	asm volatile("msr cntp_ctl_el0, %0" : : "r"(1));
+	asm volatile("msr cnthp_ctl_el2, %0" : : "r"(1));
 
 	// Generic Timer の仮想化の設定
 	// EL1 から CNTPCT_EL0(physical counter) へのアクセスを禁止ラップ
@@ -106,10 +106,10 @@ void generic_timer_init() {
 void handle_generic_timer_irq() {
 	unsigned long frequency;
 	asm volatile("mrs %0, cntfrq_el0" : "=r"(frequency));
-	unsigned long ticks = (frequency / 1000) * interval_ms;
+	unsigned long ticks = (frequency * interval_ms) / 1000;
 
     // 次のタイマ割込みが発生するよう値を再セット
-	asm volatile("msr cntp_tval_el0, %0" : : "r"(ticks));
+	asm volatile("msr cnthp_tval_el2, %0" : : "r"(ticks));
 
     // この pCPU 上で動く vCPU を切り替える
     timer_tick();
