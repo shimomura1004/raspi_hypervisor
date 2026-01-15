@@ -36,7 +36,7 @@ void user_process()
 			loop("12345");
 		}
 		else {
-			loop("*&^%$");
+			loop("ABCDE");
 		}
 	}
 }

@@ -9,6 +9,7 @@ void timer_init ( void )
 	unsigned long frequency;
 	asm volatile("mrs %0, cntfrq_el0" : "=r"(frequency));
 	unsigned long ticks = (frequency * interval) / 1000000;
+	printf("Timer frequency: %u MHz, ticks: %u\n", frequency / 1000 / 1000, ticks);
 	asm volatile("msr cntv_tval_el0, %0" : : "r"(ticks));
 	// enable virtual timer interrupt
 	asm volatile("msr cntv_ctl_el0, %0" : : "r"(1));
