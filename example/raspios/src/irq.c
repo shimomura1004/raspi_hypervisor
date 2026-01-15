@@ -1,6 +1,6 @@
 #include "utils.h"
 #include "printf.h"
-#include "timer.h"
+#include "generic_timer.h"
 #include "entry.h"
 #include "peripherals/irq.h"
 
