@@ -1,5 +1,5 @@
 #include "utils.h"
-#include "printf.h"
+#include "debug.h"
 #include "generic_timer.h"
 #include "entry.h"
 #include "peripherals/irq.h"
@@ -31,12 +31,15 @@ const char *entry_error_messages[] = {
 
 void enable_interrupt_controller()
 {
+	// generic timer の割込みを有効化する
+	// todo: BCM2837 には GIC がないため専用の割込みコントローラの設定が必要で、ゲスト環境ではトラップして処理する必要あり
+
 	// put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_1);
 }
 
 void show_invalid_entry_message(int type, unsigned long esr, unsigned long address)
 {
-	printf("%s, ESR: %x, address: %x\r\n", entry_error_messages[type], esr, address);
+	WARN("%s, ESR_EL1: %x, address: %x", entry_error_messages[type], esr, address);
 }
 
 void handle_irq(void)
@@ -58,6 +61,6 @@ void handle_irq(void)
 			handle_timer_irq();
 			break;
 		default:
-			printf("Unknown pending irq: %x\r\n", irq);
+			WARN("Unknown pending irq: %x", irq);
 	}
 }

@@ -4,7 +4,6 @@
 // todo: 不要なものがないか確認
 #include "printf.h"
 #include "utils.h"
-#include "systimer.h"
 #include "generic_timer.h"
 #include "irq.h"
 #include "vm.h"

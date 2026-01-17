@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "mm.h"
 #include "spinlock.h"
+#include "debug.h"
 
 struct pcpu_struct cpus[NR_CPUS];
 
@@ -51,16 +52,20 @@ void _schedule(void)
 	int cpuid = get_cpuid();
 
 	while (1) {
-		// ここではデータを操作しない、切り替え先を探すだけ
+		// このループではデータを操作しない、切り替え先を探すだけ
 		while (1) {
 			c = -1;
 			next = 0;
 			for (int i = 0; i < NR_TASKS; i++){
+				// 自分用のアイドルプロセス以外は選ばないので飛ばす
 				if (i < NR_CPUS && cpuid != i) {
 					continue;
 				}
 
 				p = task[i];
+				// カウンタが最大のプロセスを選ぶ
+				// idle プロセスのカウンタは 0 なのでひとつも見つからないことはない
+				// todo: 他の pCPU が動かしているプロセスが選ばれてしまう
 				if (p && p->state != TASK_ZOMBIE && p->counter > c) {
 					c = p->counter;
 					next = i;
@@ -100,6 +105,7 @@ void _schedule(void)
 
 void schedule(void)
 {
+	// 自主的に CPU を手放す場合はカウンタを 0 にして他のプロセスに切り替える
 	currents[get_cpuid()]->counter = 0;
 	_schedule();
 }
@@ -112,7 +118,7 @@ void schedule(void)
 int switch_to(struct task_struct * next) 
 {
 	int cpuid = get_cpuid();
-printf("%d: switch from 0x%x to 0x%x\n", cpuid, currents[cpuid], next);
+INFO("switch from 0x%x to 0x%x", currents[cpuid], next);
 
 	// 切り替えが不要だった場合はなにもせず -1 を返す
 	if (currents[cpuid] == next) {

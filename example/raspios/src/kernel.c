@@ -21,7 +21,7 @@ struct spinlock log_lock;
 // ホストの handle_mem_abort で処理される(処理の実体は bcm2837.c:handle_systimer_write にある)
 
 void kernel_process(){
-	printf("Kernel process started. EL %d\r\n", get_el());
+	INFO("Kernel process started. EL %d", get_el());
 	unsigned long begin = (unsigned long)&user_begin;
 	unsigned long end = (unsigned long)&user_end;
 	unsigned long process = (unsigned long)&user_process;
@@ -59,14 +59,14 @@ void kernel_main()
 	if (cpuid == 0) {
 		int res = copy_process(PF_KTHREAD, (unsigned long)&kernel_process, 0);
 		if (res < 0) {
-			printf("error while starting kernel process");
+			WARN("error while starting kernel process");
 			return;
 		}
 		initialized = 1;
 	}
 
 	if (cpuid >= 3) {
-		printf("CPU %d sleeps\n", cpuid);
+		INFO("CPU %d sleeps", cpuid);
 		asm volatile("wfi");
 	}
 
