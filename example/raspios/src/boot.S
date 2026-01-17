@@ -151,6 +151,20 @@ __create_page_tables:
 	mov	x1, #VA_START 
 	create_pgd_entry x0, x1, x2, x3
 
+	// 1GB 以降の領域 (Local Peripherals) をマップするために PUD にエントリを追加
+	// x0 は現在 PMD1 (0-1GB用) のアドレスを指している
+	adrp x2, pg_dir
+	add x2, x2, #PAGE_SIZE
+	ldr x1, =VA_START
+	mov x4, #0x40000000
+	add x1, x1, x4
+	lsr x1, x1, #PUD_SHIFT
+	and x1, x1, #PTRS_PER_TABLE - 1
+	mov x4, #PAGE_SIZE
+	add x3, x0, x4
+	orr x3, x3, #MM_TYPE_PAGE_TABLE
+	str x3, [x2, x1, lsl #3]
+
 	/* Mapping kernel and init stack*/
 	mov 	x1, xzr							// start mapping from physical offset 0
 	mov 	x2, #VA_START						// first virtual address
@@ -162,7 +176,13 @@ __create_page_tables:
 	ldr 	x2, =(VA_START + DEVICE_BASE)				// first virtual address
 	ldr	x3, =(VA_START + PHYS_MEMORY_SIZE - SECTION_SIZE)	// last virtual address
 	create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
+	add	x0, x0, #PAGE_SIZE
+
+	/* Mapping peripheral memory */
+    mov x1, #0x40000000
+    ldr x2, =(VA_START + 0x40000000)
+    ldr x3, =(VA_START + 0x40200000 - SECTION_SIZE)
+    create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
 
 	mov	x30, x29						// restore return address
 	ret
-
