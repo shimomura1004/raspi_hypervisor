@@ -9,7 +9,7 @@ void loop(char* str)
 		for (int i = 0; i < 5; i++){
 			buf[0] = str[i];
 			call_sys_write(buf);
-			user_delay(10000000);
+			user_delay(100000000);
 		}
 	}
 }
@@ -24,6 +24,7 @@ void user_process()
 		return;
 	}
 	if (pid == 0){
+		call_sys_write("Child process started 0\n\r");
 		loop("abcde");
 	} else {
 		int pid = call_sys_fork();
@@ -33,9 +34,11 @@ void user_process()
 			return;
 		}
 		if (pid == 0) {
+			call_sys_write("Child process started 1\n\r");
 			loop("12345");
 		}
 		else {
+			call_sys_write("Child process started 2\n\r");
 			loop("ABCDE");
 		}
 	}
