@@ -53,11 +53,10 @@ void kernel_main()
 
 	irq_vector_init();
 	timer_init();
-INFO("before");
+
 	disable_irq();
 	enable_interrupt_controller(cpuid);
 	enable_irq();
-INFO("after");
 
 	INFO("CPU %d started", cpuid);
 

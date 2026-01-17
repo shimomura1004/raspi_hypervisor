@@ -148,16 +148,17 @@ INFO("switch from 0x%x to 0x%x", currents[cpuid], next);
 	prev->state = TASK_RUNNING;
 	prev->cpuid = cpuid;
 
-static char *str[] = {
-	"RUNNING",
-	"RUNNABLE",
-	"ZOMBIE"
-};
-printf("now 0x%x\n", prev);
-for(int i = 0; i < NR_TASKS; i++){
-	if (task[i] == 0) continue;
-	printf("0x%06x:%d:%s:%d\n", task[i], i, str[task[i]->state], task[i]->cpuid);
-}
+// static char *str[] = {
+// 	"RUNNING",
+// 	"RUNNABLE",
+// 	"ZOMBIE"
+// };
+// printf("now 0x%x\n", prev);
+// for(int i = 0; i < NR_TASKS; i++){
+// 	if (task[i] == 0) continue;
+// 	printf("0x%06x:%d:%s:%d\n", task[i], i, str[task[i]->state], task[i]->cpuid);
+// }
+
 	// cpu_switch_to で別のプロセスに切り替わったあと、
 	// しばらくしてまたこのプロセスのコンテキストに戻ってきた場合は、
 	// 切り替えが成功していたとして 1 を返す
