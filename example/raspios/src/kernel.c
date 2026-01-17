@@ -38,11 +38,12 @@ void kernel_process(){
 void kernel_main()
 {
 	unsigned long cpuid = get_cpuid();
+	// 初期タスク(アイドルタスク)の cpuid が -1 になっているので、現在の CPU ID を設定する
+	currents[cpuid]->cpuid = cpuid;
 
 	if (cpuid == 0) {
 		uart_init();
 		init_printf(NULL, putc);
-		timer_init();
 
 		init_lock(&log_lock, "log_lock");
 		init_sched();
@@ -51,8 +52,12 @@ void kernel_main()
 	}
 
 	irq_vector_init();
-	enable_interrupt_controller();
+	timer_init();
+INFO("before");
+	disable_irq();
+	enable_interrupt_controller(cpuid);
 	enable_irq();
+INFO("after");
 
 	INFO("CPU %d started", cpuid);
 
@@ -62,7 +67,7 @@ void kernel_main()
 			WARN("error while starting kernel process");
 			return;
 		}
-		initialized = 1;
+		// initialized = 1;
 	}
 
 	if (cpuid >= 3) {
