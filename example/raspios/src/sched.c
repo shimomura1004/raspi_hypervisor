@@ -56,37 +56,36 @@ void _schedule(void)
 		while (1) {
 			c = -1;
 			next = 0;
-			for (int i = 0; i < NR_TASKS; i++){
-				// 自分用のアイドルプロセス以外は選ばないので飛ばす
-				if (i < NR_CPUS && cpuid != i) {
-					continue;
-				}
-
+			for (int i = NR_CPUS; i < NR_TASKS; i++){
 				p = task[i];
 				// カウンタが最大のプロセスを選ぶ
-				// idle プロセスのカウンタは 0 なのでひとつも見つからないことはない
-				// todo: 他の pCPU が動かしているプロセスが選ばれてしまう
-				if (p && p->state != TASK_ZOMBIE && p->counter > c) {
+				// 他の CPU でもスケジューラが動いており、同じ RUNNABLE なプロセスを同時に選ぶことがありえるが
+				// 実際に schedule 関数で切り替えるタイミングではロックを取るので問題ない
+				if (p && p->state == TASK_RUNNABLE && p->counter > c && p->counter > 0) {
 					c = p->counter;
 					next = i;
 				}
 			}
-			if (c) {
+INFO("c = %d", c);
+			if (c != -1) {
 				break;
 			}
-			for (int i = 0; i < NR_TASKS; i++) {
-				if (i < NR_CPUS && cpuid != i) {
-					continue;
-				}
 
+			// カウンタが 0 のプロセスしかなかった場合、すべてのプロセスのカウンタを再計算する
+			for (int i = NR_CPUS; i < NR_TASKS; i++) {
 				p = task[i];
 				if (p) {
 					p->counter = (p->counter >> 1) + p->priority;
 				}
 			}
+
+			// 実行可能なプロセスが見つからなかったら、いったん idle プロセスを実行することで無限ループを回避
+			// todo: ちゃんとしたスケジューラにする
+			next = cpuid;
+			break;
 		}
 
-		// 実際に切り替える
+		// 実際にプロセスを切り替える
 		// switch_to を呼ぶと、切り替えに成功した場合は呼び出したプロセスのコンテキストには戻ってこず
 		// 切り替え先のプロセスのコンテキストでここに戻ってくる
 		acquire_lock(&sched_lock);
@@ -97,6 +96,8 @@ void _schedule(void)
 			break;
 		}
 
+		// todo: 復帰したらカウンタが 0 になるが、これは正しいか？
+		//       プロセスに時間を割り当て、そのプロセスから別プロセスに切り替わる直前に 0 にするべきでは？
 		task[next]->counter = 0;
 	}
 
@@ -118,18 +119,19 @@ void schedule(void)
 int switch_to(struct task_struct * next) 
 {
 	int cpuid = get_cpuid();
-INFO("switch from 0x%x to 0x%x", currents[cpuid], next);
+// INFO("switch from 0x%x to 0x%x", currents[cpuid], next);
 
-	// 切り替えが不要だった場合はなにもせず -1 を返す
+	// 切り替えが不要だった場合はなにもしない、割当てなおしは不要なので 1 を返す
 	if (currents[cpuid] == next) {
-		printf("same process\n");
-		return 0;
+		return 1;
 	}
 	else if (next->state == TASK_RUNNING) {
+		// 切り替え先プロセスを決めたあと、他の CPU にプロセスが割り当てられてしまった場合は選びなおす
 		printf("already running\n");
 		return 0;
 	}
 
+	// プロセスの切り替え作業の開始
 	struct task_struct * prev = currents[cpuid];
 	currents[cpuid] = next;
 	set_pgd(next->mm.pgd);
@@ -147,17 +149,6 @@ INFO("switch from 0x%x to 0x%x", currents[cpuid], next);
 	next->cpuid = -1;
 	prev->state = TASK_RUNNING;
 	prev->cpuid = cpuid;
-
-// static char *str[] = {
-// 	"RUNNING",
-// 	"RUNNABLE",
-// 	"ZOMBIE"
-// };
-// printf("now 0x%x\n", prev);
-// for(int i = 0; i < NR_TASKS; i++){
-// 	if (task[i] == 0) continue;
-// 	printf("0x%06x:%d:%s:%d\n", task[i], i, str[task[i]->state], task[i]->cpuid);
-// }
 
 	// cpu_switch_to で別のプロセスに切り替わったあと、
 	// しばらくしてまたこのプロセスのコンテキストに戻ってきた場合は、

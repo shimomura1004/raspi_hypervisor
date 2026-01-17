@@ -69,16 +69,21 @@ void kernel_main()
 			WARN("error while starting kernel process");
 			return;
 		}
-		// initialized = 1;
+		initialized = 1;
 	}
 
 	if (cpuid >= 2) {
-		INFO("CPU %d sleeps", cpuid);
-		asm volatile("wfi");
+		disable_interrupt_controller(cpuid);
+		while (1) {
+			INFO("CPU %d sleeps", cpuid);
+			asm volatile("wfi");
+		}
 	}
 
 	while (1){
 		schedule();
-		printf("main loop\n");
-	}	
+		// ここ(idle プロセス)に返ってきたということはやることがないということなので
+		// なんらかの割込みが発生するまでは CPU を休止させる
+		asm volatile("wfi");
+	}
 }

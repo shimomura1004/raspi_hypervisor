@@ -85,7 +85,7 @@ extern void exit_process(void);
 
 #define INIT_TASK \
 /*cpu_context*/ { { 0,0,0,0,0,0,0,0,0,0,0,0,0}, \
-/* state etc */	 0,-1,0,15, 0, PF_KTHREAD, \
+/* state etc */	 TASK_RUNNABLE,-1,0,15, 0, PF_KTHREAD, \
 /* mm */ { 0, 0, {{0}}, 0, {0}} \
 }
 #endif
