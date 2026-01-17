@@ -112,7 +112,9 @@ after_page_table_setup:
 	br 	x2
 
 	.macro	create_pgd_entry, tbl, virt, tmp1, tmp2
+	// for PGD (PGD は1エントリで512GBをカバーする)
 	create_table_entry \tbl, \virt, PGD_SHIFT, \tmp1, \tmp2
+	// for PUD (PUD は1エントリで1GBをカバーする)
 	create_table_entry \tbl, \virt, PUD_SHIFT, \tmp1, \tmp2
 	.endm
 
@@ -151,8 +153,10 @@ __create_page_tables:
 	mov	x1, #VA_START 
 	create_pgd_entry x0, x1, x2, x3
 
+	// create_pgd_entry は PGD と PUD をひとつずつ作るため、1GB までしかマップされていない
 	// 1GB 以降の領域 (Local Peripherals) をマップするために PUD にエントリを追加
 	// x0 は現在 PMD1 (0-1GB用) のアドレスを指している
+	// todo: マクロを使って PUD の作成処理を共通化したい
 	adrp x2, pg_dir
 	add x2, x2, #PAGE_SIZE
 	ldr x1, =VA_START

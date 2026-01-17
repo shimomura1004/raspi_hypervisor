@@ -235,12 +235,16 @@ after_page_table_setup:
 .macro	create_pgd_entry, tbl, virt, tmp1, tmp2, tmp3
 	// PGD(page global directory) を作る
     //   直後にある PMD を指すエントリが追加される
+	// PGD は1エントリで512GBをカバーする
 	create_table_entry \tbl, \virt, PGD_SHIFT, #1, \tmp1, \tmp2, \tmp3
 	add	\tbl, \tbl, #PAGE_SIZE
 
 	// PUD(page upper directory) を作る
     //   直後にある PMD を指すエントリ(DRAM 用とローカルペリフェラル用)が追加される
+	// PMD は1エントリで1GBをカバーする
 	create_table_entry \tbl, \virt, PUD_SHIFT, #1, \tmp1, \tmp2, \tmp3
+
+	// 2つめの PUD を作る(ローカルペリフェラル用)
     // todo: virt を1ページ分ずらさないといけない
     // todo: virt が 0x0 のままになっているので動かない
     // todo: 応急処置で直接設定
