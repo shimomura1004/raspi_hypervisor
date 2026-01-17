@@ -42,15 +42,18 @@ void kernel_main()
 	currents[cpuid]->cpuid = cpuid;
 
 	if (cpuid == 0) {
+		// システムで一度だけ実施する初期化処理
 		uart_init();
 		init_printf(NULL, putc);
 
 		init_lock(&log_lock, "log_lock");
 		init_sched();
-		INFO("Initialization complete");
+
+		INFO("System initialization complete");
 		// initialized = 1;
 	}
 
+	// 各コアで実施する初期化処理
 	irq_vector_init();
 	timer_init();
 
@@ -69,7 +72,7 @@ void kernel_main()
 		// initialized = 1;
 	}
 
-	if (cpuid >= 3) {
+	if (cpuid >= 2) {
 		INFO("CPU %d sleeps", cpuid);
 		asm volatile("wfi");
 	}

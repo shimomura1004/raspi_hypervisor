@@ -6,7 +6,7 @@
 //       マルチコアで複数プロセスが動いていたため切り替わっているように見えていた
 
 // todo: 割込みの発生が指定した時間通りになっていない
-const unsigned int interval = 20000; // 20ms
+const unsigned int interval = 200000; // 20ms
 
 void timer_init ( void )
 {

@@ -18,14 +18,10 @@ _start:
 
 	cmp x0, #0
 	b.eq el3_entry		// Primary CPU
-	//cmp x0, #1
-	//b.eq loop		// Secondary CPU
-
-//proc_hang: 
-	//wfi
-	//b proc_hang
 
 loop:
+	// CPU0 以外はここでループして待つ
+
 	// この OS はリンカスクリプトによって 0xffff_0000_0000_0000 に配置される
 	// initialized も高位アドレスに配置されているため、そのまま ldr x1, [x0] はエラーになる
 	ldr x0, =initialized
