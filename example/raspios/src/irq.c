@@ -38,6 +38,14 @@ void enable_interrupt_controller(unsigned long cpuid)
 	// put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_1);
 }
 
+void disable_interrupt_controller(unsigned long cpuid)
+{
+	// generic timer の割込みを無効化する
+	put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, 0);
+
+	// put32(DISABLE_IRQS_1, SYSTEM_TIMER_IRQ_1);
+}
+
 void show_invalid_entry_message(int type, unsigned long esr, unsigned long address)
 {
 	WARN("%s, ESR_EL1: %x, address: %x", entry_error_messages[type], esr, address);
