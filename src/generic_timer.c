@@ -2,9 +2,8 @@
 #include "sched.h"
 #include "utils.h"
 
-// タスクスケジューリングの guranularity は 200ms
-// todo: ハイパーバイザよりも仮想 OS のタスク切り替えが早いとクラッシュする
-const static unsigned int interval_ms = 200;
+// vCPU タスクスケジューリングの guranularity は 50ms
+const static unsigned int interval_ms = 50;
 
 // CNTFRQ_EL0: Counter-timer Frequency register
 // https://developer.arm.com/documentation/111107/2025-12/AArch64-Registers/CNTFRQ-EL0--Counter-timer-Frequency-Register
