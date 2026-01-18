@@ -66,7 +66,7 @@ void _schedule(void)
 					next = i;
 				}
 			}
-INFO("c = %d", c);
+// INFO("c = %d", c);
 			if (c != -1) {
 				break;
 			}

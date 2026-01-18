@@ -72,7 +72,7 @@ void kernel_main()
 		initialized = 1;
 	}
 
-	if (cpuid >= 2) {
+	if (cpuid >= 4) {
 		disable_interrupt_controller(cpuid);
 		while (1) {
 			INFO("CPU %d sleeps", cpuid);
