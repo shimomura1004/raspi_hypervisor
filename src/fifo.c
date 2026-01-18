@@ -1,6 +1,7 @@
 #include "fifo.h"
 #include "mm.h"
 #include "debug.h"
+#include "spinlock.h"
 
 #define FIFO_SIZE 256   // warning: DO NOT exceed page size
 
@@ -9,6 +10,7 @@ struct fifo {
     unsigned int tail;
     unsigned int used;
     unsigned long buf[FIFO_SIZE];
+    struct spinlock lock;
 };
 
 #define NEXT_INDEX(i) (((i) + 1) == FIFO_SIZE ? 0 : ((i) + 1))
@@ -44,6 +46,7 @@ struct fifo *create_fifo()
     fifo->head = 0;
     fifo->tail = 0;
     fifo->used = 0;
+    init_lock(&fifo->lock, "fifo_lock");
 
     return fifo;
 }
@@ -55,9 +58,11 @@ void clear_fifo(struct fifo *fifo)
         return;
     }
 
+    acquire_lock(&fifo->lock);
     fifo->head = 0;
     fifo->tail = 0;
     fifo->used = 0;
+    release_lock(&fifo->lock);
 }
 
 int enqueue_fifo(struct fifo *fifo, unsigned long val)
@@ -67,13 +72,16 @@ int enqueue_fifo(struct fifo *fifo, unsigned long val)
         return -1;
     }
 
+    acquire_lock(&fifo->lock);
     if (is_full_fifo(fifo)) {
+        release_lock(&fifo->lock);
         return -1;
     }
 
     fifo->buf[fifo->head] = val;
     fifo->head = NEXT_INDEX(fifo->head);
     fifo->used++;
+    release_lock(&fifo->lock);
 
     return 0;
 }
@@ -85,7 +93,9 @@ int dequeue_fifo(struct fifo *fifo, unsigned long *val)
         return -1;
     }
 
+    acquire_lock(&fifo->lock);
     if (is_empty_fifo(fifo)) {
+        release_lock(&fifo->lock);
         return -1;
     }
 
@@ -95,6 +105,7 @@ int dequeue_fifo(struct fifo *fifo, unsigned long *val)
 
     fifo->tail = NEXT_INDEX(fifo->tail);
     fifo->used--;
+    release_lock(&fifo->lock);
 
     return 0;
 }
