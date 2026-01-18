@@ -145,10 +145,12 @@ int switch_to(struct task_struct * next)
 	cpu_switch_to(prev, next);
 	// cpu_switch_to したあとここに戻ってきた場合、
 	// この prev は少し前に sched を呼んで休止した自分自身のプロセスを指している
-	next->state = TASK_RUNNABLE;
-	next->cpuid = -1;
-	prev->state = TASK_RUNNING;
-	prev->cpuid = cpuid;
+
+	// 別のプロセスが cpu_switch_to を呼んでこのプロセスに制御が戻ってきた場合
+	// 切り替え前のプロセスの cpu_switch_to の前のコードで state/cpuid などは更新されているため
+	// 復帰後にこのプロセス内で state/cpuid などの値を更新する必要はない
+	// そもそもマルチコア環境ではこの時点で prev や next が他のコアに割り当てられている可能性があるため
+	// ここで state/cpuid などの値を修正することは不具合につながる
 
 	// cpu_switch_to で別のプロセスに切り替わったあと、
 	// しばらくしてまたこのプロセスのコンテキストに戻ってきた場合は、
