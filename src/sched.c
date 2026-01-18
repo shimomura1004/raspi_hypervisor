@@ -242,6 +242,8 @@ static void schedule(struct vcpu_struct *vcpu) {
     // ここに帰ってきたということは、おそらく yield されて scheduler に戻ってきた
 	DEBUG("Return to hv: vcpu=%d(0x%lx), lock=%d, pcpu=%d", vcpu->vcpu_id, vcpu, vcpu->lock.locked, pcpu->id);
 
+	// todo: 復帰後に vcpu の状態を更新するのは危険、既に他の pcpu で実行されているかもしれない
+
 	// 復帰後に vcpu が別の pcpu で実行されるかもしれないので、pcpu を再取得する
 	pcpu = current_pcpu();
 
