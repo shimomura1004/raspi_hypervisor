@@ -73,8 +73,9 @@ static const char *sync_error_reasons[] = {
 };
 
 static void handle_trap_wfx() {
-	yield();
-	increment_current_pc(4);
+	// yield();
+	// increment_current_pc(4);
+	asm volatile("wfi");
 }
 
 static void handle_trap_system(unsigned long esr) {

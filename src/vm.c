@@ -21,7 +21,7 @@ static void idle_loop() {
 	while (1) {
 		// todo: CPU を無駄に使わないようにしたい
 		//       ゲストが wfi を実行しても、トラップされて他の VM が動き出してしまう
-		// asm volatile("wfi");
+		asm volatile("wfi");
 	}
 }
 
