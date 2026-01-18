@@ -49,7 +49,7 @@ void kernel_main()
 		init_lock(&log_lock, "log_lock");
 		init_sched();
 
-		INFO("System initialization complete");
+		INFO("raspios initialization complete");
 		// initialized = 1;
 	}
 
