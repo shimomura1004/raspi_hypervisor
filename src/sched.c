@@ -230,12 +230,6 @@ static void schedule(struct vcpu_struct *vcpu) {
 	vcpu->state = VCPU_RUNNING;     // この vCPU は今実行中
 	pcpu->current_vcpu = vcpu;      // この pCPU はこの vCPU を実行中
 
-    // todo: sysregs に控えてあるから明示的なセットは不要かもしれない
-    // 仮想 CPU ID をセット
-    // 本来は MT ビットを見て Aff0 がスレッド ID か CPU ID かを判断しなくてはいけないが
-    // get_cpuid も含めて Aff0 が CPU ID であることを前提にしているので、ここでは無視する
-    // set_vmpidr_el2(0x80000000 | vcpu->vcpu_id);
-
 	DEBUG("Schedule from hv: vcpu=%d(0x%lx), lock=%d, pcpu=%d", vcpu->vcpu_id, vcpu, vcpu->lock.locked, pcpu->id);
 	// vcpu を実行する(しばらくここには帰ってこない)
 	cpu_switch_to(&pcpu->scheduler_context, vcpu);

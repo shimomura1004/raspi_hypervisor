@@ -31,18 +31,6 @@ _start:
 	// コア 1-3 は initialized_flag がセットされるのを待って実行
 	ldr x0, =initialized_flag
 
-// コア3はここで止める
-mrs	x3, mpidr_el1
-and	x3, x3,#0xFF
-sub x3, x3, #1
-cbz x3, wait_loop
-sub x3, x3, #1
-cbz x3, wait_loop
-
-hang_loop:
-	wfe
-	b hang_loop
-
 wait_loop:
 	// コア 0 が hypervisor_main で sev 命令を実行するまで待つ
 	wfe
@@ -97,11 +85,6 @@ el3_entry:
 	// elr_el3 は EL3 から eret するときに使われるアドレスを入れる
 	adr	x0, el2_entry
 	msr	elr_el3, x0
-
-	// 仮想コアはすべて CPU ID を 0 にする
-	// todo: ひとつの VM に複数のコアを割り当てる場合は修正が必要
-	ldr x1, =0x80000000
-	msr vmpidr_el2, x1
 
 	// 指定した状態(EL2)で、指定したアドレス(el2_entry)に復帰
 	eret

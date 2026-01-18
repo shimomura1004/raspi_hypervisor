@@ -113,9 +113,9 @@ static struct vcpu_struct *create_vcpu(unsigned long vcpuid) {
 	prepare_initial_sysregs();
 	memcpy(&vcpu->cpu_sysregs, &initial_sysregs, sizeof(struct cpu_sysregs));
 
-	// vCPU の CPU ID を設定
+	// この vCPU の CPU ID を設定
+	// 実際に vmpidr_el1 レジスタにセットされるのはこの vCPU に pCPU が割り当たったとき
 	vcpu->cpu_sysregs.mpidr_el1 = 0x80000000 | vcpuid;
-	set_vmpidr_el2(0x80000000 | vcpuid);
 
 	// el1 で動くゲスト OS カーネルは、最初は switch_from_kthread 関数から動き出す
 	vcpu->cpu_context.pc = (unsigned long)switch_from_kthread;
