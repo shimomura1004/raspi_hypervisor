@@ -27,12 +27,12 @@
 	b	\label
 	.endm
 
-	//-------- kernel_entry --------------------------------------------------
+	//-------- save_regs --------------------------------------------------
+	// 汎用レジスタを退避する
+	// ハイパーバイザを実行中に割込みが発生した場合はこれだけでよい
 	// #define S_FRAME_SIZE	272	// size of all saved registers
 
-	// ハンドラが呼ばれた直後にやることをまとめたマクロ
-	// 具体的にはレジスタの保全を行う
-	.macro	kernel_entry
+	.macro	save_regs
 	// 控えるレジスタの容量分 sp をずらしてメモリ上に領域を確保する
 	sub	sp, sp, #S_FRAME_SIZE
 	// x0-x29 レジスタをスタックに控える (stp は2つのレジスタを一気にメモリに書き込む命令)
@@ -66,19 +66,21 @@
 	// これらもメモリ上に保存 (x30 はリンクレジスタ)
 	stp	x30, x21, [sp, #16 * 15]
 	stp	x22, x23, [sp, #16 * 16]
+	.endm
 
-	// todo: el2 のときに割込みが発生した場合は呼ぶ必要がない
-	// vm_leaving_work 内の save_sysregs で sp_el0/el1 の退避をしている
-	// kernel_entry で退避する必要はない
+	//-------- kernel_entry --------------------------------------------------
+	// EL1 を実行中にハンドラが呼ばれた直後にやることをまとめたマクロ
+	// save_regs でレジスタの保全を行ったあと、vm_leaving_work でシステムレジスタを退避する
+	.macro	kernel_entry
+	save_regs
 	bl vm_leaving_work
 	.endm
 
-	//-------- kernel_exit --------------------------------------------------
-
+	//-------- restore_regs --------------------------------------------------
+	// 汎用レジスタを復元する
+	// ハイパーバイザを実行中に割込みが発生した場合はこれだけでよい
 	// 基本的には kernel_entry と逆のことをやっているだけ
-	.macro	kernel_exit
-	bl vm_entering_work
-
+	.macro	restore_regs
 	ldp	x30, x21, [sp, #16 * 15]
 	ldp	x22, x23, [sp, #16 * 16]
 
@@ -104,6 +106,14 @@
 	ldp	x28, x29, [sp, #16 * 14]
 	add	sp, sp, #S_FRAME_SIZE
 	eret
+	.endm
+
+	//-------- kernel_exit --------------------------------------------------
+	// EL1 を実行中にハンドラが呼ばれた直後にやることをまとめたマクロ
+	// vm_entering_work でシステムレジスタを復元し、restore_regs で汎用レジスタを復元する
+	.macro	kernel_exit
+	bl vm_entering_work
+	restore_regs
 	.endm
 
 	//-----------------------------------------------------------------------
@@ -196,9 +206,9 @@ error_invalid_el01_32:
 //       el2 から呼び出すときは本物のメモリ領域を直接読むべきでは？
 //       → el2 でアクセスするとトラップされないので本物がそのまま読まれる？
 el2_irq:
-	kernel_entry
+	save_regs
 	bl	handle_irq
-	kernel_exit
+	restore_regs
 
 el01_irq:
 	kernel_entry
