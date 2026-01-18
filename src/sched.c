@@ -339,3 +339,14 @@ void scheduler(unsigned long cpuid) {
 		}
 	}
 }
+
+// 他に実行可能な vCPU があるかどうかを判定する
+int should_schedule_other_vcpu(struct vcpu_struct *current) {
+	for (int i = NUMBER_OF_PCPUS; i < NUMBER_OF_VCPUS; i++) {
+		struct vcpu_struct *vcpu = vcpus[i];
+		if (vcpu && vcpu != current && vcpu->state == VCPU_RUNNABLE) {
+			return 1;
+		}
+	}
+	return 0;
+}

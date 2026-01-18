@@ -73,9 +73,14 @@ static const char *sync_error_reasons[] = {
 };
 
 static void handle_trap_wfx() {
-	// yield();
-	// increment_current_pc(4);
-	asm volatile("wfi");
+	// ゲストの wfi をトラップしており、そのままでは PC が進まないため手動で進める
+	increment_current_pc(4);
+
+	if (should_schedule_other_vcpu(current_pcpu()->current_vcpu)) {
+		yield();
+	} else {
+		asm volatile("wfi");
+	}
 }
 
 static void handle_trap_system(unsigned long esr) {

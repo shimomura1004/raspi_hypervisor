@@ -206,6 +206,7 @@ void show_vm_list(void);
 
 void yield();
 void scheduler(unsigned long);
+int should_schedule_other_vcpu(struct vcpu_struct *current);
 
 #endif
 #endif
