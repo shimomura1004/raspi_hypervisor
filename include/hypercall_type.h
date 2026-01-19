@@ -11,5 +11,6 @@
 
 // 仮想マシン操作用
 #define HYPERCALL_TYPE_CREATE_VM_FROM_ELF   100 // VM を作成する
+#define HYPERCALL_TYPE_DESTOY_VM            101 // VM を破棄する
 
 #endif

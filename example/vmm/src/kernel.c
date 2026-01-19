@@ -98,8 +98,7 @@ void execute_command(char *buf) {
 			return;
 		}
 		printf("killing vm %s...\n", args[1]);
-		// todo: destroy_vm を実装する(VMID を渡すだけなので構造体は不要)
-		// destroy_vm(*args[1] - '0');
+		destroy_vm(*args[1] - '0');
 	}
 	else if (EQUAL(args[0], "list")) {
 		printf("'list' is not supported.\n");

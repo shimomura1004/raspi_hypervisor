@@ -27,3 +27,9 @@ new_vm:
     ldr x8, vm_args_p
     hvc #HYPERCALL_TYPE_CREATE_VM_FROM_ELF
 	ret
+
+.globl destroy_vm
+destroy_vm:
+	mov x8, x0
+	hvc #HYPERCALL_TYPE_DESTOY_VM
+	ret
