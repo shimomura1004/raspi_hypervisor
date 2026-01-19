@@ -6,16 +6,15 @@
 #include "utils.h"
 #include "generic_timer.h"
 #include "irq.h"
+#include "peripherals/irq.h"
 #include "vm.h"
 #include "sched.h"
 #include "mini_uart.h"
 #include "mm.h"
 #include "sd.h"
-#include "debug.h"
 #include "loader.h"
-#include "peripherals/irq.h"
-#include "peripherals/mailbox.h"
 #include "cpu_core.h"
+#include "debug.h"
 
 // boot.S で初期化が終わるまでコアを止めるのに使うフラグ
 volatile unsigned long initialized_flag = 0;
@@ -55,7 +54,6 @@ static void initialize_pcpu(unsigned long cpuid) {
 
 // 全コア共通で一度だけ実施する初期化処理
 static void initialize_hypervisor() {
-	// initiate_idle_vms();
 	mm_init();
 	uart_init();
 	init_printf(NULL, putc);
@@ -68,21 +66,15 @@ static void initialize_hypervisor() {
 	// put32(MBOX_CORE2_CONTROL, MBOX_CONTROL_IRQ_0_BIT);
 	// put32(MBOX_CORE3_CONTROL, MBOX_CONTROL_IRQ_0_BIT);
 
-	// // 中途半端なところで割込み発生しないようにタイマと UART の有効化が終わるまで割込み禁止
-	// disable_irq();
-	// enable_interrupt_controller();
-	// enable_irq();
-
 	// SD カードの初期化
 	if (sd_init() < 0) {
 		PANIC("sd_init() failed");
 	}
 }
 
-// todo: このへんは dom0 相当のゲストで実装すべき
-static void prepare_guest_vms() {
+static void prepare_vmm() {
 	if (create_vm_with_loader(elf_binary_loader, &vmm_elf_args) < 0) {
-		printf("error while starting VMM\n");
+		WARN("error while starting VMM");
 	}
 }
 
@@ -101,7 +93,7 @@ void hypervisor_main(unsigned long cpuid)
 		create_idle_vm();
 		INFO("Idle VM and idle vCPUs are created");
 
-		prepare_guest_vms();
+		prepare_vmm();
 		INFO("guest VMs are prepared");
 
 		initialized_flag = 1;
