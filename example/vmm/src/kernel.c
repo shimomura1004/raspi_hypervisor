@@ -85,16 +85,21 @@ void execute_command(char *buf) {
 	if (EQUAL(args[0], "new")) {
 		if (arg_count != 3) {
 			print_help_new();
+			return;
 		}
-		else {
-			printf("create a new vm '%s' with vcpu_num %s\n", args[1], args[2]);
-			for (int i=0; (vm_args.filename[i] = args[1][i]); i++);
-			vm_args.vcpu_num = *args[2] - '0';
-			new_vm();
-		}
+		printf("create a new vm '%s' with vcpu_num %s\n", args[1], args[2]);
+		for (int i=0; (vm_args.filename[i] = args[1][i]); i++);
+		vm_args.vcpu_num = *args[2] - '0';
+		new_vm();
 	}
 	else if (EQUAL(args[0], "kill")) {
-		printf("'kill' is not supported.\n");
+		if (arg_count != 2) {
+			print_help_kill();
+			return;
+		}
+		printf("killing vm %s...\n", args[1]);
+		// todo: destroy_vm を実装する(VMID を渡すだけなので構造体は不要)
+		// destroy_vm(*args[1] - '0');
 	}
 	else if (EQUAL(args[0], "list")) {
 		printf("'list' is not supported.\n");

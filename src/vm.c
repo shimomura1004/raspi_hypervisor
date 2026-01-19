@@ -50,6 +50,7 @@ static void start_vcpu() {
 
 static struct cpu_sysregs initial_sysregs;
 
+// todo: これはなに？システムレジスタの値を控える意味は？
 static void prepare_initial_sysregs(void) {
 	static int is_first_call = 1;
 
@@ -212,6 +213,8 @@ int create_vm_with_loader(loader_func_t loader, void *arg) {
 	init_lock(&vm->lock, "vm_lock");
 
 	// VM を管理リストに登録
+	// todo: 単純に前から順番に使うので、VM を削除した場合の管理ができない
+	//       空きエントリを探す実装に修正する
 	int vmid = current_number_of_vms++;
 	vms2[vmid] = vm;
 	vm->vmid = vmid;
@@ -229,7 +232,8 @@ int create_vm_with_loader(loader_func_t loader, void *arg) {
 		// todo: create_vcpu 内で vm に対する処理を実行しているので取り出してループの外に置く
 		struct vcpu_struct *vcpu = create_vcpu(i);
 		if (!vcpu) {
-			// todo: 途中で失敗した場合は、既に作った vCPU を削除しないといけない
+			// todo: 途中で失敗した場合は、既に作った vCPU を削除しないといけない(vcpus への登録も解除)
+			//       その他、VM 用のページ、コンソールのfifo2つ、vms への登録の解除なども必要
 			WARN("Failed to allocate page for vCPU");
 			return -1;
 		}
