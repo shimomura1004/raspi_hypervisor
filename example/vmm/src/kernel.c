@@ -24,38 +24,90 @@ int strncmp(char *a, char *b, int n) {
 	return 0;
 }
 
-#define EQUAL(A, B) (strncmp(A, B, sizeof(B)) == 0)
-void execute_command(char *buf) {
-	char *command = buf;
-	char *arg = 0;
+void print_help_new() {
+	printf("  new <filename> <vcpu_num>\n");
+}
+void print_help_kill() {
+	printf("  kill <vmid>\n");
+}
+void print_help_list() {
+	printf("  list\n");
+}
+void print_help_shutdown() {
+	printf("  shutdown\n");
+}
+void print_help() {
+	print_help_new();
+	print_help_kill();
+	print_help_list();
+	print_help_shutdown();
+}
 
-	for (int i=0; i < BUFFER_LENGTH; i++) {
-		if (buf[i] == ' ') {
-			arg = &buf[i + 1];
-			buf[i] = 0;
-			break;
+#define ARG_MAX 8
+// "new RASPIOS.ELF 2" -> "new" "RASPIOS.ELF" "2"
+int command_parser(char *buf, char *args[]) {
+	int arg_count = 0;
+	int start_index = 0;
+
+	while (arg_count < ARG_MAX) {
+		for (int idx = start_index; idx < BUFFER_LENGTH; idx++) {
+			if ((buf[idx] == ' ') || (buf[idx] == 0)) {
+				args[arg_count++] = &buf[start_index];
+				start_index = idx + 1;
+
+				if (buf[idx] == 0) {
+					return arg_count;
+				}
+
+				buf[idx] = 0;
+				break;
+			}
 		}
 	}
 
-	if (arg == 0) {
-		printf("error: %s\n", buf);
+	return -1;
+}
+
+#define EQUAL(A, B) (strncmp(A, B, sizeof(B)) == 0)
+void execute_command(char *buf) {
+	char *args[ARG_MAX];
+	// todo: char *args[ARG_MAX] = {}; とすると -ffreestanding としても memset が参照されるため 
+	for (int i=0; i < ARG_MAX; i++) {
+		args[i] = 0;
+	}
+
+	int arg_count = command_parser(buf, args);
+	if (arg_count < 0) {
+		printf("command error\n");
 		return;
 	}
 
-	if (EQUAL(command, "new")) {
-		printf("create a new vm: %s\n", arg);
-		for (int i=0; (vm_args.filename[i] = arg[i]); i++);
-		new_vm();
+	if (EQUAL(args[0], "new")) {
+		if (arg_count != 3) {
+			print_help_new();
+		}
+		else {
+			printf("create a new vm '%s' with vcpu_num %s\n", args[1], args[2]);
+			for (int i=0; (vm_args.filename[i] = args[1][i]); i++);
+			vm_args.vcpu_num = *args[2] - '0';
+			new_vm();
+		}
 	}
-	else if (EQUAL(command, "kill")) {
+	else if (EQUAL(args[0], "kill")) {
+		printf("'kill' is not supported.\n");
 	}
-	else if (EQUAL(command, "list")) {
-
+	else if (EQUAL(args[0], "list")) {
+		printf("'list' is not supported.\n");
 	}
-	else if (EQUAL(command, "shutdown")) {
+	else if (EQUAL(args[0], "shutdown")) {
+		printf("'shutdown' is not supported.\n");
+	}
+	else if (EQUAL(args[0], "help")) {
+		print_help();
 	}
 	else {
-		printf("command error: %s\n", command);
+		printf("command error: %s\n", args[0]);
+		print_help();
 	}
 }
 
