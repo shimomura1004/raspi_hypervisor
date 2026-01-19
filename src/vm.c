@@ -227,7 +227,7 @@ int create_vm_with_loader(loader_func_t loader, void *arg) {
 
 	// todo: いったんすべての vm で2コア固定とする
 	// todo: vCPU の作りすぎをチェックしていない
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < vm->loader_args.vcpu_num; i++) {
 		// 必要なだけ vCPU を準備
 		// todo: create_vcpu 内で vm に対する処理を実行しているので取り出してループの外に置く
 		struct vcpu_struct *vcpu = create_vcpu(i);

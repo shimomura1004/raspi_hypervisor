@@ -8,6 +8,7 @@ struct loader_args {
     unsigned long entry_point;
     unsigned long sp;
     char filename[MAX_FILE_PATH];
+    unsigned long vcpu_num;
 };
 
 struct vcpu_struct;
