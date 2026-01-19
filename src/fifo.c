@@ -51,6 +51,14 @@ struct fifo *create_fifo()
     return fifo;
 }
 
+void destroy_fifo(struct fifo *fifo)
+{
+    if (!fifo) {
+        return;
+    }
+    free_page(fifo);
+}
+
 void clear_fifo(struct fifo *fifo)
 {
     if (!fifo) {
