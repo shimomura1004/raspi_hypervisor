@@ -206,7 +206,6 @@ int create_vm_with_loader(loader_func_t loader, void *arg) {
 
 	// VM の初期化
 	vm->loader_args = *(struct loader_args *)arg;	// ローダの引数をコピー
-	// todo: vm 名の表示が壊れる(メモリが解放されている？)
 	vm->name = vm->loader_args.filename;
 
 	init_vm_console(vm);

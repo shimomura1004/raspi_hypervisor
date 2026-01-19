@@ -4,10 +4,7 @@
 #include "peripherals/systimer.h"
 #include "peripherals/mailbox.h"
 
-// todo: これは system timer である
-//       コアごとにある generic timer ではない
-//       VM の切り替えには generic timer を使うべき
-
+// これは system timer である
 // RPi3 には 1tick ごとにカウントアップするタイマが搭載されていて
 // 合計4個の比較用レジスタがあり、カウンタの値が一致すると対応する割込み線を発火させる
 

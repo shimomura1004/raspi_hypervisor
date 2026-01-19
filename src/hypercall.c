@@ -40,6 +40,7 @@ void hypercall(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigne
 		struct loader_args args = *(struct loader_args *)get_pa_2nd(a0);
 
 		INFO("Prepare VM(%s) by hypercall", args.filename);
+		// todo: VM の作成に失敗した場合の処理を追加する
         int vmid = create_vm_with_loader(elf_binary_loader, &args);
         regs->regs[8] = vmid;
 		break;

@@ -16,7 +16,6 @@
 volatile unsigned long initialized = 0;
 struct spinlock log_lock;
 
-// todo: ハイパーバイザ上で動かすとタスク切り替えが遅くなる
 // ゲストから systimer にアクセスすると MMIO 領域にアクセスすることになるので、
 // ホストの handle_mem_abort で処理される(処理の実体は bcm2837.c:handle_systimer_write にある)
 

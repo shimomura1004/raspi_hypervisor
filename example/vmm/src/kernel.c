@@ -71,7 +71,7 @@ int command_parser(char *buf, char *args[]) {
 #define EQUAL(A, B) (strncmp(A, B, sizeof(B)) == 0)
 void execute_command(char *buf) {
 	char *args[ARG_MAX];
-	// todo: char *args[ARG_MAX] = {}; とすると -ffreestanding としても memset が参照されるため 
+	// char *args[ARG_MAX] = {}; とすると -ffreestanding としても memset が参照されるため 
 	for (int i=0; i < ARG_MAX; i++) {
 		args[i] = 0;
 	}
