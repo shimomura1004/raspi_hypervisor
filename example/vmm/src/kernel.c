@@ -6,6 +6,7 @@
 #define BUFFER_LENGTH 128
 
 void new_vm();
+void destroy_vm(int vmid);
 
 struct loader_args vm_args = {
 	.loader_addr = 0x0,

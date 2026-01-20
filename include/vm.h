@@ -20,6 +20,7 @@ struct pt_regs *vcpu_pt_regs(struct vcpu_struct *);
 
 int create_idle_vm();
 int create_vm_with_loader(loader_func_t, void *);
+void destroy_vm(int);
 
 int is_uart_forwarded_vm(struct vm_struct2 *);
 void flush_vm_console(struct vm_struct2 *);

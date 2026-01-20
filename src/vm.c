@@ -285,3 +285,47 @@ void flush_vm_console(struct vm_struct2 *vm) {
 		printf("%c", val);
 	}
 }
+
+// VMID から vm_struct2 構造体を取得する
+// todo: 今は VMID 順に vms2 に構造体が入っている前提になっているので、必要に応じて直す
+static struct vm_struct2 *get_vm_by_id(int vmid) {
+	if (vmid < 0 || vmid >= NUMBER_OF_VMS) {
+		return NULL;
+	}
+	return vms2[vmid];
+}
+
+void destroy_vm(int vmid) {
+	struct vm_struct2 *vm = get_vm_by_id(vmid);
+
+	if (!vm) {
+		return;
+	}
+
+	// todo: vcpu を消すまえに vcpu を停止させなくてはいけない
+
+	// VM に紐づく vCPU を削除
+	// vm_struct は vcpu への参照を持っていないので vcpu の配列を全走査するしかない
+	for (int i = 0; i < NUMBER_OF_VCPUS; i++) {
+		struct vcpu_struct *vcpu = vcpus[i];
+		if (vcpu && vcpu->vm == vm) {
+			free_page(vcpu);
+			vcpus[i] = NULL;
+		}
+	}
+
+	// VM 用のメモリを解放
+	free_vm_memory(&vm->mm);
+
+	// コンソール用の FIFO を解放
+	destroy_fifo(vm->console.in_fifo);
+	destroy_fifo(vm->console.out_fifo);
+
+	// 管理リストから削除
+	if (vm->vmid >= 0 && vm->vmid < NUMBER_OF_VMS) {
+		vms2[vm->vmid] = NULL;
+	}
+
+	// VM 構造体を解放
+	free_page(vm);
+}

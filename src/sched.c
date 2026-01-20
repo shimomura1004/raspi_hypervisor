@@ -18,7 +18,7 @@ struct vcpu_struct *vcpus[NUMBER_OF_VCPUS];
 int current_number_of_vcpus = NUMBER_OF_PCPUS;
 
 // 現在実行中の VM の管理リストと保持数(idle_vms があるので初期値は 1)
-struct vm_struct2 *vms2[NUMBER_OF_VMS];
+struct vm_struct2 *vms2[NUMBER_OF_VMS] = {};
 int current_number_of_vms = 1;
 
 void set_cpu_virtual_interrupt(struct vcpu_struct *vcpu) {
@@ -202,6 +202,9 @@ void show_vm_list() {
 		   /* %7s  */ "MMIO");
 	for (int i = 0; i < current_number_of_vms; i++) {
         struct vm_struct2 *vm = vms2[i];
+		if (!vm) {
+			continue;
+		}
         printf("%c %4d %12s %4s %4s %10s %8s %7d %7d %7d %7d %7d %7d\n",
                /* %c   */ is_uart_forwarded_vm(vm) ? '*' : ' ',
 			   /* %4d  */ vm->vmid,

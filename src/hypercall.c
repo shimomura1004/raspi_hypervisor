@@ -48,7 +48,7 @@ void hypercall(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigne
 
 	case HYPERCALL_TYPE_DESTOY_VM: {
 		INFO("Destroy VM(%d) by hypercall", (int)a0);
-		//destroy_vm((int)a0);
+		destroy_vm((int)a0);
 		break;
 	}
 

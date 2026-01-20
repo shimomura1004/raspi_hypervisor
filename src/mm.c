@@ -158,6 +158,35 @@ void map_stage2_page(struct vcpu_struct *vcpu, unsigned long ipa, unsigned long 
 	vcpu->vm->mm.vm_pages_count++;
 }
 
+static void free_stage2_table(unsigned long table, int level) {
+	unsigned long *pgd = (unsigned long *)(table + VA_START);
+	for (int i = 0; i < PTRS_PER_TABLE; i++) {
+		if (pgd[i]) {
+			unsigned long next = pgd[i] & PAGE_MASK;
+			if (level < 3) {
+				free_stage2_table(next, level + 1);
+			} else {
+				// レベル3のエントリは物理ページを参照しているのでこれを free する
+				if (next >= LOW_MEMORY && next < HIGH_MEMORY) {
+					free_page((void *)(next + VA_START));
+				}
+			}
+		}
+	}
+	// 子のテーブルをすべて解放したら自分自身を開放する
+	free_page((void *)(table + VA_START));
+}
+
+void free_vm_memory(struct mm_struct *mm) {
+	// stage2 テーブルを解放する
+	if (mm->first_table) {
+		free_stage2_table(mm->first_table, 1);
+		mm->first_table = 0;
+	}
+	mm->vm_pages_count = 0;
+	mm->kernel_pages_count = 0;
+}
+
 // 指定されたゲストの仮想アドレスをゲストの物理アドレスに変換する
 unsigned long get_ipa(unsigned long va) {
 	// メモリページの IPA を取得

@@ -58,6 +58,7 @@ void map_stage2_page(struct vcpu_struct *vm, unsigned long ipa,
 unsigned long allocate_page();
 unsigned long allocate_vm_page(struct vcpu_struct *vm, unsigned long ipa);
 void set_vm_page_notaccessable(struct vcpu_struct *vm, unsigned long va);
+void free_vm_memory(struct mm_struct *mm);
 
 int handle_mem_abort(unsigned long addr, unsigned long esr);
 
