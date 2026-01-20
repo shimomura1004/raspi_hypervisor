@@ -9,6 +9,7 @@
 #include "fifo.h"
 #include "irq.h"
 #include "loader.h"
+#include "cpu_core.h"
 
 // 各スレッド用の領域の末尾に置かれた vcpu_struct へのポインタを返す
 struct pt_regs * vcpu_pt_regs(struct vcpu_struct *vcpu) {
@@ -302,10 +303,41 @@ void destroy_vm(int vmid) {
 		return;
 	}
 
-	// todo: vcpu を消すまえに vcpu を停止させなくてはいけない
+	// VM に紐づく vCPU を停止
+	// vm_struct は vcpu への参照を持っていないので vcpu の配列を全走査するしかない
+	for (int i = 0; i < NUMBER_OF_VCPUS; i++) {
+		struct vcpu_struct *vcpu = vcpus[i];
+		if (vcpu && vcpu->vm == vm) {
+			acquire_lock(&vcpu->lock);
+			vcpu->state = VCPU_ZOMBIE;
+			release_lock(&vcpu->lock);
+		}
+	}
+
+	// 他のコアで実行中の vCPU が停止するのを待つ
+	// vCPU の状態を ZOMBIE にしたので、しばらくすれば停止する(pCPU 上で実行されなくなる)
+	while (1) {
+		int busy = 0;
+		for (int i = 0; i < NUMBER_OF_PCPUS; i++) {
+			if (i == get_cpuid()) {
+				// 自分自身は既に EL2 になっているのでスキップしていい
+				continue;
+			}
+
+			// すべての pCPU に対し、停止したい VM の vCPU を実行していないか確認する
+			struct pcpu_struct *pcpu = pcpu_of(i);
+			if (pcpu->current_vcpu && pcpu->current_vcpu->vm == vm) {
+				// 実行している pCPU を見つけた場合はフラグを立てる
+				busy = 1;
+				break;
+			}
+		}
+		if (!busy) {
+			break;
+		}
+	}
 
 	// VM に紐づく vCPU を削除
-	// vm_struct は vcpu への参照を持っていないので vcpu の配列を全走査するしかない
 	for (int i = 0; i < NUMBER_OF_VCPUS; i++) {
 		struct vcpu_struct *vcpu = vcpus[i];
 		if (vcpu && vcpu->vm == vm) {

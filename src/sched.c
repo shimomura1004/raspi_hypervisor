@@ -269,7 +269,11 @@ void yield() {
 
     // vCPU を停止するので、ステータスを更新
 	// 割込みの有効・無効状態は CPU の状態ではなくこのスレッドの状態なので、退避・復帰させる必要がある
-	vcpu->state = VCPU_RUNNABLE;    // この vCPU は、実行可能か、終了済み
+	if (vcpu->state != VCPU_ZOMBIE) {
+		// 外部から強制終了される場合、vCPU の状態が ZOMBIE になっている
+		// その場合は RUNNABLE に戻さない
+		vcpu->state = VCPU_RUNNABLE;
+	}
     pcpu->current_vcpu = NULL;      // この pCPU は vCPU を実行していない
     // int interrupt_enable = vcpu->interrupt_enable;
 
