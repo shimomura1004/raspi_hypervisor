@@ -37,11 +37,15 @@ void print_help_list() {
 void print_help_shutdown() {
 	printf("  shutdown\n");
 }
+void print_help_help() {
+	printf("  help\n");
+}
 void print_help() {
 	print_help_new();
 	print_help_kill();
 	print_help_list();
 	print_help_shutdown();
+	print_help_help();
 }
 
 #define ARG_MAX 8
@@ -130,6 +134,7 @@ void kernel_main(void)
 		printf("> ");
 
 		while (1) {
+			// todo: busy loop ではなく sleep したい
 			buf[count] = uart_recv();
 
 			if (buf[count] == '\n' || buf[count] == '\r') {
