@@ -357,3 +357,45 @@ int should_schedule_other_vcpu(struct vcpu_struct *current) {
 	}
 	return 0;
 }
+
+void sleep(void *chan, struct spinlock *lk) {
+	// vCPU の状態を SLEEPING にして、他のプロセスから wakeup されるのを待つ
+
+	struct vcpu_struct *vcpu = current_pcpu()->current_vcpu;
+
+	// vCPU の状態を変えるのでロックを取る必要がある
+	acquire_lock(&vcpu->lock);
+
+	// vCPU を変更する権利を得たのでスリープ状態にする
+	// デッドロックを避けるため、寝る前に呼び出した vCPU が持っていたロックを解放する
+	release_lock(lk);
+
+	vcpu->chan = chan;
+	vcpu->state = VCPU_SLEEPING;
+
+	// todo: yield が呼びたいが、yield 内部で vcpu->lock を取ろうとするのでデッドロックになる
+
+	vcpu->chan = 0;
+
+	release_lock(&vcpu->lock);
+	acquire_lock(lk);
+}
+
+void wakeup(void *chan) {
+	// 全 vCPU を走査し、chan に紐づいて SLEEP している vCPU を RUNNABLE 状態にする
+
+	for (int i = NUMBER_OF_PCPUS; i < NUMBER_OF_VCPUS; i++) {
+		struct vcpu_struct *vcpu = vcpus[i];
+		if (!vcpu) {
+			continue;
+		}
+
+		acquire_lock(&vcpu->lock);
+
+		if (vcpu->state == VCPU_SLEEPING && vcpu->chan == chan) {
+			vcpu->state = VCPU_RUNNABLE;
+		}
+
+		release_lock(&vcpu->lock);
+	}
+}

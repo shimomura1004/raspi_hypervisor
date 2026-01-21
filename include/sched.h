@@ -15,6 +15,7 @@
 enum VCPU_STATE {
     VCPU_RUNNING = 0,
     VCPU_RUNNABLE,
+    VCPU_SLEEPING,
     VCPU_ZOMBIE,
 };
 
@@ -189,6 +190,8 @@ struct vcpu_struct {
 
     struct vm_struct2 *vm;              // この vCPU が実行している VM
     
+    void *chan;                         // sleep/wakeup 用のチャネル
+
     // todo: 今のスケジューラでは使っていない
     // unsigned long flags;
     // long counter;                    // VM が使える残りの CPU 時間を保持
@@ -207,6 +210,9 @@ void show_vm_list(void);
 void yield();
 void scheduler(unsigned long);
 int should_schedule_other_vcpu(struct vcpu_struct *current);
+
+void sleep(void *chan, struct spinlock *lk);
+void wakeup(void *chan);
 
 #endif
 #endif
