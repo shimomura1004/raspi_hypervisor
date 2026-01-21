@@ -361,7 +361,8 @@ int should_schedule_other_vcpu(struct vcpu_struct *current) {
 void sleep(void *chan, struct spinlock *lk) {
 	// vCPU の状態を SLEEPING にして、他のプロセスから wakeup されるのを待つ
 
-	struct vcpu_struct *vcpu = current_pcpu()->current_vcpu;
+	struct pcpu_struct *pcpu = current_pcpu();
+	struct vcpu_struct *vcpu = pcpu->current_vcpu;
 
 	// vCPU の状態を変えるのでロックを取る必要がある
 	acquire_lock(&vcpu->lock);
@@ -373,7 +374,15 @@ void sleep(void *chan, struct spinlock *lk) {
 	vcpu->chan = chan;
 	vcpu->state = VCPU_SLEEPING;
 
-	// todo: yield が呼びたいが、yield 内部で vcpu->lock を取ろうとするのでデッドロックになる
+	// yield() は内部で vcpu->lock を取得しようとするため、ここでは呼べない
+	// 代わりに yield() と同等のコンテキストスイッチ処理を直接行う
+	pcpu->current_vcpu = NULL;
+	cpu_switch_to(vcpu, &pcpu->scheduler_context);
+
+	// 復帰後に vcpu が別の pcpu で実行されるかもしれないので、pcpu を再取得する
+	pcpu = current_pcpu();
+	vcpu->state = VCPU_RUNNING;
+	pcpu->current_vcpu = vcpu;
 
 	vcpu->chan = 0;
 
