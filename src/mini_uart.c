@@ -57,12 +57,18 @@ void uart_send_string(char *str) {
     }
 }
 
+// todo: 送信バッファが空、受信バッファにデータあり、といった割込みを受けて wakeup させる
+
+static void handle_uart_irq_send(void) {
+printf("SEND!\n");
+}
+
 // uart_forwarded_vm が指す VM かホストに文字データを追加する
 // todo: キューに値が入っているときは、そのゲストに切り替わったときに仮想割り込みを発生させる
-void handle_uart_irq(void) {
+static void handle_uart_irq_recv(void) {
     static int is_escaped = 0;
 
-    char received = get32(AUX_MU_IO_REG) & 0xff;
+    char received = get32(AUX_MU_IO_REG) & AUX_MU_IO_REG_DATA;
     struct vm_struct2 *vm;
 
     if (is_escaped) {
@@ -97,6 +103,20 @@ enqueue_char:
         if (vm) {
             enqueue_fifo(vm->console.in_fifo, received);
         }
+    }
+}
+
+void handle_uart_irq(void) {
+    unsigned int iir = get32(AUX_MU_IIR_REG);
+    unsigned int iir_interrupt_id = (iir & AUX_MU_IIR_REG_INTERRUPT_ID) >> 1;
+
+    if (iir_interrupt_id == 0b01) {
+        // 送信バッファが空
+        handle_uart_irq_send();
+    }
+    else if (iir_interrupt_id == 0b10) {
+        // 受信バッファにデータあり
+        handle_uart_irq_recv();
     }
 }
 
