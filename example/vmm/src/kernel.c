@@ -146,7 +146,7 @@ void kernel_main(void)
 
 				buf[count] = 0;
 				execute_command(buf);
-				break;;
+				break;
 			}
 			else if (buf[count] == 127) {
 				if (count > 0) {

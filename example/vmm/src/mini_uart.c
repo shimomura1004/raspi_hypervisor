@@ -14,6 +14,7 @@ void uart_send ( char c )
 char uart_recv ( void )
 {
 	while(1) {
+		// todo: ここを sleep させたい
 		if(get32(AUX_MU_LSR_REG)&0x01) 
 			break;
 	}
