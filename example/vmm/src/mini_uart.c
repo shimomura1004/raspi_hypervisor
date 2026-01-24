@@ -10,8 +10,9 @@ static volatile int rx_tail = 0;
 void uart_send ( char c )
 {
 	while(1) {
-		if(get32(AUX_MU_LSR_REG)&0x20) 
+		if(get32(AUX_MU_LSR_REG)&0x20) {
 			break;
+		}
 	}
 	put32(AUX_MU_IO_REG,c);
 }
@@ -19,8 +20,10 @@ void uart_send ( char c )
 char uart_recv ( void )
 {
 	while(1) {
-		if(rx_head != rx_tail)
+		if(rx_head != rx_tail) {
 			break;
+		}
+		asm volatile("wfi");
 	}
 	char c = rx_buffer[rx_tail];
 	rx_tail = (rx_tail + 1) % BUF_SIZE;
