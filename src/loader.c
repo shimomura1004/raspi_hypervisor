@@ -63,8 +63,6 @@ int load_file_to_memory(struct vcpu_struct *vcpu, const char *name, unsigned lon
         current_va += PAGE_SIZE;
     }
 
-    vcpu->vm->name = name;
-
     release_lock(&loader_lock);
     return 0;
 }
@@ -164,7 +162,6 @@ int elf_binary_loader(void *args, unsigned long *pc, unsigned long *sp, struct v
 
     *sp = loader_args->sp;
     INFO("pc: 0x%lx in 48bit, sp: 0x%lx(0x%lx in 48bit)", *pc & 0xffffffffffff, *sp, *sp & 0xffffffffffff);
-    vcpu->vm->name = loader_args->filename;
 
     free_page(buf);
     return 0;
