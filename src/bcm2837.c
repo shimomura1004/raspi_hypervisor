@@ -36,9 +36,9 @@ struct bcm2837_state {
         // Arm peripherals interrupt table(IRQ 0-64, Timer, Mailbox...)
         uint8_t irq_enabled[72];
         uint8_t fiq_control;
-        uint8_t irqs_1_enabled;
-        uint8_t irqs_2_enabled;
-        uint8_t basic_irqs_enabled;
+        uint32_t irqs_1_enabled;
+        uint32_t irqs_2_enabled;
+        uint32_t basic_irqs_enabled;
     } intctrl;
 
     // todo: ローカルペリフェラルの仮想化のための構造体
@@ -194,14 +194,18 @@ static unsigned long handle_intctrl_read(struct vcpu_struct *vcpu, unsigned long
             BIT(state->intctrl.irqs_1_enabled, 1) && (state->systimer.cs & TIMER_CS_M1);
         unsigned long systimer_match3 =
             BIT(state->intctrl.irqs_1_enabled, 3) && (state->systimer.cs & TIMER_CS_M3);
-        return (systimer_match1 << 1) | (systimer_match3 << 3);
+        // IRQ 29: Aux int (UART1, SPI1, SPI2)
+        unsigned long aux_int =
+            BIT(state->intctrl.irqs_1_enabled, 29) && (handle_aux_read(vcpu, AUX_IRQ) & 0x01);
+
+        return (systimer_match1 << 1) | (systimer_match3 << 3) | (aux_int << 29);
     }
     case IRQ_PENDING_2: {
         // IRQ 64個あるがは32ビットずつに分けてある
         // UART の irq 番号は 57 なので、後半は 57-32 ビットに対応
         // AUXIRQ レジスタの0ビット目が UART
         unsigned long uart_int =
-            BIT(state->intctrl.irqs_1_enabled, (57 - 32)) && (handle_aux_read(vcpu, AUX_IRQ) &  0x01);
+            BIT(state->intctrl.irqs_2_enabled, (57 - 32)) && (handle_aux_read(vcpu, AUX_IRQ) &  0x01);
         return (uart_int << (57 - 32));
     }
     case FIQ_CONTROL:
