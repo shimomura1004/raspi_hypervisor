@@ -35,6 +35,7 @@ void enable_interrupt_controller(unsigned long cpuid)
 	// todo: BCM2837 には GIC がないため専用の割込みコントローラの設定が必要で、ゲスト環境ではトラップして処理する必要あり
 	put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);
 
+	// SYSTEM TIMER IRQ 1 を有効化する
 	// put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_1);
 }
 
@@ -43,6 +44,7 @@ void disable_interrupt_controller(unsigned long cpuid)
 	// generic timer の割込みを無効化する
 	put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, 0);
 
+	// システムタイマーの割り込みを無効化する
 	// put32(DISABLE_IRQS_1, SYSTEM_TIMER_IRQ_1);
 }
 
