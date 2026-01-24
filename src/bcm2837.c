@@ -290,6 +290,8 @@ static unsigned long handle_aux_read(struct vcpu_struct *vcpu, unsigned long add
         else {
             unsigned long data;
             dequeue_fifo(vcpu->vm->console.in_fifo, &data);
+            // データ読み出しにより割り込み条件が変わる可能性があるため、仮想割り込み状態を更新する
+            set_cpu_virtual_interrupt(vcpu);
             return data & 0xff;
         }
     case AUX_MU_IER_REG:
@@ -402,6 +404,7 @@ static void handle_aux_write(struct vcpu_struct *vcpu, unsigned long addr, unsig
         else {
             state->aux.aux_mu_ier = val;
         }
+        set_cpu_virtual_interrupt(vcpu);
         break;
     case AUX_MU_IIR_REG:
         if (val & 0x2) {
@@ -410,6 +413,7 @@ static void handle_aux_write(struct vcpu_struct *vcpu, unsigned long addr, unsig
         if (val & 0x4) {
             clear_fifo(vcpu->vm->console.out_fifo);
         }
+        set_cpu_virtual_interrupt(vcpu);
         break;
     case AUX_MU_LCR_REG:
         state->aux.aux_mu_lcr = val;

@@ -3,6 +3,7 @@
 #include "generic_timer.h"
 #include "entry.h"
 #include "peripherals/irq.h"
+#include "mini_uart.h"
 
 const char *entry_error_messages[] = {
 	"SYNC_INVALID_EL1t",
@@ -37,6 +38,9 @@ void enable_interrupt_controller(unsigned long cpuid)
 
 	// SYSTEM TIMER IRQ 1 を有効化する
 	// put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_1);
+
+	// UART を有効化する
+	put32(ENABLE_IRQS_1, (1 << 29));
 }
 
 void disable_interrupt_controller(unsigned long cpuid)
@@ -46,6 +50,9 @@ void disable_interrupt_controller(unsigned long cpuid)
 
 	// システムタイマーの割り込みを無効化する
 	// put32(DISABLE_IRQS_1, SYSTEM_TIMER_IRQ_1);
+
+	// UART の割り込みを無効にする
+	put32(DISABLE_IRQS_1, (1 << 29));
 }
 
 void show_invalid_entry_message(int type, unsigned long esr, unsigned long address)
@@ -55,6 +62,7 @@ void show_invalid_entry_message(int type, unsigned long esr, unsigned long addre
 
 void handle_irq(void)
 {
+	// generic timer の割り込みを確認
 	unsigned long cntv_ctl;
 	asm volatile("mrs %0, cntv_ctl_el0" : "=r"(cntv_ctl));
 	// CNTP_CTL_EL0: Counter-timer Physical Timer Control register
@@ -67,11 +75,19 @@ void handle_irq(void)
 	}
 
 	unsigned int irq = get32(IRQ_PENDING_1);
-	switch (irq) {
-		case (SYSTEM_TIMER_IRQ_1):
-			handle_timer_irq();
-			break;
-		default:
-			WARN("Unknown pending irq: %x", irq);
+	// UART の割り込みを確認
+	if (irq & (1 << 29)) {
+		handle_uart_irq();
+		irq &= ~(1 << 29);
+	}
+
+	// // システムタイマの割り込みを確認
+	// if (irq & SYSTEM_TIMER_IRQ_1) {
+	// 	handle_timer_irq();
+	// 	irq &= ~SYSTEM_TIMER_IRQ_1;
+	// }
+
+	if (irq) {
+		WARN("Unknown pending irq: %x", irq);
 	}
 }
