@@ -275,7 +275,7 @@ static unsigned long handle_aux_read(struct vcpu_struct *vcpu, unsigned long add
     case AUX_IRQ: {
         // 0 ビット目の UART だけ設定。1,2ビット目の SPI1,2 は未実装
         int mu_pending = (state->aux.aux_enables & 0x1) &&
-                          ~(handle_aux_read(vcpu, AUX_MU_IIR_REG) & 0x1);
+                          !(handle_aux_read(vcpu, AUX_MU_IIR_REG) & 0x1);
         return mu_pending;
     }
     case AUX_ENABLES:
