@@ -2,6 +2,11 @@
 #include "peripherals/mini_uart.h"
 #include "peripherals/gpio.h"
 
+#define BUF_SIZE 256
+static char rx_buffer[BUF_SIZE];
+static volatile int rx_head = 0;
+static volatile int rx_tail = 0;
+
 void uart_send ( char c )
 {
 	while(1) {
@@ -14,11 +19,24 @@ void uart_send ( char c )
 char uart_recv ( void )
 {
 	while(1) {
-		// todo: ここを sleep させたい
-		if(get32(AUX_MU_LSR_REG)&0x01) 
+		if(rx_head != rx_tail)
 			break;
 	}
-	return(get32(AUX_MU_IO_REG)&0xFF);
+	char c = rx_buffer[rx_tail];
+	rx_tail = (rx_tail + 1) % BUF_SIZE;
+	return c;
+}
+
+void handle_uart_irq(void)
+{
+	while(get32(AUX_MU_LSR_REG) & 0x01) {
+		char c = get32(AUX_MU_IO_REG) & 0xFF;
+		int next = (rx_head + 1) % BUF_SIZE;
+		if (next != rx_tail) {
+			rx_buffer[rx_head] = c;
+			rx_head = next;
+		}
+	}
 }
 
 void uart_send_string(char* str)
@@ -47,7 +65,7 @@ void uart_init ( void )
 
 	put32(AUX_ENABLES,1);                   //Enable mini uart (this also enables access to it registers)
 	put32(AUX_MU_CNTL_REG,0);               //Disable auto flow control and disable receiver and transmitter (for now)
-	put32(AUX_MU_IER_REG,0);                //Disable receive and transmit interrupts
+	put32(AUX_MU_IER_REG,1);                //Enable receive interrupts
 	put32(AUX_MU_LCR_REG,3);                //Enable 8 bit mode
 	put32(AUX_MU_MCR_REG,0);                //Set RTS line to be always high
 	put32(AUX_MU_BAUD_REG,270);             //Set baud rate to 115200
