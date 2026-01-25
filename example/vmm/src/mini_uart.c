@@ -23,6 +23,9 @@ char uart_recv ( void )
 		if(rx_head != rx_tail) {
 			break;
 		}
+
+		// UART を受信して割込みが発生するまでは CPU 停止
+		// UART 以外の割込みでも復帰するので while 文でガードする
 		asm volatile("wfi");
 	}
 	char c = rx_buffer[rx_tail];

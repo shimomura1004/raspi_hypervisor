@@ -139,7 +139,6 @@ void kernel_main(void)
 		printf("> ");
 
 		while (1) {
-			// todo: busy loop ではなく sleep したい
 			buf[count] = uart_recv();
 
 			if (buf[count] == '\n' || buf[count] == '\r') {
