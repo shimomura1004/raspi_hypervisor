@@ -202,9 +202,9 @@ fiq_invalid_el01_32:
 error_invalid_el01_32:
 	handle_invalid_entry ERROR_INVALID_EL01_32
 
-// todo: el2_irq と el01_irq が同じハンドラ handle_irq を呼び出しているが正しいか？
-//       el2 から呼び出すときは本物のメモリ領域を直接読むべきでは？
-//       → el2 でアクセスするとトラップされないので本物がそのまま読まれる？
+// todo: el2_irq と el01_irq が同じハンドラ handle_irq を呼び出しており間違い
+//       el2 で例外発生した場合はハイパーバイザが動作しているということなので、vcpu の切り替えは不要(バグ)
+//       ただし現状 yield 関数内で vcpu が null の場合をチェックしているので問題ない
 el2_irq:
 	save_regs
 	bl	handle_irq
