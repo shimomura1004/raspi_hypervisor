@@ -4,6 +4,5 @@
 *.bin
 build/
 tmp/
-summary.txt
 .vscode/
 !/.vscode/launch.json
