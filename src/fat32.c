@@ -190,8 +190,8 @@ int fat32_get_handle(struct fat32_fs *fat32) {
     // このパーティションの最初のブロック番号を保存しておく
     fat32->volume_first = volume_first;
 
-    // BPB が無効だったり、データセクタ数が 65526 未満だったりしたらエラー
-    // todo: なぜデータのセクタ数が少ないとエラーになる？
+    // BPB が無効だったり、クラスタ数が FAT32 の最小要件(65526個)を満たしていなかったりしたらエラー
+    // FAT ファイルシステムの種類はクラスタ数によって決まり、クラスタ数が 65526 個未満の場合は FAT16 になる
     if (fat32->datasectors / boot->BPB_SecPerClus < 65526 || !fat32_is_valid_boot(boot)) {
         WARN("Bad fat32 filesystem.");
         return -1;
