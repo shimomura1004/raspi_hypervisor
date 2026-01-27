@@ -1,7 +1,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-// todo: 不要なものがないか確認
 #include "printf.h"
 #include "utils.h"
 #include "generic_timer.h"
@@ -22,8 +21,7 @@ volatile unsigned long initialized_flag = 0;
 // todo: どこか適切な場所に移す
 struct spinlock log_lock = {0, "log_lock", -1};
 
-// todo: vcpu の数を指定できるようにする
-struct loader_args vmm_elf_args = {
+static struct loader_args vmm_elf_args = {
 	.loader_addr = 0x0,
 	.entry_point = 0x0,
 	.sp = 0xffff000000100000,
@@ -35,9 +33,6 @@ struct loader_args vmm_elf_args = {
 static void initialize_pcpu(unsigned long cpuid) {
 	// CPU コア構造体の初期化
 	init_pcpu_struct(cpuid);
-
-	// // CPU コアごとの idle vm を作成
-	// create_idle_vm(cpuid);
 
 	// VBAR_EL2 レジスタに割込みベクタのアドレスを設定する
 	// 各 CPU コアで呼び出す必要がある
@@ -90,11 +85,12 @@ void hypervisor_main(unsigned long cpuid)
 		initialize_hypervisor();
 		INFO("Raspvisor initialized");
 
+		// pCPU の数と同じ数の vCPU を持った idle VM を準備
 		create_idle_vm();
 		INFO("Idle VM and idle vCPUs are created");
 
 		prepare_vmm();
-		INFO("guest VMs are prepared");
+		INFO("Guest VMs are prepared");
 
 		initialized_flag = 1;
 		asm volatile ("dc civac, %0" : : "r" (&initialized_flag) : "memory");
