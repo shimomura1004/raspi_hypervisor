@@ -133,6 +133,7 @@ void vm_leaving_work() {
 static const char *vm_state_str[] = {
 	"RUNNING",
 	"RUNNABLE",
+	"SLEEPING",
 	"ZOMBIE",
 };
 
