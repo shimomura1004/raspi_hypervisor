@@ -52,6 +52,11 @@ void hypercall(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigne
 		break;
 	}
 
+	case HYPERCALL_TYPE_CAUSE_PANIC: {
+		PANIC("Panic by hypercall");
+		break;
+	}
+
     default:
 		WARN("uncaught hvc64 exception: %ld", hvc_nr);
 		break;
