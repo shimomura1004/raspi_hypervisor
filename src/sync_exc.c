@@ -256,7 +256,7 @@ void handle_sync_exception(unsigned long esr, unsigned long elr, unsigned long f
 		break;
 	default:
 		show_guest_regs(current_pcpu()->current_vcpu);
-		PANIC("uncaught synchronous exception:\n%s\nesr: 0x%lx, address: 0x%lx", sync_error_reasons[eclass], esr, elr);
+		PANIC("Uncaught synchronous exception:\n%s\nesr: 0x%lx, address: 0x%lx", sync_error_reasons[eclass], esr, elr);
 		break;
 	}
 }

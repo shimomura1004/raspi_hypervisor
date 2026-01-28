@@ -58,14 +58,23 @@ void timer_tick() {
 	yield();
 }
 
+// 異常状態に陥った vCPU が所属する VM を停止させる
+// todo: 異常状態に陥った vCPU だけを停止させるほうがいいかもしれない
 void exit_vm(){
-	// todo: リソースを解放する(コンソールとかメモリページとか)
+	struct vcpu_struct *current = current_pcpu()->current_vcpu;
 
-	// 実行中の VM のstate を zombie にする(=スケジューリング対象から外れる)
-	current_pcpu()->current_vcpu->state = VCPU_ZOMBIE;
+	// PANIC が exit_vm を呼ぶ前に vCPU の存在を確認しているが、念のため再確認
+	if (!current) {
+		PANIC("exit_vm called without current vcpu");
+	}
 
-	// todo: VM 終了が正しく実装できていないので、ここで停止させる
-	while(1);
+	struct vm_struct2 *vm_to_exit = current->vm;
+
+	for (int i = 0; i < current_number_of_vcpus; i++) {
+		if (vcpus[i] && vcpus[i]->vm == vm_to_exit) {
+			vcpus[i]->state = VCPU_ZOMBIE;
+		}
+	}
 
 	yield();
 }
