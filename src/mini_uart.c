@@ -7,8 +7,12 @@
 #include "vm.h"
 #include "systimer.h"
 #include "debug.h"
+#include "spinlock.h"
+
+struct spinlock uart_lock;
 
 static void _uart_send(char c) {
+    acquire_lock(&uart_lock);
     // 送信バッファが空くまで待つビジーループ
     while (1) {
         if (get32(AUX_MU_LSR_REG) & 0x20) {
@@ -16,6 +20,7 @@ static void _uart_send(char c) {
         }
     }
     put32(AUX_MU_IO_REG, c);
+    release_lock(&uart_lock);
 }
 
 // static void uart_send(char c) {
@@ -123,6 +128,8 @@ void handle_uart_irq(void) {
 }
 
 void uart_init(void) {
+    init_lock(&uart_lock, "uart");
+
     unsigned int selector;
 
     selector = get32(GPFSEL1);

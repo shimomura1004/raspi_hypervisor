@@ -282,9 +282,11 @@ int create_vm_with_loader(loader_func_t loader, void *arg) {
 void flush_vm_console(struct vm_struct2 *vm) {
 	struct fifo *outfifo = vm->console.out_fifo;
 	unsigned long val;
+	acquire_lock(&vm->lock);
 	while (dequeue_fifo(outfifo, &val) == 0) {
 		printf("%c", val);
 	}
+	release_lock(&vm->lock);
 }
 
 // VMID から vm_struct2 構造体を取得する
