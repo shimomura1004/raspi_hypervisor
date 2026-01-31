@@ -6,6 +6,7 @@
 #include "fifo.h"
 #include "vm.h"
 #include "systimer.h"
+#include "debug.h"
 
 static void _uart_send(char c) {
     // 送信バッファが空くまで待つビジーループ
@@ -51,6 +52,7 @@ static void _uart_send(char c) {
 #define ESCAPE_CHAR '?'
 
 // UART から入力されたデータを送り込む先の VM の番号(0 のときはホスト)
+// todo: ホスト用にたまったデータはいつ出力されている？
 static int uart_forwarded_vm = 0;
 
 int is_uart_forwarded_vm(struct vm_struct2 *vm) {
@@ -59,7 +61,7 @@ int is_uart_forwarded_vm(struct vm_struct2 *vm) {
 
 // todo: 送信バッファが空、受信バッファにデータあり、といった割込みを受けて wakeup させる
 static void handle_uart_irq_send(void) {
-    printf("SEND!\n");
+    INFO("SEND!");
 }
 
 // uart_forwarded_vm が指す VM かホストに文字データを追加する
@@ -75,8 +77,9 @@ static void handle_uart_irq_recv(void) {
 
         if (isdigit(received)) {
             // VM を切り替えるのではなく、単に UART 入力の送り先を変えるだけ
+            // todo: ここはロックしなくて大丈夫？
             uart_forwarded_vm = received - '0';
-            printf("\nswitched to %d\n", uart_forwarded_vm);
+            INFO("Console is now used by VM %d", uart_forwarded_vm);
             vm = vms2[uart_forwarded_vm];
             if (vm) {
                 flush_vm_console(vm);
