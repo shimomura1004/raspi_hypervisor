@@ -2,10 +2,6 @@
 #define _DEBUG_H
 
 #include "printf.h"
-#include "entry.h"
-#include "sched.h"
-#include "utils.h"
-#include "spinlock.h"
 #include "irq.h"
 
 extern struct spinlock log_lock;

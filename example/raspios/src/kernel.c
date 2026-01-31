@@ -30,7 +30,7 @@ void kernel_process(){
 	// PC は user_process の先頭にセット
 	int err = move_to_user_mode(begin, end - begin, process - begin);
 	if (err < 0){
-		printf("Error while moving process to user mode\n\r");
+		PANIC("Error while moving process to user mode\n\r");
 	} 
 }
 
@@ -49,7 +49,6 @@ void kernel_main()
 		init_sched();
 
 		INFO("raspios initialization complete");
-		// initialized = 1;
 	}
 
 	// 各コアで実施する初期化処理

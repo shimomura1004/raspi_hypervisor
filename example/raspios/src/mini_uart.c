@@ -8,25 +8,25 @@ static char rx_buffer[BUF_SIZE];
 static volatile int rx_head = 0;
 static volatile int rx_tail = 0;
 
-void uart_send ( char c )
+static void uart_send ( char c )
 {
 	while(1) {
-		if(get32(AUX_MU_LSR_REG)&0x20)
+		if(get32(AUX_MU_LSR_REG) & 0x20)
 			break;
 	}
-	put32(AUX_MU_IO_REG,c);
+	put32(AUX_MU_IO_REG, c);
 }
 
-char uart_recv ( void )
-{
-	while(1) {
-		if(rx_head != rx_tail)
-			break;
-	}
-	char c = rx_buffer[rx_tail];
-	rx_tail = (rx_tail + 1) % BUF_SIZE;
-	return c;
-}
+// static char uart_recv ( void )
+// {
+// 	while(1) {
+// 		if(rx_head != rx_tail)
+// 			break;
+// 	}
+// 	char c = rx_buffer[rx_tail];
+// 	rx_tail = (rx_tail + 1) % BUF_SIZE;
+// 	return c;
+// }
 
 void handle_uart_irq(void)
 {
@@ -36,17 +36,16 @@ void handle_uart_irq(void)
 		if (next != rx_tail) {
 			rx_buffer[rx_head] = c;
 			rx_head = next;
-			// printf("%c\n", c);
 		}
 	}
 }
 
-void uart_send_string(char* str)
-{
-	for (int i = 0; str[i] != '\0'; i ++) {
-		uart_send((char)str[i]);
-	}
-}
+// static void uart_send_string(char* str)
+// {
+// 	for (int i = 0; str[i] != '\0'; i ++) {
+// 		uart_send((char)str[i]);
+// 	}
+// }
 
 void uart_init ( void )
 {

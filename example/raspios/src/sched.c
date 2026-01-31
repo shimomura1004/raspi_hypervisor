@@ -127,7 +127,7 @@ int switch_to(struct task_struct * next)
 	}
 	else if (next->state == TASK_RUNNING) {
 		// 切り替え先プロセスを決めたあと、他の CPU にプロセスが割り当てられてしまった場合は選びなおす
-		printf("already running\n");
+		INFO("already running\n");
 		return 0;
 	}
 
