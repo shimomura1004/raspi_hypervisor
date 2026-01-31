@@ -10,6 +10,7 @@
 #include "peripherals/irq.h"
 #include "peripherals/mailbox.h"
 #include "debug.h"
+#include "mini_uart.h"
 
 // BCM2837 SoC を表現するデータ構造と関数群
 // ハイパーバイザでは BCM2837 をエミュレートする
@@ -393,7 +394,14 @@ static void handle_aux_write(struct vcpu_struct *vcpu, unsigned long addr, unsig
             state->aux.aux_mu_baud = (state->aux.aux_mu_baud & 0xff00) | (val & 0xff);
         }
         else {
-            enqueue_fifo(vcpu->vm->console.out_fifo, val & 0xff);
+            if (is_uart_forwarded_vm(vcpu->vm)) {
+                // 文字出力を要求してきた VM が現在アクティブならバッファに入れずに直接出力
+                putc(NULL, val & 0xff);
+            }
+            else {
+                // アクティブでなければバッファに入れておく
+                enqueue_fifo(vcpu->vm->console.out_fifo, val & 0xff);
+            }
         }
         break;
     case AUX_MU_IER_REG:

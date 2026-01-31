@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "spinlock.h"
 
+// todo: 明らかに足りない
 #define FIFO_SIZE 256   // warning: DO NOT exceed page size
 
 struct fifo {
