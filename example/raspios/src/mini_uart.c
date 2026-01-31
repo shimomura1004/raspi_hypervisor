@@ -2,6 +2,9 @@
 #include "peripherals/mini_uart.h"
 #include "peripherals/gpio.h"
 #include "printf.h"
+#include "spinlock.h"
+
+struct spinlock console_lock;
 
 #define BUF_SIZE 256
 static char rx_buffer[BUF_SIZE];
@@ -49,6 +52,8 @@ void handle_uart_irq(void)
 
 void uart_init ( void )
 {
+	init_lock(&console_lock, "console");
+
 	unsigned int selector;
 
 	selector = get32(GPFSEL1);

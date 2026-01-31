@@ -3,15 +3,14 @@
 
 #include "printf.h"
 #include "irq.h"
-
-extern struct spinlock log_lock;
+#include "mini_uart.h"
 
 #define _LOG_COMMON(level, fmt, ...) do { \
-    acquire_lock(&log_lock); \
+    acquire_lock(&console_lock); \
     unsigned long cpuid = get_cpuid(); \
     printf("<cpu:%d> %s: ", cpuid, level); \
     printf(fmt "\n", ##__VA_ARGS__); \
-    release_lock(&log_lock); \
+    release_lock(&console_lock); \
 } while (0)
 
 #define INFO(fmt, ...) _LOG_COMMON("INFO", fmt, ##__VA_ARGS__)

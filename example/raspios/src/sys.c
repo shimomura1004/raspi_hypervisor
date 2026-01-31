@@ -1,8 +1,11 @@
 #include "fork.h"
 #include "printf.h"
+#include "mini_uart.h"
 
 void sys_write(char * buf){
+	acquire_lock(&console_lock);
 	printf(buf);
+	release_lock(&console_lock);
 }
 
 int sys_fork(){

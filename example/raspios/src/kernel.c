@@ -14,7 +14,6 @@
 #include "debug.h"
 
 volatile unsigned long initialized = 0;
-struct spinlock log_lock;
 
 // ゲストから systimer にアクセスすると MMIO 領域にアクセスすることになるので、
 // ホストの handle_mem_abort で処理される(処理の実体は bcm2837.c:handle_systimer_write にある)
@@ -45,7 +44,6 @@ void kernel_main()
 		uart_init();
 		init_printf(NULL, putc);
 
-		init_lock(&log_lock, "log_lock");
 		init_sched();
 
 		INFO("raspios initialization complete");
