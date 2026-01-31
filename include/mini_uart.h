@@ -1,6 +1,10 @@
 #ifndef	_MINI_UART_H
 #define	_MINI_UART_H
 
+#include "spinlock.h"
+
+extern struct spinlock console_lock;
+
 struct vm_struct2;
 
 void uart_init(void);

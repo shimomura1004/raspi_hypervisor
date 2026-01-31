@@ -396,8 +396,10 @@ static void handle_aux_write(struct vcpu_struct *vcpu, unsigned long addr, unsig
         else {
             if (is_uart_forwarded_vm(vcpu->vm)) {
                 // 文字出力を要求してきた VM が現在アクティブならバッファに入れずに直接出力
-                // todo: HV とゲストの両方が UART 出力をするので、排他制御が必要
+                // HV とゲストの両方が UART 出力をするので、排他制御が必要
+                acquire_lock(&console_lock);
                 putc(NULL, val & 0xff);
+                release_lock(&console_lock);
             }
             else {
                 // アクティブでなければバッファに入れておく

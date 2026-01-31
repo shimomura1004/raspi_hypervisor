@@ -10,6 +10,7 @@
 #include "irq.h"
 #include "loader.h"
 #include "cpu_core.h"
+#include "mini_uart.h"
 
 // 各スレッド用の領域の末尾に置かれた vcpu_struct へのポインタを返す
 struct pt_regs * vcpu_pt_regs(struct vcpu_struct *vcpu) {
@@ -283,9 +284,11 @@ void flush_vm_console(struct vm_struct2 *vm) {
 	struct fifo *outfifo = vm->console.out_fifo;
 	unsigned long val;
 	acquire_lock(&vm->lock);
+	acquire_lock(&console_lock);
 	while (dequeue_fifo(outfifo, &val) == 0) {
-		printf("%c", val);
+		putc(NULL, val);
 	}
+	release_lock(&console_lock);
 	release_lock(&vm->lock);
 }
 

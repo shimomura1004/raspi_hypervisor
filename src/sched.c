@@ -196,6 +196,7 @@ static void show_vcpu_list(struct vm_struct2 *vm) {
 }
 
 void show_vm_list() {
+    acquire_lock(&console_lock);
     printf("%c %4s %12s %4s %4s %10s %8s %7s %7s %7s %7s %7s %7s\n",
 		   /* %c   */ ' ',
 		   /* %4s  */ "VMID",
@@ -232,6 +233,7 @@ void show_vm_list() {
                /* %7d  */ vm->stat.mmio_trap_count);
 		show_vcpu_list(vm);
     }
+    release_lock(&console_lock);
 }
 
 // EL2 から EL1 に遷移し、VM を復帰させる

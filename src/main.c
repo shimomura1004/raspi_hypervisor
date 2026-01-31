@@ -18,9 +18,6 @@
 // boot.S で初期化が終わるまでコアを止めるのに使うフラグ
 volatile unsigned long initialized_flag = 0;
 
-// todo: どこか適切な場所に移す
-struct spinlock log_lock = {0, "log_lock", -1};
-
 static struct loader_args vmm_elf_args = {
 	.loader_addr = 0x0,
 	.entry_point = 0x0,

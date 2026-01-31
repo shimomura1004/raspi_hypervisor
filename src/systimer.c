@@ -3,6 +3,7 @@
 #include "printf.h"
 #include "peripherals/systimer.h"
 #include "peripherals/mailbox.h"
+#include "mini_uart.h"
 
 // これは system timer である
 // RPi3 には 1tick ごとにカウントアップするタイマが搭載されていて
@@ -46,6 +47,8 @@ unsigned long get_physical_systimer_count() {
 }
 
 void show_systimer_info() {
+	acquire_lock(&console_lock);
 	printf("HI: 0x%x\nLO: 0x%x\nCS: 0x%x\nC1: 0x%x\nC3: 0x%x\n",
 	get32(TIMER_CHI), get32(TIMER_CLO), get32(TIMER_CS), get32(TIMER_C1), get32(TIMER_C3));
+	release_lock(&console_lock);
 }

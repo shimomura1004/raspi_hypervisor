@@ -10,6 +10,7 @@
 #include "spinlock.h"
 
 struct spinlock uart_lock;
+struct spinlock console_lock;
 
 static void _uart_send(char c) {
     acquire_lock(&uart_lock);
@@ -129,6 +130,7 @@ void handle_uart_irq(void) {
 
 void uart_init(void) {
     init_lock(&uart_lock, "uart");
+    init_lock(&console_lock, "console");
 
     unsigned int selector;
 

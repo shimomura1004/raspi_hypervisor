@@ -8,6 +8,7 @@
 #include "spinlock.h"
 #include "irq.h"
 #include "cpu_core.h"
+#include "mini_uart.h"
 
 // ログレベルの定義
 #define LOG_LEVEL_NONE  0
@@ -21,14 +22,11 @@
 #define LOG_LEVEL LOG_LEVEL_INFO  // デフォルトは警告まで表示
 #endif
 
-// todo: debug.c 的なソースを用意して隠蔽する
-extern struct spinlock log_lock;
-
 // プリントしたい変数がここで定義している変数名と重複すると正しく動かない
 #define UNIQUE_PREFIX raspisor_debug_
 
 #define _LOG_COMMON(level, fmt, ...) do { \
-    acquire_lock(&log_lock); \
+    acquire_lock(&console_lock); \
     unsigned long UNIQUE_PREFIX##cpuid = get_cpuid(); \
     struct vcpu_struct *UNIQUE_PREFIX##vcpu = current_pcpu()->current_vcpu; \
     printf("%15s <pCPU:%d>", level, UNIQUE_PREFIX##cpuid); \
@@ -39,7 +37,7 @@ extern struct spinlock log_lock;
         printf("(vCPU:%d)", UNIQUE_PREFIX##vcpu->vcpu_id); \
     } \
     printf(" " fmt "\n", ##__VA_ARGS__); \
-    release_lock(&log_lock); \
+    release_lock(&console_lock); \
 } while (0)
 
 #if LOG_LEVEL >= LOG_LEVEL_DEBUG
