@@ -29,7 +29,7 @@ void kernel_process(){
 	// PC は user_process の先頭にセット
 	int err = move_to_user_mode(begin, end - begin, process - begin);
 	if (err < 0){
-		PANIC("Error while moving process to user mode\n\r");
+		PANIC("Error while moving process to user mode");
 	} 
 }
 

@@ -123,11 +123,12 @@ int switch_to(struct task_struct * next)
 
 	// 切り替えが不要だった場合はなにもしない、割当てなおしは不要なので 1 を返す
 	if (currents[cpuid] == next) {
+		INFO("no change");
 		return 1;
 	}
 	else if (next->state == TASK_RUNNING) {
 		// 切り替え先プロセスを決めたあと、他の CPU にプロセスが割り当てられてしまった場合は選びなおす
-		INFO("already running\n");
+		INFO("already running");
 		return 0;
 	}
 
