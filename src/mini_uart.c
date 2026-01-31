@@ -17,29 +17,35 @@ static void _uart_send(char c) {
     put32(AUX_MU_IO_REG, c);
 }
 
-void uart_send(char c) {
-    if (c == '\n' || c == '\r') {
-        _uart_send('\r');
-        _uart_send('\n');
-    } else {
-        _uart_send(c);
-    }
-}
+// static void uart_send(char c) {
+//     if (c == '\n' || c == '\r') {
+//         _uart_send('\r');
+//         _uart_send('\n');
+//     } else {
+//         _uart_send(c);
+//     }
+// }
 
-char uart_recv(void) {
-    // 受信バッファにデータが届くまで待つビジーループ
-    while (1) {
-        if (get32(AUX_MU_LSR_REG) & 0x01) {
-            break;
-        }
-    }
+// static char uart_recv(void) {
+//     // 受信バッファにデータが届くまで待つビジーループ
+//     while (1) {
+//         if (get32(AUX_MU_LSR_REG) & 0x01) {
+//             break;
+//         }
+//     }
 
-	char c = get32(AUX_MU_IO_REG) & 0xFF;
-	if (c == '\r') {
-		return '\n';
-	}
-    return c;
-}
+// 	char c = get32(AUX_MU_IO_REG) & 0xFF;
+// 	if (c == '\r') {
+// 		return '\n';
+// 	}
+//     return c;
+// }
+
+// static void uart_send_string(char *str) {
+//     for (int i = 0; str[i] != '\0'; i++) {
+//         _uart_send((char)str[i]);
+//     }
+// }
 
 // このハイパーバイザのエスケープ文字
 #define ESCAPE_CHAR '?'
@@ -51,16 +57,9 @@ int is_uart_forwarded_vm(struct vm_struct2 *vm) {
     return vm->vmid == uart_forwarded_vm;
 }
 
-void uart_send_string(char *str) {
-    for (int i = 0; str[i] != '\0'; i++) {
-        _uart_send((char)str[i]);
-    }
-}
-
 // todo: 送信バッファが空、受信バッファにデータあり、といった割込みを受けて wakeup させる
-
 static void handle_uart_irq_send(void) {
-printf("SEND!\n");
+    printf("SEND!\n");
 }
 
 // uart_forwarded_vm が指す VM かホストに文字データを追加する
