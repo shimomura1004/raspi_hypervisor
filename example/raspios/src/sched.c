@@ -163,16 +163,15 @@ void schedule_tail(void) {
 	preempt_enable();
 }
 
-
 void timer_tick()
 {
 	int cpuid = get_cpuid();
 
 	--currents[cpuid]->counter;
-	if (currents[cpuid]->counter>0 || currents[cpuid]->preempt_count >0) {
+	if (currents[cpuid]->counter > 0 || currents[cpuid]->preempt_count > 0) {
 		return;
 	}
-	currents[cpuid]->counter=0;
+	currents[cpuid]->counter = 0;
 	enable_irq();
 	_schedule();
 	disable_irq();
