@@ -125,25 +125,21 @@ const struct bcm2837_state initial_state = {
 #define ADDR_IN_AUX(a)      (AUX_IRQ <= (a) && (a) <= AUX_MU_BAUD_REG)
 #define ADDR_IN_SYSTIMER(a) (TIMER_CS <= (a) && (a) <= TIMER_C3)
 
-// todo: vcpu ではなく vm だけを引数に取れば十分な関数が多数ある
-//       ただし一気に変更すると変更量が大きくなるので、いったん vcpu を取るまま機能実装
-//       そのあと vm を取るように変更する
-static void bcm2837_initialize(struct vcpu_struct *vcpu) {
+static void bcm2837_initialize(struct vm_struct2 *vm) {
     struct bcm2837_state *state = (struct bcm2837_state *)allocate_page();
 
     *state = initial_state;
 
     state->systimer.last_physical_count = get_physical_systimer_count();
 
-    // todo: vcpu ではなく vm の設定
-    vcpu->vm->board_data = state;
+    vm->board_data = state;
 
     // 二段階アドレス変換は VM で1つだけ必要で、vCPU ごとに設定する必要はない
     // stage2 のデバイスのメモリマッピング(MMIO ページの準備)
     unsigned long begin = DEVICE_BASE;
     unsigned long end = PHYS_MEMORY_SIZE - SECTION_SIZE;
     for (; begin < end; begin += PAGE_SIZE) {
-        set_vm_page_notaccessable(vcpu->vm, begin);
+        set_vm_page_notaccessable(vm, begin);
     }
 }
 

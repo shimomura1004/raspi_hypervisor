@@ -221,10 +221,11 @@ int create_vm_with_loader(loader_func_t loader, void *arg) {
 	vms2[vmid] = vm;
 	vm->vmid = vmid;
 
-	// todo: vcpu->vm に値を設定している部分は vcpu ではなく vm への設定なので、
-	//       ループの中には入れず、1回だけ初期化するようにする
-	//       create_vcpu 内でも vcpu->vm に値を設定しているのでそちらも修正する
-	//       vcpu->vm が指す先は別途1回だけ page_alloc しておく必要がある
+	// この VM で再現するハードウェア(BCM2837)を初期化
+	vm->board_ops = &bcm2837_board_ops;
+	if (HAVE_FUNC(vm->board_ops, initialize)) {
+		vm->board_ops->initialize(vm);
+	}
 
 	unsigned long pc;
 	unsigned long sp;
@@ -262,15 +263,6 @@ int create_vm_with_loader(loader_func_t loader, void *arg) {
 		regs->sp = sp;
 
 		vcpu->cpu_context.x19 = (unsigned long)start_vcpu;
-
-		// todo: ループの外に出す、いったん初回のみ実行することにして回避
-		// この VM で再現するハードウェア(BCM2837)を初期化
-		if (i == 0) {
-			vm->board_ops = &bcm2837_board_ops;
-			if (HAVE_FUNC(vm->board_ops, initialize)) {
-				vm->board_ops->initialize(vcpu);
-			}
-		}
 
 		// 新たに作った vcpu_struct 構造体のアドレスを vcpus 配列に入れておく
 		// これでそのうち今作った vCPU に処理が切り替わり、switch_from_kthread から実行開始される
