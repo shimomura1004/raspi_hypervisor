@@ -14,11 +14,12 @@ struct spinlock loader_lock = {0, "loader", -1};
 
 // 指定された EL2 のメモリ上のプログラムコードを VM のメモリにロードする
 // ハイパーバイザに埋め込まれた EL1 コードを VM にコピーするために使う
+// todo: 引数に vCPU は不要で、VM だけでいい
 void copy_code_to_memory(struct vcpu_struct *vcpu, unsigned long va, unsigned long from, unsigned long size) {
     unsigned long current_va = va & PAGE_MASK;
 
     while (size > 0) {
-        uint8_t *buf = (uint8_t *)allocate_vm_page(vcpu, current_va);
+        uint8_t *buf = (uint8_t *)allocate_vm_page(vcpu->vm, current_va);
         int readsize = MIN(PAGE_SIZE, size);
         memcpy(buf, (void*)from, readsize);
 
@@ -28,6 +29,7 @@ void copy_code_to_memory(struct vcpu_struct *vcpu, unsigned long va, unsigned lo
     }
 }
 
+// todo: 引数に vCPU は不要で、VM だけでいい
 int load_file_to_memory(struct vcpu_struct *vcpu, const char *name, unsigned long va) {
     // todo: ロックの単位が大きいのでもっと細分化する
     acquire_lock(&loader_lock);
@@ -49,7 +51,7 @@ int load_file_to_memory(struct vcpu_struct *vcpu, const char *name, unsigned lon
     unsigned long current_va = va & PAGE_MASK;
 
     while (remain > 0) {
-        uint8_t *buf = (uint8_t *)allocate_vm_page(vcpu, current_va);
+        uint8_t *buf = (uint8_t *)allocate_vm_page(vcpu->vm, current_va);
         int readsize = MIN(PAGE_SIZE, remain);
         int actualsize = fat32_read(&file, buf, offset, readsize);
 
@@ -68,6 +70,7 @@ int load_file_to_memory(struct vcpu_struct *vcpu, const char *name, unsigned lon
 }
 
 // todo: 丸ごと elf.c に移す？
+// todo: 引数に vCPU は不要で、VM だけでいい
 int elf_binary_loader(void *args, unsigned long *pc, unsigned long *sp, struct vcpu_struct *vcpu) {
     struct loader_args *loader_args = (struct loader_args *)args;
 
@@ -144,7 +147,7 @@ int elf_binary_loader(void *args, unsigned long *pc, unsigned long *sp, struct v
             // コピー先となるゲストのメモリ空間にページを確保する
             // allocate_vm_page の中の map_stage2_page で stage2 テーブルを更新している
             // todo: 中途半端なアドレスな場合、うまく動かないかも
-            uint8_t *vm_buf = (uint8_t *)allocate_vm_page(vcpu, virtual_addr);
+            uint8_t *vm_buf = (uint8_t *)allocate_vm_page(vcpu->vm, virtual_addr);
 
             // コピー元のデータをハイパーバイザのメモリ空間に読み込む
             int actualsize = fat32_read(&file, vm_buf, offset, PAGE_SIZE);

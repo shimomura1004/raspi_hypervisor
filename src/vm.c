@@ -248,6 +248,7 @@ int create_vm_with_loader(loader_func_t loader, void *arg) {
 			// ロードは1回だけ実施
 			// todo: ループの外に出したい
 
+			// todo: 二段階アドレス変換は VM で1つだけ必要で、vCPU ごとに設定する必要はないので、vCPU は不要
 			// 指定されたローダを使ってファイルからテキストコードをロードし、PC/SP を取得
 			if (loader(arg, &pc, &sp, vcpu) < 0) {
 				WARN("Failed to load VM image");

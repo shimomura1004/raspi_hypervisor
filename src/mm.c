@@ -29,14 +29,14 @@ unsigned long allocate_page() {
 
 // VM で使うためのページを確保してマッピングし、ハイパーバイザ上の仮想アドレスを返す
 // つまり、ハイパーバイザ上でこのアドレスに書き込むことで、確保したメモリにアクセスできるということ
-unsigned long allocate_vm_page(struct vcpu_struct *vcpu, unsigned long ipa) {
+unsigned long allocate_vm_page(struct vm_struct2 *vm, unsigned long ipa) {
 	// 未使用ページを探す、page は仮想アドレスではなくオフセット
 	unsigned long page = get_free_page();
 	if (page == 0) {
 		return 0;
 	}
 	// 新たに確保したページをこの VM のアドレス空間にマッピングする
-	map_stage2_page(vcpu, ipa, page, MMU_STAGE2_PAGE_FLAGS);
+	map_stage2_page(vm, ipa, page, MMU_STAGE2_PAGE_FLAGS);
 	// INFO("VTTBR0_EL2(VMID %d): IPA 0x%lx(0x%lx in full) -> PA 0x%lx (allocate_vm_page)",
 	//	 vcpu->vm->vmid, ipa & 0xffffffffffff, ipa, page);
 
@@ -44,8 +44,8 @@ unsigned long allocate_vm_page(struct vcpu_struct *vcpu, unsigned long ipa) {
 	return page + VA_START;
 }
 
-void set_vm_page_notaccessable(struct vcpu_struct *vcpu, unsigned long va) {
-	map_stage2_page(vcpu, va, 0, MMU_STAGE2_MMIO_FLAGS);
+void set_vm_page_notaccessable(struct vm_struct2 *vm, unsigned long va) {
+	map_stage2_page(vm, va, 0, MMU_STAGE2_MMIO_FLAGS);
 // if (vcpu->vmid != 0)INFO("VA 0x%lx -> IPA 0x%lx -> PA 0x%lx (set_vm_page_notaccessable)", va, get_ipa(va), 0);
 }
 
@@ -121,23 +121,20 @@ unsigned long map_stage2_table(unsigned long *table, unsigned long shift, unsign
 	return table[index] & PAGE_MASK;
 }
 
-// todo: 二段階アドレス変換は VM で1つだけ必要で、vCPU ごとに設定する必要はない
-//       実際 vcpu は必要なくて、すべて vcpu->vm の内容を参照している
-//       引数を vm に変えればいい
 // vm のアドレス空間(VTTBR_EL2)のアドレス ipa に、指定されたページ page を割り当てる
 // ハイパーバイザが管理するメモリマッピングは、IPA->PA のみ
-void map_stage2_page(struct vcpu_struct *vcpu, unsigned long ipa, unsigned long page, unsigned long flags) {
+void map_stage2_page(struct vm_struct2 *vm, unsigned long ipa, unsigned long page, unsigned long flags) {
 	// 最上位のページテーブル
 	unsigned long lv1_table;
 
 	// stage2 変換用の VTTBR_EL2 に設定するテーブルを作る
-	if (!vcpu->vm->mm.first_table) {
+	if (!vm->mm.first_table) {
 		// ページテーブルがなかったら作る
-		vcpu->vm->mm.first_table = get_free_page();
+		vm->mm.first_table = get_free_page();
 		// 新しくページを確保したのでカウントアップする
-		vcpu->vm->mm.kernel_pages_count++;
+		vm->mm.kernel_pages_count++;
 	}
-	lv1_table = vcpu->vm->mm.first_table;
+	lv1_table = vm->mm.first_table;
 
 	// 新しくテーブルが追加されたかを示すフラグ
 	int new_table;
@@ -145,17 +142,17 @@ void map_stage2_page(struct vcpu_struct *vcpu, unsigned long ipa, unsigned long 
 	unsigned long lv2_table = map_stage2_table((unsigned long *)(lv1_table + VA_START), LV1_SHIFT, ipa, &new_table);
 	if (new_table) {
 		// もし新たにページが確保されていたらカウントアップする
-		vcpu->vm->mm.kernel_pages_count++;
+		vm->mm.kernel_pages_count++;
 	}
 	// Level 2 のテーブル(lv2_table)から対応するエントリ(lv3_table)を探す
 	unsigned long lv3_table = map_stage2_table((unsigned long *)(lv2_table + VA_START) , LV2_SHIFT, ipa, &new_table);
 	if (new_table) {
-		vcpu->vm->mm.kernel_pages_count++;
+		vm->mm.kernel_pages_count++;
 	}
 	// Level 3 のテーブル(lv3_table)の対応するエントリを探してページを登録
 	map_stage2_table_entry((unsigned long *)(lv3_table + VA_START), ipa, page, flags);
 	// ユーザ空間用のページ数をカウントアップする　
-	vcpu->vm->mm.vm_pages_count++;
+	vm->mm.vm_pages_count++;
 }
 
 static void free_stage2_table(unsigned long table, int level) {
@@ -271,7 +268,7 @@ int handle_mem_abort(unsigned long addr, unsigned long esr) {
 		// IPA -> PA の変換を登録
 		// todo: ページ境界に合わないアドレスがくることがあるので応急処置
 		addr = addr / PAGE_SIZE * PAGE_SIZE;
-		map_stage2_page(vcpu, get_ipa(addr) & PAGE_MASK, page, MMU_STAGE2_PAGE_FLAGS);
+		map_stage2_page(vcpu->vm, get_ipa(addr) & PAGE_MASK, page, MMU_STAGE2_PAGE_FLAGS);
 		// INFO("VTTBR0_EL2(VMID %d): IPA 0x%lx(0x%lx in full) -> PA 0x%lx (handle_mem_abort)",
 		// 	 vcpu->vmid, get_ipa(addr) & 0xffffffffffff, addr, page);
 
