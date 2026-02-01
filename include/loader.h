@@ -11,12 +11,12 @@ struct loader_args {
     unsigned long vcpu_num;
 };
 
-struct vcpu_struct;
-int elf_binary_loader(void *, unsigned long *, unsigned long *, struct vcpu_struct *);
-int raw_binary_loader(void *, unsigned long *, unsigned long *, struct vcpu_struct *);
+struct vm_struct2;
+int elf_binary_loader(void *, unsigned long *, unsigned long *, struct vm_struct2 *);
+int raw_binary_loader(void *, unsigned long *, unsigned long *, struct vm_struct2 *);
 
-struct vcpu_struct;
-void copy_code_to_memory(struct vcpu_struct *vm, unsigned long va, unsigned long from, unsigned long size);
-int load_file_to_memory(struct vcpu_struct *tsk, const char *name, unsigned long va);
+struct vm_struct2;
+void copy_code_to_memory(struct vm_struct2 *vm, unsigned long va, unsigned long from, unsigned long size);
+int load_file_to_memory(struct vm_struct2 *vm, const char *name, unsigned long va);
 
 #endif

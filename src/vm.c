@@ -158,6 +158,9 @@ int create_idle_vm() {
 	unsigned long pc = 0x0;
 	unsigned long sp = 0x100000;
 
+	// 指定したアドレスに格納されたテキストコードを VM 領域のアドレス 0 にコピーする
+	copy_code_to_memory(idle_vm, 0, (unsigned long)idle_loop, PAGE_SIZE);
+
 	for (int i=0; i < NUMBER_OF_PCPUS; i++) {
 		struct vcpu_struct *idle_vcpu = create_vcpu(i);
 		if (!idle_vcpu) {
@@ -167,11 +170,6 @@ int create_idle_vm() {
 
 		idle_vcpu->vm = idle_vm;
 		init_lock(&idle_vcpu->lock, "vcpu_lock");
-
-		if (i == 0) {
-			// 指定したアドレスに格納されたテキストコードを VM 領域のアドレス 0 にコピーする
-			copy_code_to_memory(idle_vcpu, 0, (unsigned long)idle_loop, PAGE_SIZE);
-		}
 
 		struct pt_regs *regs = vcpu_pt_regs(idle_vcpu);
 		regs->pc = pc;
@@ -186,18 +184,8 @@ int create_idle_vm() {
 	return vmid;
 }
 
-// todo:
-// ここで vcpus にエントリを追加している
-// ひとつの VM に複数の vCPU を割当てるなら、ここで対応が必要
-// つまり、ここで必要なだけの vCPU を作成する
-// vCPU でメモリ空間は共通だから、OS テキストを複数回ロードする必要はない
-// 今は作った vCPU が最初に動くときにロードしているので、このままだと複数回ロードしてしまう
-// また vcpu の管理領域は各 vcpu に固有でいいが、vm の管理領域は共通にしないといけない
-// vcpu の管理領域は、この関数の先頭の create_vcpu で確保されている
-
-// todo: リファクタリング必要
-
 // 指定されたローダで VM を作る
+// todo: 関数が長いのでリファクタリングしたい
 int create_vm_with_loader(loader_func_t loader, void *arg) {
 	// vCPU に共通の VM の管理用構造体を確保する
 	unsigned long page = allocate_page();
@@ -230,6 +218,12 @@ int create_vm_with_loader(loader_func_t loader, void *arg) {
 	unsigned long pc;
 	unsigned long sp;
 
+	// 指定されたローダを使ってファイルからテキストコードをロードし、PC/SP を取得
+	if (loader(arg, &pc, &sp, vm) < 0) {
+		WARN("Failed to load VM image");
+		return -1;
+	}
+
 	for (int i = 0; i < vm->loader_args.vcpu_num; i++) {
 		// 必要なだけ vCPU を準備
 		// todo: create_vcpu 内で vm に対する処理を実行しているので取り出してループの外に置く
@@ -244,18 +238,6 @@ int create_vm_with_loader(loader_func_t loader, void *arg) {
 		// vCPU が担当する vm を登録
 		vcpu->vm = vm;
 		init_lock(&vcpu->lock, "vcpu_lock");
-
-		if (i == 0) {
-			// ロードは1回だけ実施
-			// todo: ループの外に出したい
-
-			// todo: 二段階アドレス変換は VM で1つだけ必要で、vCPU ごとに設定する必要はないので、vCPU は不要
-			// 指定されたローダを使ってファイルからテキストコードをロードし、PC/SP を取得
-			if (loader(arg, &pc, &sp, vcpu) < 0) {
-				WARN("Failed to load VM image");
-				return -1;
-			}
-		}
 
 		// vCPU の PC/SP を設定
 		struct pt_regs *regs = vcpu_pt_regs(vcpu);
