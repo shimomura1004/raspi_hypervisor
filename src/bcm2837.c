@@ -580,10 +580,10 @@ static void bcm2837_entering_vm(struct vcpu_struct *vcpu) {
         upcoming = state->systimer.c1_expire;
     }
     if (state->systimer.c2_expire && upcoming > state->systimer.c2_expire) {
-        upcoming = state->systimer.c1_expire;
+        upcoming = state->systimer.c2_expire;
     }
     if (state->systimer.c3_expire && upcoming > state->systimer.c3_expire) {
-        upcoming = state->systimer.c1_expire;
+        upcoming = state->systimer.c3_expire;
     }
 
     // C0~C3 のうち一番最初に発火するタイマを本物の systimer にセットする
