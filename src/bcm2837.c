@@ -554,9 +554,10 @@ static int check_and_update_expiration(uint32_t *expire, uint64_t lapse) {
 static void bcm2837_entering_vm(struct vcpu_struct *vcpu) {
     struct bcm2837_state *state = (struct bcm2837_state *)vcpu->vm->board_data;
 
-    // update systimer's offset
-    unsigned long current_physical_count = get_physical_systimer_count();
     // この VM が動いていない間に経過した時間(lapse)を計算し、offset に積算する
+    // この offset は handle_systimer_read で使われる
+    //   ゲストが systimer を読み取るときに offset が引かれ、ゲストが実際に使えた時間だけがカウントされる
+    unsigned long current_physical_count = get_physical_systimer_count();
     uint64_t lapse = current_physical_count - state->systimer.last_physical_count;
     state->systimer.offset += lapse;
 
@@ -585,18 +586,17 @@ static void bcm2837_entering_vm(struct vcpu_struct *vcpu) {
         upcoming = state->systimer.c1_expire;
     }
 
+    // C0~C3 のうち一番最初に発火するタイマを本物の systimer にセットする
+    // todo: 複数のゲストからアクセスすると競合するのでは？
     if (upcoming != 0xffffffff) {
-        // todo: なぜ TIMER_C3?
-        // todo: まだゲスト OS からタイマは使われていない
+        // ハイパーバイザは C3 を使ってゲスト OS にシステムタイマ C0~C3 のすべてを提供している
         put32(TIMER_C3, get32(TIMER_CLO) + upcoming);
     }
 
     // ~state->systimer.cs: 前回まだ発火していなかったタイマのビットが立っている
     // matched: 今発火したタイマのビットが立っている
-    // (~state->systimer.cs) & matched: 今回始めて発火したタイマのビットが立っている
-    // todo: 結局 or を取っているだけでは？
-    int fired = (~state->systimer.cs) & matched;
-    state->systimer.cs |= fired;
+    // VM が停止している間に発火したタイマのビットを立てる
+    state->systimer.cs |= matched;
 }
 
 // VM での処理を抜けてハイパーバイザに処理に入るときに呼ばれる

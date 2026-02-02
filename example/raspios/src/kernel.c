@@ -33,6 +33,7 @@ void kernel_process(){
 	} 
 }
 
+// todo: ユーザ空間に対してタイマ関数を追加したい
 void kernel_main()
 {
 	unsigned long cpuid = get_cpuid();
