@@ -11,6 +11,7 @@ static char rx_buffer[BUF_SIZE];
 static volatile int rx_head = 0;
 static volatile int rx_tail = 0;
 
+// todo: HV の fifo がいっぱいだと while 文を抜けられず実行が止まる
 static void uart_send ( char c )
 {
 	while(1) {
