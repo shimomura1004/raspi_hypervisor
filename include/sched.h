@@ -24,6 +24,7 @@ struct board_ops;
 extern struct vcpu_struct *vcpus[NUMBER_OF_VCPUS];
 extern int current_number_of_vcpus;
 
+// todo: 名前をなんとかする
 extern struct vm_struct2 *vms2[NUMBER_OF_VMS];
 extern int current_number_of_vms;
 

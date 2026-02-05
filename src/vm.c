@@ -186,6 +186,7 @@ int create_idle_vm() {
 
 // 指定されたローダで VM を作る
 // todo: 関数が長いのでリファクタリングしたい
+// todo: vm 作成に失敗した場合、途中まで作った vm の vmid が返されずリークする
 int create_vm_with_loader(loader_func_t loader, void *arg) {
 	// vCPU に共通の VM の管理用構造体を確保する
 	unsigned long page = allocate_page();

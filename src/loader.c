@@ -10,7 +10,7 @@
 #include "cpu_core.h"
 
 // todo: 初期化処理を呼んで初期化するようにする
-struct spinlock loader_lock = {0, "loader", -1};
+static struct spinlock loader_lock = {0, "loader", -1};
 
 // 指定された EL2 のメモリ上のプログラムコードを VM のメモリにロードする
 // ハイパーバイザに埋め込まれた EL1 コードを VM にコピーするために使う
