@@ -64,6 +64,4 @@ int isspace(int);
 int toupper(int);
 int tolower(int);
 
-void system_shutdown();
-
 #endif  /*_UTILS_H */

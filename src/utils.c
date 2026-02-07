@@ -1,7 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "utils.h"
-#include "peripherals/base.h"
 
 int abs(int n) {
     return n < 0 ? -n : n;
@@ -151,19 +150,4 @@ int tolower(int c) {
     } else {
         return c;
     }
-}
-
-// todo: power management 系は別ファイルにする
-#define PM_PASSWORD 0x5a000000
-#define PM_RSTC     (PBASE + 0x0010001c)
-#define PM_WDOG     (PBASE + 0x00100024)
-
-void system_shutdown() {
-    // PM のレジスタ書き込みによるシャットダウンでは、割込みを含む一部のコントローラやメモリがクリアされない
-
-    // Watchdog タイマを設定してリセットをトリガする
-    put32(PM_RSTC, PM_PASSWORD | 0x20);
-    put32(PM_WDOG, PM_PASSWORD | 10);
-
-    while (1) { asm volatile("wfi"); }
 }

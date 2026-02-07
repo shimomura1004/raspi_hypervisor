@@ -1,5 +1,6 @@
 #include "mm.h"
 #include "loader.h"
+#include "pm.h"
 #include "hypercall.h"
 #include "hypercall_type.h"
 #include "utils.h"
