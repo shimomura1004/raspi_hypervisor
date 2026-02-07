@@ -13,7 +13,10 @@
 #define HYPERCALL_TYPE_CREATE_VM_FROM_ELF   100 // VM を作成する
 #define HYPERCALL_TYPE_DESTOY_VM            101 // VM を破棄する
 
+// ハイパーバイザ操作用
+#define HYPERCALL_TYPE_SHUTDOWN_HV          200 // ハイパーバイザをシャットダウンさせる
+
 // 開発用
-#define HYPERCALL_TYPE_CAUSE_PANIC                999 // ハイパーバイザを PANIC させる
+#define HYPERCALL_TYPE_CAUSE_PANIC          999 // ハイパーバイザを PANIC させる
 
 #endif

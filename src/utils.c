@@ -145,6 +145,15 @@ int toupper(int c) {
     }
 }
 
+int tolower(int c) {
+    if ('A' <= c && c <= 'Z') {
+        return c + ('a' - 'A');
+    } else {
+        return c;
+    }
+}
+
+// todo: power management 系は別ファイルにする
 #define PM_PASSWORD 0x5a000000
 #define PM_RSTC     (PBASE + 0x0010001c)
 #define PM_WDOG     (PBASE + 0x00100024)
@@ -160,12 +169,4 @@ void system_shutdown() {
     put32(PM_WDOG, PM_PASSWORD | 10);
 
     while (1) { asm volatile("wfi"); }
-}
-
-int tolower(int c) {
-    if ('A' <= c && c <= 'Z') {
-        return c + ('a' - 'A');
-    } else {
-        return c;
-    }
 }
