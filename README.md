@@ -8,6 +8,7 @@
 - VMM(virtual machine manager) OSS がコンソール1で動くので切り替える
 
 ## ハイパーバイザの終了
+- VMM にて `shutdown` コマンドの実行 (QEMU 上での再起動)
 - `Ctrl-a` -> `x` (QEMU の終了)
 
 ## ハイパーバイザの操作方法
@@ -23,7 +24,7 @@
 |`new` + `OS イメージのファイルパス` + `vcpu の数`|指定した OS をゲストとして起動 |
 |`kill` + `vmid`                                |指定した VMID の VM を終了する|
 |`list`                                         |未サポート                   |
-|`shutdown`                                     |未サポート                   |
+|`shutdown`                                     |ハイパーバイザの再起動         |
 
 - ハイパーバイザが動作する qemu 環境ではファイルシステムは fs.img の中身になっている
 - Makefile 内に fs.img の内容が書かれている
