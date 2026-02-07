@@ -159,13 +159,10 @@ int tolower(int c) {
 #define PM_WDOG     (PBASE + 0x00100024)
 
 void system_shutdown() {
-    unsigned int val;
+    // PM のレジスタ書き込みによるシャットダウンでは、割込みを含む一部のコントローラやメモリがクリアされない
 
     // Watchdog タイマを設定してリセットをトリガする
-    val = get32(PM_RSTC);
-    val &= ~0xfffffaaa;
-    val |= 0x20;
-    put32(PM_RSTC, PM_PASSWORD | val);
+    put32(PM_RSTC, PM_PASSWORD | 0x20);
     put32(PM_WDOG, PM_PASSWORD | 10);
 
     while (1) { asm volatile("wfi"); }

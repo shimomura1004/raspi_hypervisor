@@ -16,7 +16,10 @@
 #include "debug.h"
 
 // boot.S で初期化が終わるまでコアを止めるのに使うフラグ
-volatile unsigned long initialized_flag = 0;
+// .bss ではなく .data に配置することで、リセット時に確実に 0 に初期化されるようにする
+//   本来は .bss はブートローダやスタートアップコードでゼロクリアする必要があるが、
+//   簡易実装の場合はこの処理が漏れる可能性がある
+volatile unsigned long initialized_flag __attribute__((section(".data"))) = 0;
 
 static struct loader_args vmm_elf_args = {
 	.loader_addr = 0x0,
@@ -41,7 +44,6 @@ static void initialize_pcpu(unsigned long cpuid) {
 	// 割込みコントローラの有効化
 	disable_irq();
 	enable_interrupt_controller(cpuid);
-	enable_irq();
 }
 
 // 全コア共通で一度だけ実施する初期化処理
