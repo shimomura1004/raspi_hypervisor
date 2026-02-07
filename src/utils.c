@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stddef.h>
 #include "utils.h"
+#include "peripherals/base.h"
 
 int abs(int n) {
     return n < 0 ? -n : n;
@@ -142,6 +143,23 @@ int toupper(int c) {
     } else {
         return c;
     }
+}
+
+#define PM_PASSWORD 0x5a000000
+#define PM_RSTC     (PBASE + 0x0010001c)
+#define PM_WDOG     (PBASE + 0x00100024)
+
+void system_shutdown() {
+    unsigned int val;
+
+    // Watchdog タイマを設定してリセットをトリガする
+    val = get32(PM_RSTC);
+    val &= ~0xfffffaaa;
+    val |= 0x20;
+    put32(PM_RSTC, PM_PASSWORD | val);
+    put32(PM_WDOG, PM_PASSWORD | 10);
+
+    while (1) { asm volatile("wfi"); }
 }
 
 int tolower(int c) {
