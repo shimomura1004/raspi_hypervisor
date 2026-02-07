@@ -185,6 +185,7 @@ int create_idle_vm() {
 }
 
 // 指定されたローダで VM を作る
+// 成功時は VMID が返り、失敗時は -1 が返る
 // todo: 関数が長いのでリファクタリングしたい
 // todo: vm 作成に失敗した場合、途中まで作った vm の vmid が返されずリークする
 int create_vm_with_loader(loader_func_t loader, void *arg) {
@@ -227,7 +228,6 @@ int create_vm_with_loader(loader_func_t loader, void *arg) {
 
 	for (int i = 0; i < vm->loader_args.vcpu_num; i++) {
 		// 必要なだけ vCPU を準備
-		// todo: create_vcpu 内で vm に対する処理を実行しているので取り出してループの外に置く
 		struct vcpu_struct *vcpu = create_vcpu(i);
 		if (!vcpu) {
 			// todo: 途中で失敗した場合は、既に作った vCPU を削除しないといけない(vcpus への登録も解除)
@@ -236,7 +236,7 @@ int create_vm_with_loader(loader_func_t loader, void *arg) {
 			return -1;
 		}
 
-		// vCPU が担当する vm を登録
+		// この vCPU が担当する vm を登録
 		vcpu->vm = vm;
 		init_lock(&vcpu->lock, "vcpu_lock");
 

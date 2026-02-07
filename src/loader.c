@@ -54,6 +54,7 @@ int load_file_to_memory(struct vm_struct2 *vm, const char *name, unsigned long v
         int actualsize = fat32_read(&file, buf, offset, readsize);
 
         if (readsize != actualsize) {
+            // todo: エラーで戻る前に既に確保したメモリを解放する
             WARN("failed to read raw file");
             return -1;
         }
