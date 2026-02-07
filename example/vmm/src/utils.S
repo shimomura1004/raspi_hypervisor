@@ -34,6 +34,11 @@ destroy_vm:
 	hvc #HYPERCALL_TYPE_DESTOY_VM
 	ret
 
+.globl shutdown_hv
+shutdown_hv:
+	hvc #HYPERCALL_TYPE_SHUTDOWN_HV
+	ret
+
 .globl irq_vector_init
 irq_vector_init:
 	adr x0, vectors

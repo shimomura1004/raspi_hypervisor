@@ -8,6 +8,7 @@
 
 void new_vm();
 void destroy_vm(int vmid);
+void shutdown_hv();
 
 struct loader_args vm_args = {
 	.loader_addr = 0x0,
@@ -110,7 +111,7 @@ void execute_command(char *buf) {
 		printf("'list' is not supported.\n");
 	}
 	else if (EQUAL(args[0], "shutdown")) {
-		printf("'shutdown' is not supported.\n");
+		shutdown_hv();
 	}
 	else if (EQUAL(args[0], "help")) {
 		print_help();
