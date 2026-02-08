@@ -8,5 +8,6 @@
 #define PM_WDOG     (PBASE + 0x00100024)
 
 void system_shutdown(void);
+void system_reboot(void);
 
 #endif
