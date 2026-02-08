@@ -60,6 +60,12 @@ void hypercall(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigne
 		break;
 	}
 
+	case HYPERCALL_TYPE_REBOOT_HV: {
+		INFO("Rebooting hypervisor");
+		system_reboot();
+		break;
+	}
+
 	case HYPERCALL_TYPE_CAUSE_PANIC: {
 		PANIC("Panic by hypercall");
 		break;

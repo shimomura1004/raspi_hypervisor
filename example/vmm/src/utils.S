@@ -39,6 +39,11 @@ shutdown_hv:
 	hvc #HYPERCALL_TYPE_SHUTDOWN_HV
 	ret
 
+.globl reboot_hv
+reboot_hv:
+	hvc #HYPERCALL_TYPE_REBOOT_HV
+	ret
+
 .globl irq_vector_init
 irq_vector_init:
 	adr x0, vectors

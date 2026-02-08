@@ -15,6 +15,7 @@
 
 // ハイパーバイザ操作用
 #define HYPERCALL_TYPE_SHUTDOWN_HV          200 // ハイパーバイザをシャットダウンさせる
+#define HYPERCALL_TYPE_REBOOT_HV            201 // ハイパーバイザをリブートさせる
 
 // 開発用
 #define HYPERCALL_TYPE_CAUSE_PANIC          999 // ハイパーバイザを PANIC させる

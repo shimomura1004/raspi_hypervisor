@@ -9,6 +9,7 @@
 void new_vm();
 void destroy_vm(int vmid);
 void shutdown_hv();
+void reboot_hv();
 
 struct loader_args vm_args = {
 	.loader_addr = 0x0,
@@ -39,6 +40,9 @@ void print_help_list() {
 void print_help_shutdown() {
 	printf("  shutdown\n");
 }
+void print_help_reboot() {
+	printf("  reboot\n");
+}
 void print_help_help() {
 	printf("  help\n");
 }
@@ -47,6 +51,7 @@ void print_help() {
 	print_help_kill();
 	print_help_list();
 	print_help_shutdown();
+	print_help_reboot();
 	print_help_help();
 }
 
@@ -112,6 +117,9 @@ void execute_command(char *buf) {
 	}
 	else if (EQUAL(args[0], "shutdown")) {
 		shutdown_hv();
+	}
+	else if (EQUAL(args[0], "reboot")) {
+		reboot_hv();
 	}
 	else if (EQUAL(args[0], "help")) {
 		print_help();
