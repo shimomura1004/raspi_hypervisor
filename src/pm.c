@@ -1,13 +1,28 @@
 #include "pm.h"
 #include "utils.h"
 #include "debug.h"
+#include "peripherals/mailbox.h"
 
+// todo: shutdown/reboot のいずれも、まず全 pCPU を安全に停止させる必要がある
+//       停止のための関数 system_halt を定義し、shutdown/reboot は halt 後の処理を担当させる
+
+// todo: static にしてアクセサを定義し、直接アクセスできないようにする
+volatile int system_halted = 0;
+
+// 実際に電源を落とすには mailbox でファームウェアに指示を送る必要がある
+// todo: PSCI で汎用化する
 void system_shutdown() {
-    // 実際に電源を落とすには mailbox でファームウェアに指示を送る必要がある
-    // todo: PSCI で汎用化する
-    INFO("System Halted.");
+    // todo: アクセサを使う
+    system_halted = 1;
 
-    // todo: これだけでは他の pCPU が停止しない
+    // 他のコアを停止させるために Mailbox 割込み(IPI)を送る
+    unsigned long cpuid = get_cpuid();
+    if (cpuid != 0) put32(MBOX_CORE0_SET_0, 1);
+    if (cpuid != 1) put32(MBOX_CORE1_SET_0, 1);
+    if (cpuid != 2) put32(MBOX_CORE2_SET_0, 1);
+    if (cpuid != 3) put32(MBOX_CORE3_SET_0, 1);
+
+    INFO("System Halted.");
     while (1) { asm volatile("wfi"); }
 }
 

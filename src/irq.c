@@ -64,6 +64,12 @@ static void handle_irq_maincore() {
 	// todo: daifset で割込みを止めてもシステムタイマによる割込みが発生してしまう、なぜ？
 	unsigned long basic_pending = get32(IRQ_BASIC_PENDING);
 
+	// todo: メインとサブのコアで処理を分ける必要はないので統一する
+	if (basic_pending & MBOX_IRQ_BIT) {
+		put32(MBOX_CORE0_RD_CLR_0, 1);
+		handle_mailbox_irq(0);
+	}
+
 	if (basic_pending & PENDING_REGISTER_1_BIT) {
 		unsigned int irq = get32(IRQ_PENDING_1);
 		// システムタイマ割込みの処理はいったん削除
