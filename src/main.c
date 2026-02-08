@@ -55,11 +55,6 @@ static void initialize_hypervisor() {
 	// // システムタイマは全コアで共有されるのでここで初期化
 	// systimer_init();
 
-	// // Core 1~3 の Core 0 からの MAILBOX の割込みを有効化
-	// put32(MBOX_CORE1_CONTROL, MBOX_CONTROL_IRQ_0_BIT);
-	// put32(MBOX_CORE2_CONTROL, MBOX_CONTROL_IRQ_0_BIT);
-	// put32(MBOX_CORE3_CONTROL, MBOX_CONTROL_IRQ_0_BIT);
-
 	// SD カードの初期化
 	if (sd_init() < 0) {
 		PANIC("sd_init() failed");

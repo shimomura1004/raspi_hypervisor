@@ -9,7 +9,7 @@
 #include "debug.h"
 #include "mini_uart.h"
 
-const char *entry_error_messages[] = {
+static const char *entry_error_messages[] = {
 	"SYNC_INVALID_EL2",
 	"IRQ_INVALID_EL2",		
 	"FIQ_INVALID_EL2",		
@@ -30,6 +30,34 @@ const char *entry_error_messages[] = {
 	"DATA_ABORT_ERROR",
 };
 
+static const unsigned long timer_controls[] = {
+	CORE0_TIMER_IRQCNTL,
+	CORE1_TIMER_IRQCNTL,
+	CORE2_TIMER_IRQCNTL,
+	CORE3_TIMER_IRQCNTL
+};
+
+static const unsigned long mbox_controls[] = {
+	MBOX_CORE0_CONTROL,
+	MBOX_CORE1_CONTROL,
+	MBOX_CORE2_CONTROL,
+	MBOX_CORE3_CONTROL
+};
+
+static const unsigned int mbox_sources[] = {
+	CORE0_IRQ_SOURCE,
+	CORE1_IRQ_SOURCE,
+	CORE2_IRQ_SOURCE,
+	CORE3_IRQ_SOURCE
+};
+
+static const unsigned int mbox_rd_clrs[] = {
+	MBOX_CORE0_RD_CLR_0,
+	MBOX_CORE1_RD_CLR_0,
+	MBOX_CORE2_RD_CLR_0,
+	MBOX_CORE3_RD_CLR_0
+};
+
 // RPi は割込みの有効・無効の管理用に3つのレジスタを持つ
 //   #define ENABLE_IRQS_1		(PBASE+0x0000B210)
 //   #define ENABLE_IRQS_2		(PBASE+0x0000B214)
@@ -39,8 +67,10 @@ const char *entry_error_messages[] = {
 void enable_interrupt_controller(unsigned long cpuid)
 {
 	// Enable Generic Timer (nCNTPNSIRQ)
-	// todo: コードは簡潔だが、それぞれのタイマの定数を使うべきではないか？
-	put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);
+	put32(timer_controls[cpuid], TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);
+
+	// この CPU コアのメールボックス割込みを有効化 (Local Interrupt Controller)
+	put32(mbox_controls[cpuid], 1);
 
 	if (cpuid == 0) {
 		// todo: システムタイマは各 CPU ごとに初期化するべきではない、適切な初期化処理関数に移す
@@ -48,6 +78,7 @@ void enable_interrupt_controller(unsigned long cpuid)
 		// put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_3_BIT);
 		put32(ENABLE_IRQS_1, AUX_IRQ_BIT);
 
+		// todo: これもコアごとの初期化関数内で実行するべきではない
 		// Mailbox 割込みを有効化
 		put32(ENABLE_BASIC_IRQS, MBOX_IRQ_BIT);
 	}
@@ -62,6 +93,14 @@ void show_invalid_entry_message(int type, unsigned long esr, unsigned long elr, 
 // メインコアの割込みハンドラは Mailbox 以外の割込みを処理する
 static void handle_irq_maincore() {
 	// todo: daifset で割込みを止めてもシステムタイマによる割込みが発生してしまう、なぜ？
+
+	// todo: メインとサブのコアで処理を分ける必要はないので統一する
+	unsigned long source = get32(CORE0_IRQ_SOURCE);
+	if (source & IRQ_SOURCE_MBOX_0_BIT) {
+		put32(MBOX_CORE0_RD_CLR_0, 1);
+		handle_mailbox_irq(0);
+	}
+
 	unsigned long basic_pending = get32(IRQ_BASIC_PENDING);
 
 	// todo: メインとサブのコアで処理を分ける必要はないので統一する
@@ -99,13 +138,6 @@ static void handle_irq_maincore() {
 
 // サブコアの割込みハンドラは Mailbox の割込みのみを処理する
 static void handle_irq_subcore(unsigned long cpuid) {
-	static unsigned int mbox_sources[] = {
-		CORE0_IRQ_SOURCE, CORE1_IRQ_SOURCE, CORE2_IRQ_SOURCE, CORE3_IRQ_SOURCE
-	};
-	static unsigned int mbox_rd_clrs[] = {
-		MBOX_CORE0_RD_CLR_0, MBOX_CORE1_RD_CLR_0, MBOX_CORE2_RD_CLR_0, MBOX_CORE3_RD_CLR_0
-	};
-
 	// mailbox が割込みを発生させると basic_irq のビットが立つはずだが、そうなっていない
 	// よって mailbox のソースを直接確認する
 	unsigned long source = get32(mbox_sources[cpuid]);

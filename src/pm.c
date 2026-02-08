@@ -14,6 +14,7 @@ volatile int system_halted = 0;
 void system_shutdown() {
     // todo: アクセサを使う
     system_halted = 1;
+    // todo: ここにバリアは不要か？mailbox が割り込みが発生したときにまだ DRAM に反映されないかも？
 
     // 他のコアを停止させるために Mailbox 割込み(IPI)を送る
     unsigned long cpuid = get_cpuid();
@@ -22,7 +23,8 @@ void system_shutdown() {
     if (cpuid != 2) put32(MBOX_CORE2_SET_0, 1);
     if (cpuid != 3) put32(MBOX_CORE3_SET_0, 1);
 
-    INFO("System Halted.");
+    INFO("System halting...");
+    INFO("CPU %d halted", cpuid);
     while (1) { asm volatile("wfi"); }
 }
 
