@@ -4,8 +4,11 @@
 #include "utils.h"
 #include "debug.h"
 
-// todo: static にしてアクセサを定義し、直接アクセスできないようにする
-volatile int system_halted = 0;
+static volatile int system_halted = 0;
+
+int is_system_halted(void) {
+    return system_halted;
+}
 
 void halt_current_cpu() {
     unsigned long cpuid = get_cpuid();
@@ -23,7 +26,7 @@ void system_shutdown() {
     // todo: shutdown/reboot のいずれも、まず全 pCPU を安全に停止させる必要がある
     //       ここで必要な終了処理を実施するべき
 
-    // todo: アクセサを使う
+    // システムが停止状態になったことを示す
     system_halted = 1;
 
     // 他 pCPU で割込みが発生したときまでに確実に DRAM に system_halted の更新を反映させる
