@@ -10,4 +10,6 @@
 void system_shutdown(void);
 void system_reboot(void);
 
+void halt_current_cpu(void);
+
 #endif
