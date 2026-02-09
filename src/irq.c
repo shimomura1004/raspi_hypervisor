@@ -84,15 +84,16 @@ void enable_interrupt_controller(unsigned long cpuid)
 	}
 }
 
-// メインコアの割込みハンドラは Mailbox 以外の割込みを処理する
-static void handle_irq_maincore() {
+// LIC(Legacy Interrupt Controller) が発生させる割込みを処理する
+static void handle_lic() {
 	// todo: daifset で割込みを止めてもシステムタイマによる割込みが発生してしまう、なぜ？
 
 	unsigned long basic_pending = get32(IRQ_BASIC_PENDING);
 
 	if (basic_pending & PENDING_REGISTER_1_BIT) {
 		unsigned int irq = get32(IRQ_PENDING_1);
-		// システムタイマ割込みの処理はいったん削除
+
+		// // システムタイマ
 		// if (irq & SYSTEM_TIMER_IRQ_1_BIT) {
 		// 	irq &= ~SYSTEM_TIMER_IRQ_1_BIT;
 		// 	handle_systimer1_irq();
@@ -101,10 +102,14 @@ static void handle_irq_maincore() {
 		// 	irq &= ~SYSTEM_TIMER_IRQ_3_BIT;
 		// 	handle_systimer3_irq();
 		// }
+
+		// UART
 		if (irq & AUX_IRQ_BIT) {
 			irq &= ~AUX_IRQ_BIT;
 			handle_uart_irq();
 		}
+
+		// それ以外の割込みはエラーとする
 		if (irq) {
 			WARN("unknown pending irq: %x", irq);
 		}
@@ -123,9 +128,6 @@ static void handle_irq_maincore() {
 //   "by default local interrupt controller is configured in such a way that all external interrupts are sent to the first core"
 void handle_irq(void)
 {
-	// PENDING レジスタは全コア共通なので、CPU ID を見てコアごとに処理する割込みを分ける
-	//   たとえばシステムタイマ割込みはコア0が処理する前提になっているが、
-	//   Mailbox 割込みとタイミングが被ると、コア1でシステムタイマの割込みも処理されてしまう
 	unsigned long cpuid = get_cpuid();
 	unsigned long source = get32(irq_sources[cpuid]);
 
@@ -133,7 +135,6 @@ void handle_irq(void)
 	{
 		// mailbox が割込みを発生させると basic_irq のビットが立つはずだが、そうなっていない
 		// よって mailbox のソースを直接確認する
-
 		if (source & IRQ_SOURCE_MBOX_0_BIT) {
 			put32(mbox_rd_clrs[cpuid], 0x1);
 			handle_mailbox_irq(cpuid);
@@ -151,8 +152,11 @@ void handle_irq(void)
 	}
 
 	// コア0のみでしか処理できない割込みの対応
+	//   Legacy Interrupt Controller (UART/System timer)の割込みは Core0 にのみルーティングされる
+	//   IRQ_BASIC_PENDING は全コアから見えるため、たとえばタイマ割込みと UART 割込みが同時に発生すると
+	//   コア0以外のコアが UART を処理してしまう可能性がある
 	if (cpuid == 0) {
-		handle_irq_maincore();
+		handle_lic();
 	}
 }
 
