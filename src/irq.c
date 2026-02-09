@@ -44,7 +44,7 @@ static const unsigned long mbox_controls[] = {
 	MBOX_CORE3_CONTROL
 };
 
-static const unsigned int mbox_sources[] = {
+static const unsigned int irq_sources[] = {
 	CORE0_IRQ_SOURCE,
 	CORE1_IRQ_SOURCE,
 	CORE2_IRQ_SOURCE,
@@ -84,30 +84,11 @@ void enable_interrupt_controller(unsigned long cpuid)
 	}
 }
 
-void show_invalid_entry_message(int type, unsigned long esr, unsigned long elr, unsigned long far, unsigned long mpidr)
-{
-	PANIC("uncaught exception(%s) esr: 0x%lx, elr: 0x%lx, far: 0x%lx, mpidr: 0x%lx",
-		  entry_error_messages[type], esr, elr, far, mpidr);
-}
-
 // メインコアの割込みハンドラは Mailbox 以外の割込みを処理する
 static void handle_irq_maincore() {
 	// todo: daifset で割込みを止めてもシステムタイマによる割込みが発生してしまう、なぜ？
 
-	// todo: メインとサブのコアで処理を分ける必要はないので統一する
-	unsigned long source = get32(CORE0_IRQ_SOURCE);
-	if (source & IRQ_SOURCE_MBOX_0_BIT) {
-		put32(MBOX_CORE0_RD_CLR_0, 1);
-		handle_mailbox_irq(0);
-	}
-
 	unsigned long basic_pending = get32(IRQ_BASIC_PENDING);
-
-	// todo: メインとサブのコアで処理を分ける必要はないので統一する
-	if (basic_pending & MBOX_IRQ_BIT) {
-		put32(MBOX_CORE0_RD_CLR_0, 1);
-		handle_mailbox_irq(0);
-	}
 
 	if (basic_pending & PENDING_REGISTER_1_BIT) {
 		unsigned int irq = get32(IRQ_PENDING_1);
@@ -136,42 +117,47 @@ static void handle_irq_maincore() {
 	}
 }
 
-// サブコアの割込みハンドラは Mailbox の割込みのみを処理する
-static void handle_irq_subcore(unsigned long cpuid) {
-	// mailbox が割込みを発生させると basic_irq のビットが立つはずだが、そうなっていない
-	// よって mailbox のソースを直接確認する
-	unsigned long source = get32(mbox_sources[cpuid]);
-
-	if (source & IRQ_SOURCE_MBOX_0_BIT) {
-		put32(mbox_rd_clrs[cpuid], 0x1);
-		handle_mailbox_irq(cpuid);
-	}
-}
-
 // 割込みベクタからジャンプしてくる先
 // RPi3B では外部割込みはどれかひとつのコアでしか受信できない(デフォルトはコア0)
 //   https://github.com/s-matyukevich/raspberry-pi-os/blob/master/docs/lesson03/linux/interrupt_controllers.md
 //   "by default local interrupt controller is configured in such a way that all external interrupts are sent to the first core"
 void handle_irq(void)
 {
-	// PENDING レジスタは全コア共通なので、CPU ID を見てコアごとに処理する割込みを分ける必要がある
-	// たとえばシステムタイマ割込みはコア0が処理する前提になっているが、
-	// Mailbox 割込みとタイミングがぶつかると、コア1で処理されてしまう可能性がある
+	// PENDING レジスタは全コア共通なので、CPU ID を見てコアごとに処理する割込みを分ける
+	//   たとえばシステムタイマ割込みはコア0が処理する前提になっているが、
+	//   Mailbox 割込みとタイミングが被ると、コア1でシステムタイマの割込みも処理されてしまう
 	unsigned long cpuid = get_cpuid();
+	unsigned long source = get32(irq_sources[cpuid]);
+
+	// Mailbox
+	{
+		// mailbox が割込みを発生させると basic_irq のビットが立つはずだが、そうなっていない
+		// よって mailbox のソースを直接確認する
+
+		if (source & IRQ_SOURCE_MBOX_0_BIT) {
+			put32(mbox_rd_clrs[cpuid], 0x1);
+			handle_mailbox_irq(cpuid);
+		}
+	}
 
 	// Generic Timer (Local Timer)
-	// todo: ここも各タイマの定数を明示的に使うべきではないか？
-	unsigned long source = get32(CORE0_IRQ_SOURCE + 4 * cpuid);
-	if (source & TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED) {
-		handle_generic_timer_irq();
-	}
-	if (source & TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED) {
-		handle_virtual_timer_irq();
+	{
+		if (source & TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED) {
+			handle_generic_timer_irq();
+		}
+		if (source & TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED) {
+			handle_virtual_timer_irq();
+		}
 	}
 
+	// コア0のみでしか処理できない割込みの対応
 	if (cpuid == 0) {
 		handle_irq_maincore();
-	} else {
-		handle_irq_subcore(cpuid);
 	}
+}
+
+void show_invalid_entry_message(int type, unsigned long esr, unsigned long elr, unsigned long far, unsigned long mpidr)
+{
+	PANIC("uncaught exception(%s) esr: 0x%lx, elr: 0x%lx, far: 0x%lx, mpidr: 0x%lx",
+		  entry_error_messages[type], esr, elr, far, mpidr);
 }
