@@ -14,7 +14,9 @@ volatile int system_halted = 0;
 void system_shutdown() {
     // todo: アクセサを使う
     system_halted = 1;
-    // todo: ここにバリアは不要か？mailbox が割り込みが発生したときにまだ DRAM に反映されないかも？
+
+    // 他 pCPU で割込みが発生したときまでに確実に DRAM に system_halted の更新を反映させる
+    asm volatile("dmb sy" ::: "memory");
 
     // 他のコアを停止させるために Mailbox 割込み(IPI)を送る
     unsigned long cpuid = get_cpuid();
