@@ -61,7 +61,7 @@ def stop_handler(event):
 
         # 変わっていればシンボル情報を切り替え
         # todo: シンボル名だけでなく、ソースコードのパスも切り替えたい
-        #       本来は ./example/vmm/main.c を参照すべきものも gdb/vscode は ./main.c を参照してしまう
+        #       本来は ./os/vmm/main.c を参照すべきものも gdb/vscode は ./main.c を参照してしまう
         
         if el == 2:
             print(f"\n[GDB Script] Switched to EL2 (Hypervisor)")
@@ -72,10 +72,10 @@ def stop_handler(event):
             
             if vmid == 1:
                 # VMID 1 用のシンボル (VMM 決め打ち)
-                gdb.execute("symbol-file ./example/vmm/build/kernel8.elf")
+                gdb.execute("symbol-file ./os/vmm/build/kernel8.elf")
             elif vmid == 2:
                 # VMID 1 用のシンボル (RASPIOS 決め打ち)
-                gdb.execute("symbol-file ./example/raspios/build/kernel8.elf")
+                gdb.execute("symbol-file ./os/raspios/build/kernel8.elf")
             else:
                 # その他の VM (IDLE VM など)
                 print(f"[GDB Script] Unknown VMID {vmid}, unloading symbols.")

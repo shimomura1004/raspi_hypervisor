@@ -14,7 +14,7 @@ ASMOPS = -Iinclude -g
 BUILD_DIR = build
 SRC_DIR = src
 
-SUBDIRS = ./example
+SUBDIRS = ./os
 
 all: $(SUBDIRS) kernel8.img fs.img
 
@@ -36,14 +36,14 @@ summary:
 fs.img: $(SUBDIRS)
 	dd if=/dev/zero of=fs.img bs=1M count=64
 	mformat -i fs.img -F ::
-	-mcopy -i fs.img ./example/echo/echo.bin ::ECHO.BIN
-	-mcopy -i fs.img ./example/test_binary/test.bin ::TEST2.BIN
-	-mcopy -i fs.img ./example/mini-os/mini-os.bin ::MINI-OS.BIN
-	-mcopy -i fs.img ./example/echo/build/kernel8.elf ::ECHO.ELF
-	-mcopy -i fs.img ./example/mini-os/build/kernel8.elf ::MINI-OS.ELF
-	-mcopy -i fs.img ./example/raspios/kernel8.img ::RASPIOS.BIN
-	-mcopy -i fs.img ./example/raspios/build/kernel8.elf ::RASPIOS.ELF
-	-mcopy -i fs.img ./example/vmm/build/kernel8.elf ::VMM.ELF
+	-mcopy -i fs.img ./os/echo/echo.bin ::ECHO.BIN
+	-mcopy -i fs.img ./os/test_binary/test.bin ::TEST2.BIN
+	-mcopy -i fs.img ./os/mini-os/mini-os.bin ::MINI-OS.BIN
+	-mcopy -i fs.img ./os/echo/build/kernel8.elf ::ECHO.ELF
+	-mcopy -i fs.img ./os/mini-os/build/kernel8.elf ::MINI-OS.ELF
+	-mcopy -i fs.img ./os/raspios/kernel8.img ::RASPIOS.BIN
+	-mcopy -i fs.img ./os/raspios/build/kernel8.elf ::RASPIOS.ELF
+	-mcopy -i fs.img ./os/vmm/build/kernel8.elf ::VMM.ELF
 
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
@@ -68,7 +68,7 @@ kernel8.img: $(SRC_DIR)/linker.ld $(OBJ_FILES)
 	$(ARMGNU)-objcopy $(BUILD_DIR)/kernel8.elf -O binary kernel8.img
 
 # elf バイナリを逆アセンブルする
-#  aarch64-linux-gnu-objdump -D example/raspios/build/kernel8.elf
+#  aarch64-linux-gnu-objdump -D os/raspios/build/kernel8.elf
 # raw binary である kernel8.img を逆アセンブルする
 #  aarch64-linux-gnu-objdump -b binary --architecture=aarch64 -D kernel8.img
 # raw binary を elf に戻す
