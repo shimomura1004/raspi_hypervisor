@@ -1,6 +1,6 @@
 .section ".text.boot"
 
-#include "../../../include/hypercall_type.h"
+#include "../../../hv/include/hypercall_type.h"
 
 .globl _start
 _start:

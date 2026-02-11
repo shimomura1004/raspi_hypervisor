@@ -14,7 +14,7 @@ ASMOPS = -Iinclude -g
 BUILD_DIR = build
 SRC_DIR = src
 
-SUBDIRS = ./os
+SUBDIRS = ../os
 
 all: $(SUBDIRS) kernel8.img fs.img
 
@@ -33,14 +33,14 @@ debug: kernel8.img
 fs.img: $(SUBDIRS)
 	dd if=/dev/zero of=fs.img bs=1M count=64
 	mformat -i fs.img -F ::
-	-mcopy -i fs.img ./os/echo/echo.bin ::ECHO.BIN
-	-mcopy -i fs.img ./os/test_binary/test.bin ::TEST2.BIN
-	-mcopy -i fs.img ./os/mini-os/mini-os.bin ::MINI-OS.BIN
-	-mcopy -i fs.img ./os/echo/build/kernel8.elf ::ECHO.ELF
-	-mcopy -i fs.img ./os/mini-os/build/kernel8.elf ::MINI-OS.ELF
-	-mcopy -i fs.img ./os/raspios/kernel8.img ::RASPIOS.BIN
-	-mcopy -i fs.img ./os/raspios/build/kernel8.elf ::RASPIOS.ELF
-	-mcopy -i fs.img ./os/vmm/build/kernel8.elf ::VMM.ELF
+	-mcopy -i fs.img ../os/echo/echo.bin ::ECHO.BIN
+	-mcopy -i fs.img ../os/test_binary/test.bin ::TEST2.BIN
+	-mcopy -i fs.img ../os/mini-os/mini-os.bin ::MINI-OS.BIN
+	-mcopy -i fs.img ../os/echo/build/kernel8.elf ::ECHO.ELF
+	-mcopy -i fs.img ../os/mini-os/build/kernel8.elf ::MINI-OS.ELF
+	-mcopy -i fs.img ../os/raspios/kernel8.img ::RASPIOS.BIN
+	-mcopy -i fs.img ../os/raspios/build/kernel8.elf ::RASPIOS.ELF
+	-mcopy -i fs.img ../os/vmm/build/kernel8.elf ::VMM.ELF
 
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)

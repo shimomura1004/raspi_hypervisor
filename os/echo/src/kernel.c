@@ -1,7 +1,7 @@
 #include "printf.h"
 #include "utils.h"
 #include "mini_uart.h"
-#include "../../../include/hypercall_type.h"
+#include "../../../hv/include/hypercall_type.h"
 
 #define STR(x) #x
 #define XSTR(x) STR(x)
