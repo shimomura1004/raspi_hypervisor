@@ -1,4 +1,4 @@
-.PHONY: all clean debug summary
+.PHONY: all clean debug
 
 ARMGNU ?= aarch64-linux-gnu
 
@@ -29,9 +29,6 @@ debug: kernel8.img
 	gdb-multiarch -ex 'target remote :1234' \
 	-ex 'layout asm' \
 	-ex 'source ./debug_handler.py'
-
-summary:
-	./summary.sh > summary.txt
 
 fs.img: $(SUBDIRS)
 	dd if=/dev/zero of=fs.img bs=1M count=64
