@@ -3,8 +3,11 @@
 ## 参考にした実装
 - [https://github.com/matsud224/raspvisor](https://github.com/matsud224/raspvisor)
 
+## ハイパーバイザのビルド
+- `make hv`
+
 ## ハイパーバイザの起動
-- `./run.sh`
+- `./run_hv.sh`
 - VMM(virtual machine manager) OSS がコンソール1で動くので切り替える
 
 ## ハイパーバイザの終了

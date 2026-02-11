@@ -14,23 +14,17 @@ ASMOPS = -Iinclude -g
 BUILD_DIR = build
 SRC_DIR = src
 
-SUBDIRS = ../os
+all: kernel8.img fs.img
 
-all: $(SUBDIRS) kernel8.img fs.img
-
-clean: $(SUBDIRS)
+clean:
 	rm -rf $(BUILD_DIR) *.img 
-
-$(SUBDIRS): FORCE
-	$(MAKE) -C $@ $(MAKECMDGOALS)
-FORCE:
 
 debug: kernel8.img
 	gdb-multiarch -ex 'target remote :1234' \
 	-ex 'layout asm' \
 	-ex 'source ./debug_handler.py'
 
-fs.img: $(SUBDIRS)
+fs.img:
 	dd if=/dev/zero of=fs.img bs=1M count=64
 	mformat -i fs.img -F ::
 	-mcopy -i fs.img ../os/echo/echo.bin ::ECHO.BIN
