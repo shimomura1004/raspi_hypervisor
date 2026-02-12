@@ -1,6 +1,9 @@
-.PHONY: all clean os hv os-clean hv-clean
+.PHONY: all clean os hv sm os-clean hv-clean sm-clean
 
-all: hv
+all: sm
+
+sm: hv
+	$(MAKE) -C sm
 
 hv: os
 	$(MAKE) -C hv
@@ -8,10 +11,13 @@ hv: os
 os:
 	$(MAKE) -C os
 
-clean: os-clean hv-clean
+clean: os-clean hv-clean sm-clean
 
 os-clean:
 	$(MAKE) -C os clean
 
 hv-clean:
 	$(MAKE) -C hv clean
+
+sm-clean:
+	$(MAKE) -C sm clean
