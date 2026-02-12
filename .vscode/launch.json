@@ -9,12 +9,12 @@
             "type": "cppdbg",
             "request": "launch",
             "targetArchitecture": "arm64",
-            "program": "${workspaceFolder}/build/kernel8.elf",
+            "program": "${workspaceFolder}/hv/build/kernel8.elf",
             "cwd": "${workspaceFolder}",
             "MIMode": "gdb",
             "miDebuggerPath": "/usr/bin/gdb-multiarch",
             "miDebuggerServerAddress": "localhost:1234",
-            "miDebuggerArgs": "-x \"${workspaceFolder}/debug_handler.py\"",
+            "miDebuggerArgs": "-x \"${workspaceFolder}/hv/debug_handler.py\"",
             "stopAtEntry": true,
             "setupCommands": [
                 {
@@ -28,7 +28,7 @@
                 },
                 {
                     "description": "Load VMID switcher script",
-                    "text": "source ${workspaceFolder}/debug_handler.py",
+                    "text": "source ${workspaceFolder}/hv/debug_handler.py",
                     "ignoreFailures": true
                 }
             ]

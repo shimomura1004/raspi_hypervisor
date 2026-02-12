@@ -18,9 +18,9 @@ gdb.execute("set pagination off")
 
 # 起動時にシンボルファイルを読み込んでアーキテクチャを確定させる
 try:
-    gdb.execute("file ./build/kernel8.elf")
+    gdb.execute("file ./hv/build/kernel8.elf")
 except Exception as e:
-    print(f"[GDB Script] Warning: Failed to load file './build/kernel8.elf': {e}")
+    print(f"[GDB Script] Warning: Failed to load file './hv/build/kernel8.elf': {e}")
 
 def get_reg(reg_name):
     try:
@@ -65,7 +65,7 @@ def stop_handler(event):
         
         if el == 2:
             print(f"\n[GDB Script] Switched to EL2 (Hypervisor)")
-            gdb.execute("symbol-file ./build/kernel8.elf")
+            gdb.execute("symbol-file ./hv/build/kernel8.elf")
             
         elif el == 1:
             print(f"\n[GDB Script] Switched to EL1 (Guest) VMID:{vmid}")
