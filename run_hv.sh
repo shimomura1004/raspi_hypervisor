@@ -12,4 +12,10 @@
 #DISPLAY=:0 qemu-system-aarch64 -m 1024 -M raspi3b -device loader,file=./kernel8.img,addr=0x0 -nographic -serial null -serial mon:stdio -s -S
 #DISPLAY=:0 qemu-system-aarch64 -m 1024 -M raspi3b -device loader,file=./kernel8.img,addr=0x0 -nographic -serial null -serial mon:stdio -s $*
 
-DISPLAY=:0 qemu-system-aarch64 -m 1024 -M raspi3b -device loader,file=./hv/kernel8.img,addr=0x0 -nographic -serial null -serial mon:stdio -drive format=raw,file=./hv/fs.img -s $*
+DISPLAY=:0 qemu-system-aarch64 -m 1024 -M raspi3b \
+    -device loader,file=./hv/kernel8.img,addr=0x80000 \
+    -device loader,addr=0x80000,cpu-num=0 \
+    -device loader,addr=0x80000,cpu-num=1 \
+    -device loader,addr=0x80000,cpu-num=2 \
+    -device loader,addr=0x80000,cpu-num=3 \
+    -nographic -serial null -serial mon:stdio -drive format=raw,file=./hv/fs.img -s $*
