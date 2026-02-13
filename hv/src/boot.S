@@ -27,10 +27,10 @@
 // ここが OS のスタートポイントになる
 .globl _start
 _start:
-    // コア 0 のみ初期化を行うため el3_entry へジャンプ
+    // コア 0 のみが初期化を行う
 	mrs	x0, mpidr_el1
 	and	x0, x0,#0xFF		// Check processor id
-	cbz	x0, el3_entry		// Hang for all non-primary CPU
+	cbz	x0, check_el_state
 
 	// コア 1-3 は initialized_flag がセットされるのを待って実行
 	ldr x0, =initialized_flag
@@ -40,27 +40,18 @@ wait_loop:
 	wfe
 	ldr x1, [x0]
 	cbz x1, wait_loop
-	b el3_entry
+
+check_el_state:
+	// 今の EL に応じたジャンプ先に飛ぶ(EL3 なら el3_entry、EL2 なら el2_entry)
+	mrs	x0, CurrentEL
+	lsr	x0, x0, #2
+	cmp	x0, #3
+	b.eq	el3_entry
+	b	el2_entry
 
 // EL3 の実質的なスタート
 // 起動直後は EL3 になっているので、必要な設定を行ったあと EL2 に切り替える
 el3_entry:
-	// sysregs.h にて定義されている
-	// #define SCTLR_VALUE_MMU_DISABLED
-	//   (SCTLR_RESERVED | SCTLR_EE_LITTLE_ENDIAN |
-	//    SCTLR_I_CACHE_DISABLED | SCTLR_D_CACHE_DISABLED |
-	//    SCTLR_MMU_DISABLED)
-	// MMU を無効にした状態の規定値を x0 レジスタにロードする
-	// 命令キャッシュ・データキャッシュも無効化される
-	ldr	x0, =SCTLR_VALUE_MMU_DISABLED
-
-	// EL2 用に設定を登録
-	msr	sctlr_el2, x0
-
-	// 二段階アドレス変換の有効化など
-	ldr	x0, =HCR_VALUE
-	msr	hcr_el2, x0
-
 	// #define SCR_VALUE (SCR_RESERVED | SCR_RW | SCR_NS)
 	// RW(register width) は hcr_el2 と同じく 1 にしておかないと 32 ビットになる様子
 	// NS(non-secure) は non-secure bit で、1 にすると
@@ -95,6 +86,24 @@ el3_entry:
 
 // ここから EL2 として実行される
 el2_entry:
+	// sysregs.h にて定義されている
+	// #define SCTLR_VALUE_MMU_DISABLED
+	//   (SCTLR_RESERVED | SCTLR_EE_LITTLE_ENDIAN |
+	//    SCTLR_I_CACHE_DISABLED | SCTLR_D_CACHE_DISABLED |
+	//    SCTLR_MMU_DISABLED)
+	// MMU を無効にした状態の規定値を x0 レジスタにロードする
+	// 命令キャッシュ・データキャッシュも無効化される
+	ldr	x0, =SCTLR_VALUE_MMU_DISABLED
+
+	// EL2 用に設定を登録
+	msr	sctlr_el2, x0
+
+	// 二段階アドレス変換の有効化など
+	ldr	x0, =HCR_VALUE
+	msr	hcr_el2, x0
+
+	isb
+
 	// テーブルを用意するのはコア 0 のみ
 	mrs	x0, mpidr_el1
 	and	x0, x0, #0xFF

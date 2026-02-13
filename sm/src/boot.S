@@ -19,9 +19,6 @@
 //       hv/sm のバイナリをそれぞれロードするように変更する
 //       hv/sm のどちらも flat-binary を qemu が直接メモリにロードする方法でいい
 
-// 初期化が終わったことを表すメモリ
-//.extern initialized_flag
-
 // SCTLR_EL1: system control register: キャッシュや MMU が有効か無効か、など
 // HCR_EL2: hypervisor configuration register: ハイパーバイザ関連の機能
 // SCR_EL3: secure configuration register: secure monitor
@@ -34,9 +31,6 @@
 // ここが OS のスタートポイントになる
 .globl _start
 _start:
-	// todo: 仮実装、とりあえずジャンプ
- 	b HV_BASE
-
     // コア 0 のみ初期化を行うため el3_entry へジャンプ
 //	mrs	x0, mpidr_el1
 //	and	x0, x0,#0xFF		// Check processor id
