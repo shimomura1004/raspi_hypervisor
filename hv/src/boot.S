@@ -111,7 +111,7 @@ page_table_setup:
 	// bss 領域を 0 クリア
 	bl 	memzero
 
-	// EL3 には仮想アドレス機能はない
+	// EL3 では仮想アドレスは使用していない
 	// 2段階アドレス変換は、TTBR0_EL1/TTBR1_EL1 -> VTTBR_EL2 の順で変換テーブルを使う
 	// EL2 用のページテーブルを準備
 	bl 	__create_page_tables
