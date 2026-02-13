@@ -3,19 +3,11 @@
 #include "mm.h"
 #include "peripherals/base.h"
 
-// todo: secure monitor の機能を実装する
-// https://trustedfirmware-a.readthedocs.io/en/latest/plat/rpi3.html
-
-// todo: 今は仮想アドレスがリニアマッピング(実際には VA_START=0 なのでアイデンティティマッピング)されている
-//       そうでない場合、仮想アドレスを有効にしたタイミングで PC が指す先がずれる
-//       -> もともとカーネルがあったあたりのページを一時的にマッピングする必要がある
-
 .section ".text.boot"
 
 // 初期化が終わったことを表すメモリ
 .extern initialized_flag
 
-// SCTLR_EL1: system control register: キャッシュや MMU が有効か無効か、など
 // HCR_EL2: hypervisor configuration register: ハイパーバイザ関連の機能
 // SCR_EL3: secure configuration register: secure monitor
 //          どの例外を EL3 でトラップするか指定する他、NS ビットの設定もできる
@@ -23,8 +15,8 @@
 //   condition flag: ゼロかどうか、オーバーフローしたか、…
 // ELR_EL3: exception link register: eret で戻る先のアドレス
 
-// リンカスクリプトで .text.boot セクションが 0 番地に置かれる
-// ここが OS のスタートポイントになる
+// リンカスクリプトで .text.boot セクションが 0x80000 番地に置かれる
+// ここが HV のスタートポイントになる
 .globl _start
 _start:
     // コア 0 のみが初期化を行う
@@ -50,7 +42,7 @@ check_el_state:
 	b	el2_entry
 
 // EL3 の実質的なスタート
-// 起動直後は EL3 になっているので、必要な設定を行ったあと EL2 に切り替える
+// 起動直後は EL3 になっているので、セキュアモニタがいない場合は必要な設定を行ったあと EL2 に切り替える
 el3_entry:
 	// #define SCR_VALUE (SCR_RESERVED | SCR_RW | SCR_NS)
 	// RW(register width) は hcr_el2 と同じく 1 にしておかないと 32 ビットになる様子
