@@ -1,9 +1,9 @@
-/* #include "arm/mmu.h" */
-/* #include "arm/sysregs.h" */
+#include "arm/mmu.h"
+#include "arm/sysregs.h"
 /* #include "mm.h" */
 /* #include "peripherals/base.h" */
 
-#define HV_BASE 0x400000
+#define HV_BASE 0x80000
 
 .section ".text.boot"
 
@@ -17,9 +17,10 @@
 //   hv: 0x80000- (raspi の標準的なロード位置)
 // todo: qemu がブートローダの機能を持っているので、起動スクリプトを修正し
 //       hv/sm のバイナリをそれぞれロードするように変更する
+//       hv/sm のどちらも flat-binary を qemu が直接メモリにロードする方法でいい
 
 // 初期化が終わったことを表すメモリ
-.extern initialized_flag
+//.extern initialized_flag
 
 // SCTLR_EL1: system control register: キャッシュや MMU が有効か無効か、など
 // HCR_EL2: hypervisor configuration register: ハイパーバイザ関連の機能
@@ -33,20 +34,23 @@
 // ここが OS のスタートポイントになる
 .globl _start
 _start:
+	// todo: 仮実装、とりあえずジャンプ
+ 	b HV_BASE
+
     // コア 0 のみ初期化を行うため el3_entry へジャンプ
-	mrs	x0, mpidr_el1
-	and	x0, x0,#0xFF		// Check processor id
-	cbz	x0, el3_entry		// Hang for all non-primary CPU
-
-	// コア 1-3 は initialized_flag がセットされるのを待って実行
-	ldr x0, =initialized_flag
-
-wait_loop:
-	// コア 0 が hypervisor_main で sev 命令を実行するまで待つ
-	wfe
-	ldr x1, [x0]
-	cbz x1, wait_loop
-	b el3_entry
+//	mrs	x0, mpidr_el1
+//	and	x0, x0,#0xFF		// Check processor id
+//	cbz	x0, el3_entry		// Hang for all non-primary CPU
+//
+//	// コア 1-3 は initialized_flag がセットされるのを待って実行
+//	ldr x0, =initialized_flag
+//
+//wait_loop:
+//	// コア 0 が hypervisor_main で sev 命令を実行するまで待つ
+//	wfe
+//	ldr x1, [x0]
+//	cbz x1, wait_loop
+//	b el3_entry
 
 // EL3 の実質的なスタート
 // 起動直後は EL3 になっているので、必要な設定を行ったあと EL2 に切り替える
@@ -92,22 +96,6 @@ el3_entry:
 	// F, I, A ビットをマスク (1)
 	mov x0, #( (7 << 6) | (9 << 0) ) // SPSR_MASK_ALL | SPSR_EL2h
 	msr	spsr_el3, x0
-
-	// コア 0 のみコピーを実行
-	mrs	x0, mpidr_el1
-	and	x0, x0, #0xFF
-	cbnz x0, jump_to_hv
-
-	// hv のバイナリをロード (コピー)
-	ldr	x0, =hv_bin_start
-	ldr	x1, =hv_bin_end
-	ldr	x2, =HV_BASE
-1:	cmp	x0, x1
-	b.ge	jump_to_hv
-	ldr	x3, [x0], #8
-	str	x3, [x2], #8
-	b	1b
-
 jump_to_hv:
 	ldr	x0, =HV_BASE
 	msr	elr_el3, x0
