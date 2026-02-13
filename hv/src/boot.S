@@ -6,6 +6,10 @@
 // todo: secure monitor の機能を実装する
 // https://trustedfirmware-a.readthedocs.io/en/latest/plat/rpi3.html
 
+// todo: 今は仮想アドレスがリニアマッピング(実際には VA_START=0 なのでアイデンティティマッピング)されている
+//       そうでない場合、仮想アドレスを有効にしたタイミングで PC が指す先がずれる
+//       -> もともとカーネルがあったあたりのページを一時的にマッピングする必要がある
+
 .section ".text.boot"
 
 // 初期化が終わったことを表すメモリ

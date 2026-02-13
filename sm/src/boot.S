@@ -1,11 +1,22 @@
-#include "arm/mmu.h"
-#include "arm/sysregs.h"
-#include "mm.h"
-#include "peripherals/base.h"
+/* #include "arm/mmu.h" */
+/* #include "arm/sysregs.h" */
+/* #include "mm.h" */
+/* #include "peripherals/base.h" */
 
 #define HV_BASE 0x400000
 
 .section ".text.boot"
+
+// note: sm/hv の間に二段階アドレス変換はないので、メモリ空間は手動で分離する必要がある
+//       普通はデバイスツリーなどのパラメータ情報を使ってお互いが干渉しないようにする
+// todo: hv をアイデンティティマッピングからリニアマッピングに変更する
+// todo: sm と hv を干渉しないメモリ領域に置く
+
+// example:
+//   sm: 0x0-0x4000 (16KB)
+//   hv: 0x80000- (raspi の標準的なロード位置)
+// todo: qemu がブートローダの機能を持っているので、起動スクリプトを修正し
+//       hv/sm のバイナリをそれぞれロードするように変更する
 
 // 初期化が終わったことを表すメモリ
 .extern initialized_flag
