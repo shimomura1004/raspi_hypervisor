@@ -1,6 +1,6 @@
 SECTIONS
 {
-	. = 0x0000000000000000;
+	. = 0x80000;
 	.text.boot : { *(.text.boot) }
 	. = ALIGN(0x00001000);
 	el1_test_begin = .;

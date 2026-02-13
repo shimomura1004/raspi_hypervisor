@@ -127,11 +127,16 @@ after_page_table_setup:
 	// sp には仮想アドレスが入っているので MMU が有効になってからじゃないと使えない
 	// add	sp, x0, #LOW_MEMORY
 
-	// CPU ID に応じて SP にオフセットをつける (SP = LOW_MEMORY * CPUID)
-	mov x1, #LOW_MEMORY
+	// スタック領域の設定
+	// ロードアドレスが 0x80000 になると 0x0 付近は使えない可能性があるため、
+	// イメージの末尾(bss_end)の後ろにスタックを配置する
+	// SP = bss_end + (LOW_MEMORY * (CPUID + 1))
+	adr	x0, bss_end
+	mov	x1, #LOW_MEMORY
 	bl get_cpuid
-	add x0, x0, #1
-	mul x0, x1, x0
+	add	x2, x0, #1
+	mul	x1, x1, x2
+	add	x0, x0, x1
 	// 最後に VA_START を足すことでカーネルの仮想アドレスにしている
 	add sp, x0, #VA_START
 
