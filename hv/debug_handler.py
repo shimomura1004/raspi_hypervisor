@@ -8,82 +8,24 @@ except ImportError:
     print("Error: This script must be run within GDB. Use 'source debug_handler.py' inside GDB.")
     sys.exit(1)
 
-# スクリプトのあるディレクトリにカレントディレクトリを変更(launch.json の cwd 指定が効かないため)
+# プロジェクトルートに移動し、共通モジュールを読み込めるようにする
 if '__file__' in globals():
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    # hv/debug_handler.py の親の親がプロジェクトルートと仮定
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.dirname(script_dir)
+    os.chdir(project_root)
+    if project_root not in sys.path:
+        sys.path.append(project_root)
 
-# GDB の初期設定
-gdb.execute("set arch aarch64")
-gdb.execute("set pagination off")
+import debug_handler_common
 
-# 起動時にシンボルファイルを読み込んでアーキテクチャを確定させる
-try:
-    gdb.execute("file ./hv/build/kernel8.elf")
-except Exception as e:
-    print(f"[GDB Script] Warning: Failed to load file './hv/build/kernel8.elf': {e}")
-
-def get_reg(reg_name):
-    try:
-        val = gdb.parse_and_eval(reg_name)
-        return int(val)
-    except Exception:
-        return None
-
-last_vmid = -1
-last_el = -1
-
-def stop_handler(event):
-    global last_vmid, last_el
-    try:
-        # 現在の Exception Level を取得
-        # PSTATE (CPSR) の [3:2] ビットが EL を表す
-        cpsr = get_reg("$cpsr")
-        if cpsr is None:
-            cpsr = get_reg("$CPSR")
-        if cpsr is None:
-            return
-
-        el = (cpsr >> 2) & 0x3
-        
-        # VTTBR_EL2 から VMID を取得 (上位16ビット [63:48])
-        vttbr = get_reg("$VTTBR_EL2")
-        if vttbr is None:
-            vttbr = get_reg("$vttbr_el2")
-        
-        vmid = 0 if vttbr is None else (vttbr >> 48) & 0xFFFF
-
-        # 状態が変わっていなければ何もしない
-        if el == last_el and (el != 1 or vmid == last_vmid):
-            return
-
-        last_el = el
-        last_vmid = vmid
-
-        # 変わっていればシンボル情報を切り替え
-        # todo: シンボル名だけでなく、ソースコードのパスも切り替えたい
-        #       本来は ./os/vmm/main.c を参照すべきものも gdb/vscode は ./main.c を参照してしまう
-        
-        if el == 2:
-            print(f"\n[GDB Script] Switched to EL2 (Hypervisor)")
-            gdb.execute("symbol-file ./hv/build/kernel8.elf")
-            
-        elif el == 1:
-            print(f"\n[GDB Script] Switched to EL1 (Guest) VMID:{vmid}")
-            
-            if vmid == 1:
-                # VMID 1 用のシンボル (VMM 決め打ち)
-                gdb.execute("symbol-file ./os/vmm/build/kernel8.elf")
-            elif vmid == 2:
-                # VMID 1 用のシンボル (RASPIOS 決め打ち)
-                gdb.execute("symbol-file ./os/raspios/build/kernel8.elf")
-            else:
-                # その他の VM (IDLE VM など)
-                print(f"[GDB Script] Unknown VMID {vmid}, unloading symbols.")
-                gdb.execute("symbol-file")
-
-    except Exception as e:
-        # エラーが発生したら表示する
-        print(f"[GDB Script] Error: {e}")
-
-gdb.events.stop.connect(stop_handler)
-print("[GDB Script] VMID auto-switch handler loaded.")
+config = {
+    'initial': './hv/build/kernel8.elf',
+    'el3': './hv/build/kernel8.elf',
+    'el2': './hv/build/kernel8.elf',
+    'el1': {
+        1: './os/vmm/build/kernel8.elf',
+        2: './os/raspios/build/kernel8.elf'
+    }
+}
+debug_handler_common.register(config)

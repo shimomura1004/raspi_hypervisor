@@ -6,3 +6,4 @@ build/
 tmp/
 .vscode/
 !/.vscode/launch.json
+__pycache__/
