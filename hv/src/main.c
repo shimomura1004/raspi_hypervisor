@@ -52,6 +52,8 @@ static void initialize_hypervisor() {
 	uart_init();
 	init_printf(NULL, putc);
 
+	// todo: セキュアモニタ経由で起動された場合はここでセキュアモニタのログを出力
+
 	// // システムタイマは全コアで共有されるのでここで初期化
 	// systimer_init();
 

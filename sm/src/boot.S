@@ -4,9 +4,18 @@
 // sm/hv の間に二段階アドレス変換はないので、メモリ空間は手動で分離する必要がある
 // 普通はデバイスツリーなどのパラメータ情報を使ってお互いが干渉しないようにする
 
-// メモリ配置:
+// 物理アドレス空間のメモリ配置:
 //   sm: 0x0-0x4000 (16KB)
+//     .text, .data: 0x0000-0x2fff
+//     shared log:   0x3000-0x33ff
+//     el3 stack:    0x3400-0x3fff
 //   hv: 0x80000- (raspi の標準的なロード位置)
+
+// note: Secure/Normal world のメモリアクセスを制限するのは MMU ではなくメモリコントローラ側にある TZASC
+// TZASC はメモリアドレスと NS ビットを見てアクセス可否を判断する
+// TZASC を設定できるのは EL3 のみ
+// note: Raspberry Pi 3 (BCM2837) には TZASC が搭載されていないのでアクセス制限ができない
+
 #define HV_BASE 0x80000
 
 .extern vectors
@@ -26,6 +35,11 @@ _start:
 	// todo: もし単一コアでのみ実行する処理があれば他コアをここでとどめる
 
 el3_entry:
+	// スタックポインタの設定 (SM 領域の末尾 0x4000 を使用)
+	// todo: 定数を使わずリンカスクリプトなどでシンボルとして定義するべき
+	ldr	x1, =0x4000
+	mov	sp, x1
+
 	// VBAR_EL3 にベクタテーブルのアドレスを設定
 	adr	x0, vectors
 	msr	vbar_el3, x0
@@ -51,6 +65,10 @@ el3_entry:
 	// F, I, A ビットをマスク (1)
 	mov x0, #( (7 << 6) | (9 << 0) ) // SPSR_MASK_ALL | SPSR_EL2h
 	msr	spsr_el3, x0
+
+	// 起動ログの出力
+	bl sm_log_init
+	bl print_boot_message
 
 jump_to_hv:
 	// EL2 に遷移しつつ HV_BASE にジャンプ
