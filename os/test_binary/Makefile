@@ -9,7 +9,7 @@ SRC_DIR = src
 all : test.bin
 
 clean :
-	rm -rf $(BUILD_DIR) *.bin
+	rm -rf $(BUILD_DIR) *.bin kernel8.map
 
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)

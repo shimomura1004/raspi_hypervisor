@@ -10,7 +10,7 @@ SRC_DIR = src
 all : echo.bin
 
 clean :
-	rm -rf $(BUILD_DIR) *.img
+	rm -rf $(BUILD_DIR) *.img kernel8.map
 
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)

@@ -17,7 +17,7 @@ SRC_DIR = src
 all: kernel8.img fs.img
 
 clean:
-	rm -rf $(BUILD_DIR) *.img 
+	rm -rf $(BUILD_DIR) *.img kernel8.map
 
 debug: kernel8.img
 	gdb-multiarch -ex 'target remote :1234' \
