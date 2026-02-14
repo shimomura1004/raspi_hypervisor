@@ -33,6 +33,36 @@
                 }
             ]
 
+        },
+        {
+            "name": "Debug Secure monitor (QEMU)",
+            "type": "cppdbg",
+            "request": "launch",
+            "targetArchitecture": "arm64",
+            "program": "${workspaceFolder}/sm/build/kernel8.elf",
+            "cwd": "${workspaceFolder}",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb-multiarch",
+            "miDebuggerServerAddress": "localhost:1234",
+            "miDebuggerArgs": "-x \"${workspaceFolder}/sm/debug_handler.py\"",
+            "stopAtEntry": true,
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "text": "set arch aarch64",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Load VMID switcher script",
+                    "text": "source ${workspaceFolder}/sm/debug_handler.py",
+                    "ignoreFailures": true
+                }
+            ]
+
         }
     ]
 }
