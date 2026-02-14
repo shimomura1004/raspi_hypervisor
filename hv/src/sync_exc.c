@@ -240,6 +240,12 @@ void handle_sync_exception(unsigned long esr, unsigned long elr, unsigned long f
 		current_pcpu()->current_vcpu->vm->stat.sysregs_trap_count++;
 		handle_trap_system(esr);
 		break;
+	case ESR_EL2_EC_SMC64:
+		WARN("SMC instruction trapped (ESR: 0x%lx). Skipping...", esr);
+		// todo: Secure monitor に通知するだけの仮実装になっている
+		asm volatile ("smc #0");
+		increment_current_pc(4);
+		break;
 	case ESR_EL2_EC_TRAP_SVE:
 		WARN("TRAP_SVE is not implemented.");
 		break;

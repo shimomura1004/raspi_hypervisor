@@ -13,12 +13,17 @@ void kernel_main(void)
 	int el = get_el();
 	printf("Exception level: %d \r\n", el);
 	printf("Press '!' to trigger exception\r\n");
+	printf("Press '#' to trigger SMC call\r\n");
 
 	while (1) {
 		char c = uart_recv();
 		if (c == '!') {
-			printf("Triggering exception...\n");
+			printf("Triggering exception...\r\n");
 			asm volatile("hvc #" XSTR(HYPERCALL_TYPE_CAUSE_PANIC));
+		}
+		if (c == '#') {
+			printf("Triggering SMC call...\r\n");
+			asm volatile("smc #0");
 		}
 		c = c == '\r' ? '\n' : c;
 		uart_send(c);
