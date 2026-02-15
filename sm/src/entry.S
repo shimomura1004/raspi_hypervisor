@@ -90,6 +90,8 @@ serror_handler:
 sync_handler_aarch64:
 	// SMC 命令などのハンドラ
 	save_regs
+	// todo: SMC 以外の要因でもここに到達することはあるので esr_el3 の値を確認する
+	// todo: handle_sync_call のように save_regs で退避したスタックから smc の引数を x0-x4 に入れる
 	bl print_message
 	restore_regs
 
