@@ -3,6 +3,7 @@
 #include "mini_uart.h"
 #include "irq.h"
 #include "../../../hv/include/loader.h"
+#include "../../../hv/include/hypercall_type.h"
 
 #define BUFFER_LENGTH 128
 
@@ -10,6 +11,8 @@ void new_vm();
 void destroy_vm(int vmid);
 void shutdown_hv();
 void reboot_hv();
+void issue_hvc(int hvc_nr);
+void issue_smc(int smc_nr);
 
 struct loader_args vm_args = {
 	.loader_addr = 0x0,
@@ -81,6 +84,25 @@ int command_parser(char *buf, char *args[]) {
 }
 
 #define EQUAL(A, B) (strncmp(A, B, sizeof(B)) == 0)
+void execute_debug_commands(char *args[], int arg_count) {
+	if (EQUAL(args[1], "panic")) {
+		printf("Triggering exception...\r\n");
+		issue_hvc(HYPERCALL_TYPE_CAUSE_PANIC);
+	}
+	else if (EQUAL(args[1], "hvc")) {
+		// todo: 任意の hvc を呼ぶのではなく、決められたハイパーコールを呼ぶ関数群とするべき
+		printf("Triggering HVC call...\r\n");
+		issue_hvc(args[2][0] - '0');
+	}
+	else if (EQUAL(args[1], "smc")) {
+		printf("Triggering SMC call...\r\n");
+		issue_smc(args[2][0] - '0');
+	}
+	else {
+		printf("debug command error: %s\n", args[1]);
+	}
+}
+
 void execute_command(char *buf) {
 	char *args[ARG_MAX];
 	// char *args[ARG_MAX] = {}; とすると -ffreestanding としても memset が参照されるため 
@@ -123,6 +145,9 @@ void execute_command(char *buf) {
 	}
 	else if (EQUAL(args[0], "help")) {
 		print_help();
+	}
+	else if (EQUAL(args[0], "debug")) {
+		execute_debug_commands(args, arg_count);
 	}
 	else {
 		printf("command error: %s\n", args[0]);
