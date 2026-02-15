@@ -1,5 +1,5 @@
-#ifndef _ENTRY_H
-#define _ENTRY_H
+#ifndef _HV_ENTRY_H
+#define _HV_ENTRY_H
 
 // 272 / 8 = 34: kernel_entry では 34 個のレジスタを保存するため
 #define S_FRAME_SIZE            272     // size of all saved registers
