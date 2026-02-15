@@ -13,6 +13,7 @@
 #include "sd.h"
 #include "loader.h"
 #include "cpu_core.h"
+#include "sm_log.h"
 #include "debug.h"
 
 // boot.S で初期化が終わるまでコアを止めるのに使うフラグ
@@ -52,7 +53,8 @@ static void initialize_hypervisor() {
 	uart_init();
 	init_printf(NULL, putc);
 
-	// todo: セキュアモニタ経由で起動された場合はここでセキュアモニタのログを出力
+	// セキュアモニタ経由で起動された場合はここでセキュアモニタのログを出力
+	sm_log_dump();
 
 	// // システムタイマは全コアで共有されるのでここで初期化
 	// systimer_init();
