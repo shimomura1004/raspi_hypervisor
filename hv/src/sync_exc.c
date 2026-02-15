@@ -239,13 +239,6 @@ void handle_sync_exception(unsigned long esr, unsigned long elr, unsigned long f
 		increment_current_pc(4);
 		handle_trap_system(esr);
 		break;
-	case ESR_EL2_EC_SMC64:
-		// SMC 命令の実行はここでトラップ
-		increment_current_pc(4);
-		// todo: Secure monitor に通知するだけの仮実装になっている
-		asm volatile ("smc #0");
-		sm_log_dump();
-		break;
 	case ESR_EL2_EC_TRAP_SVE:
 		WARN("TRAP_SVE is not implemented.");
 		break;
@@ -267,8 +260,18 @@ void handle_sync_exception(unsigned long esr, unsigned long elr, unsigned long f
 	}
 }
 
+// todo: なぜ pc を進めなくていいのか？
 // EL1 からのハイパーコールの処理
 void handle_sync_exception_hvc64(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigned long a2, unsigned long a3) {
 	current_pcpu()->current_vcpu->vm->stat.hvc_trap_count++;
 	hypercall(hvc_nr, a0, a1, a2, a3);
+}
+
+// EL1 からの SMC 呼び出しの処理
+void handle_sync_exception_smc64(unsigned long smc_nr, unsigned long a0, unsigned long a1, unsigned long a2, unsigned long a3) {
+	// SMC 命令の実行はここでトラップ
+	increment_current_pc(4);
+	// todo: Secure monitor に通知するだけの仮実装になっている
+	asm volatile ("smc #0");
+	sm_log_dump();
 }

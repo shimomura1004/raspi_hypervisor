@@ -116,6 +116,19 @@
 	restore_regs
 	.endm
 
+	//-------- handle_sync_call ---------------------------------------------
+	// HVC/SMC 呼び出しの共通処理を行うマクロ
+	// 引数 handler には C 言語のハンドラ関数名を指定する
+	.macro handle_sync_call handler
+	mrs x0, esr_el2
+	and x0, x0, #0xffff
+	// 引数として x8-x11 を渡す (save_regs でスタックに退避された値をロードする)
+	ldp x1, x2, [sp, #16 * 4]
+	ldp x3, x4, [sp, #16 * 5]
+	bl \handler
+	kernel_exit
+	.endm
+	
 	//-----------------------------------------------------------------------
 
 /*
@@ -227,6 +240,10 @@ el01_sync:
 	cmp x4, #ESR_EL2_EC_HVC64
 	b.eq el01_sync_hvc64
 
+	// SMC 命令による割込みかを判定し、その場合は el01_sync_smc64 にジャンプ
+	cmp x4, #ESR_EL2_EC_SMC64
+	b.eq el01_sync_smc64
+
 	// それ以外の割込み要因だった場合は handle_sync_exception にジャンプ
 	mrs x0, esr_el2		// read the syndrome register
 	mrs x1, elr_el2
@@ -236,16 +253,10 @@ el01_sync:
 	kernel_exit
 
 el01_sync_hvc64:
-	// hvc number in esr_el2[15:0]
-	// esr の下位16ビットから hvc number を取り出し x0 にセット
-	mrs x0, esr_el2
-	and x0, x0, #0xffff
-	mov x1, x8
-	mov x2, x9
-	mov x3, x10
-	mov x4, x11
-	bl handle_sync_exception_hvc64
-	kernel_exit
+	handle_sync_call handle_sync_exception_hvc64
+
+el01_sync_smc64:
+	handle_sync_call handle_sync_exception_smc64
 
 // create_vm で作られた VM に切り替わったときに最初に行われる処理
 // x19 には指定された関数のポインタが、x20 には引数が入っている
