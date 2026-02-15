@@ -127,6 +127,9 @@
 //        すべての仮想割込みは無効化される
 //        割込み処理後、EL1 に戻ることを禁止する
 //        など
+// TSC[19] (traps EL1 execution of SMC instructions to EL2)
+//   0b0: 特に意味なし
+//   0b1: EL3 が有効になっている場合は、EL1 で SMC を実行しようとすると EL2 でトラップされる
 // AMO[5] (physical serror exception routing)
 //   0b0: 特に効果なし
 //   0b1: physical serror 例外は EL2 で処理される、など
@@ -149,8 +152,9 @@
 //   0b1: EL1/0 向けの stage2 アドレス変換を有効化
 
 #define HCR_E2H         (0 << 34)
-#define HCR_RW	    	(1 << 31)
+#define HCR_RW	    	    (1 << 31)
 #define HCR_TGE         (0 << 27)
+#define HCR_TSC         (1 << 19)
 // Asynchronous external Aborts and SError interrupt routing
 #define HCR_AMO         (1 << 5)    // routing to EL2
 // Physical IRQ routing
@@ -162,8 +166,8 @@
 
 #define HCR_VALUE \
    ( HCR_TACR | HCR_TID3 | HCR_TID2 | HCR_TID1 | \
-     HCR_TWE | HCR_TWI | HCR_E2H | HCR_RW | HCR_TGE | HCR_AMO | \
-     HCR_IMO | HCR_FMO | HCR_SWIO | HCR_VM)
+     HCR_TWE | HCR_TWI | HCR_E2H | HCR_RW | HCR_TGE | \
+     HCR_TSC | HCR_AMO | HCR_IMO | HCR_FMO | HCR_SWIO | HCR_VM)
 
 // ***************************************
 // SCR_EL3, Secure Configuration Register (EL3), Page 2022 of AArch64-Reference-Manual.
