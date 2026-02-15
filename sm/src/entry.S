@@ -1,5 +1,10 @@
 #include "entry.h"
 
+.macro	ventry	label
+.align	7
+b	\label
+.endm
+
 .macro	save_regs
 	sub	sp, sp, #S_FRAME_SIZE
 	stp	x0, x1, [sp, #16 * 0]
@@ -52,22 +57,22 @@
 .globl vectors
 vectors:
 	// Current EL with SP0
-	b	sync_handler		// Synchronous
-	b	irq_handler		// IRQ
-	b	fiq_handler		// FIQ
-	b	serror_handler		// SError
+	ventry sync_handler			// Synchronous
+	ventry irq_handler			// IRQ
+	ventry fiq_handler			// FIQ
+	ventry serror_handler		// SError
 
 	// Current EL with SPx
-	b	sync_handler
-	b	irq_handler
-	b	fiq_handler
-	b	serror_handler
+	ventry sync_handler
+	ventry irq_handler
+	ventry fiq_handler
+	ventry serror_handler
 
 	// Lower EL using AArch64
-	b	sync_handler_aarch64
-	b	irq_handler_aarch64
-	b	fiq_handler_aarch64
-	b	serror_handler_aarch64
+	ventry sync_handler_aarch64
+	ventry irq_handler_aarch64
+	ventry fiq_handler_aarch64
+	ventry serror_handler_aarch64
 
 // EL3 Exception Handlers
 sync_handler:

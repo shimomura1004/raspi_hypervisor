@@ -1,11 +1,11 @@
 #include "sync_exc.h"
 #include "mm.h"
 #include "sched.h"
-#include "debug.h"
 #include "vm.h"
 #include "arm/sysregs.h"
 #include "hypercall.h"
-#include "printf.h"
+#include "sm_log.h"
+#include "debug.h"
 
 // eclass のインデックスに合わせたエラーメッセージ
 static const char *sync_error_reasons[] = {
@@ -73,9 +73,6 @@ static const char *sync_error_reasons[] = {
 };
 
 static void handle_trap_wfx() {
-	// ゲストの wfi をトラップしており、そのままでは PC が進まないため手動で進める
-	increment_current_pc(4);
-
 	if (should_schedule_other_vcpu(current_pcpu()->current_vcpu)) {
 		yield();
 	} else {
@@ -197,7 +194,6 @@ static void handle_trap_system(unsigned long esr) {
 	// DEFINE_SYSREG_MRS で sys_fin にジャンプするので else は不要
 	WARN("system register access is not handled");
 sys_fin:
-	increment_current_pc(4);
 	return;
 }
 
@@ -229,22 +225,26 @@ void handle_sync_exception(unsigned long esr, unsigned long elr, unsigned long f
 	switch (eclass)
 	{
 	case ESR_EL2_EC_TRAP_WFX:
-		current_pcpu()->current_vcpu->vm->stat.wfx_trap_count++;
 		// ゲスト VM が WFI/WFE を実行したら VM を切り替える
+		current_pcpu()->current_vcpu->vm->stat.wfx_trap_count++;
+		increment_current_pc(4);
 		handle_trap_wfx();
 		break;
 	case ESR_EL2_EC_TRAP_FP_REG:
 		WARN("TRAP_FP_REG is not implemented.");
 		break;
 	case ESR_EL2_EC_TRAP_SYSTEM:
+		// システムレジスタへのアクセスはここでトラップ
 		current_pcpu()->current_vcpu->vm->stat.sysregs_trap_count++;
+		increment_current_pc(4);
 		handle_trap_system(esr);
 		break;
 	case ESR_EL2_EC_SMC64:
-		WARN("SMC instruction trapped (ESR: 0x%lx). Skipping...", esr);
+		// SMC 命令の実行はここでトラップ
+		increment_current_pc(4);
 		// todo: Secure monitor に通知するだけの仮実装になっている
 		asm volatile ("smc #0");
-		increment_current_pc(4);
+		sm_log_dump();
 		break;
 	case ESR_EL2_EC_TRAP_SVE:
 		WARN("TRAP_SVE is not implemented.");

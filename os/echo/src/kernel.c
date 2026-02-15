@@ -21,11 +21,13 @@ void kernel_main(void)
 			printf("Triggering exception...\r\n");
 			asm volatile("hvc #" XSTR(HYPERCALL_TYPE_CAUSE_PANIC));
 		}
-		if (c == '#') {
+		else if (c == '#') {
 			printf("Triggering SMC call...\r\n");
 			asm volatile("smc #0");
 		}
-		c = c == '\r' ? '\n' : c;
-		uart_send(c);
+		else {
+			c = c == '\r' ? '\n' : c;
+			uart_send(c);
+		}
 	}
 }
