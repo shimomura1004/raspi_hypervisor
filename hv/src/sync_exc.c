@@ -4,6 +4,7 @@
 #include "vm.h"
 #include "arm/sysregs.h"
 #include "hypercall.h"
+#include "smcall.h"
 #include "sm_log.h"
 #include "debug.h"
 
@@ -270,9 +271,8 @@ void handle_sync_exception_hvc64(unsigned long hvc_nr, unsigned long a0, unsigne
 
 // EL1 からの SMC 呼び出しの処理
 void handle_sync_exception_smc64(unsigned long smc_nr, unsigned long a0, unsigned long a1, unsigned long a2, unsigned long a3) {
-	// SMC 命令の実行はここでトラップ
 	increment_current_pc(4);
-	// todo: Secure monitor に通知するだけの仮実装になっている
-	asm volatile ("smc #0");
+	smcall(smc_nr, a0, a1, a2, a3);
+	// セキュアモニタコールのあとはログが入っているかもしれないのでダンプする
 	sm_log_dump();
 }
