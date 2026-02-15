@@ -33,11 +33,19 @@
 .globl _start
 _start:
 	// todo: もし単一コアでのみ実行する処理があれば他コアをここでとどめる
+	b	el3_entry
 
 el3_entry:
-	// スタックポインタの設定 (SM 領域の末尾 0x4000 を使用)
+	// スタックポインタの設定 (SM 領域の末尾 0x3400- を使用)
+	// 各コア用のスタックとして 3KB を確保
+	// SP = 0x4000 - (core_id * 0x300)
 	// todo: 定数を使わずリンカスクリプトなどでシンボルとして定義するべき
+	mrs	x0, mpidr_el1
+	and	x0, x0, #3
 	ldr	x1, =0x4000
+	mov	x2, #0x300
+	mul	x2, x0, x2
+	sub	x1, x1, x2
 	mov	sp, x1
 
 	// VBAR_EL3 にベクタテーブルのアドレスを設定
@@ -65,6 +73,11 @@ el3_entry:
 	// F, I, A ビットをマスク (1)
 	mov x0, #( (7 << 6) | (9 << 0) ) // SPSR_MASK_ALL | SPSR_EL2h
 	msr	spsr_el3, x0
+
+	// Core 0 以外はログ出力をスキップして HV へ遷移
+	mrs	x0, mpidr_el1
+	and	x0, x0, #3
+	cbnz	x0, jump_to_hv
 
 	// 起動ログの出力
 	bl sm_log_init
