@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "debug.h"
 
+// todo: hvc 命令の引数の即値(hvc_nr)で判定しているがよいか？ x8 などを見るべきでは？
 void hypercall(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigned long a2, unsigned long a3) {
     struct pt_regs *regs = vcpu_pt_regs(current_pcpu()->current_vcpu);
 
