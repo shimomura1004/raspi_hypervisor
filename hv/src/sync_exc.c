@@ -260,9 +260,10 @@ void handle_sync_exception(unsigned long esr, unsigned long elr, unsigned long f
 	}
 }
 
-// todo: なぜ pc を進めなくていいのか？
-// EL1 からのハイパーコールの処理
+// EL1 からの HVC 呼び出しの処理
 void handle_sync_exception_hvc64(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigned long a2, unsigned long a3) {
+	// todo: なぜかこれを有効にすると、new ハイパーコールを呼ぶとシャットダウンなども呼ばれるようになる
+	// increment_current_pc(4);
 	current_pcpu()->current_vcpu->vm->stat.hvc_trap_count++;
 	hypercall(hvc_nr, a0, a1, a2, a3);
 }
