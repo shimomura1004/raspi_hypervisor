@@ -41,6 +41,7 @@ void hypercall(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigne
 		INFO("Prepare VM(%s) by hypercall", args.filename);
 		// todo: VM の作成に失敗した場合の処理を追加する
         int vmid = create_vm_with_loader(elf_binary_loader, &args);
+		// todo: この戻り値(VMID)は使われていないし、そもそも x8 に戻したところで意味がない
         regs->regs[8] = vmid;
 		break;
     }

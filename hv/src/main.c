@@ -54,6 +54,7 @@ static void initialize_hypervisor() {
 	init_printf(NULL, putc);
 
 	// セキュアモニタ経由で起動された場合はここでセキュアモニタのログを出力
+	// todo: セキュアモニタ経由じゃなくても実行されてしまう
 	sm_log_dump();
 
 	// // システムタイマは全コアで共有されるのでここで初期化

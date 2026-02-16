@@ -233,14 +233,12 @@ el01_irq:
 el01_sync:
 	kernel_entry
 
-	// hvc 命令による割込みかを判定し、その場合は el01_sync_hvc64 にジャンプ
+	// hvc/smc 命令による割込みかを判定し、el01_sync_hvc64/el01_sync_smc64 にジャンプ
 	mrs x4, esr_el2
 	lsr x4, x4, #ESR_EL2_EC_SHIFT
 	and x4, x4, #0x3f
 	cmp x4, #ESR_EL2_EC_HVC64
 	b.eq el01_sync_hvc64
-
-	// SMC 命令による割込みかを判定し、その場合は el01_sync_smc64 にジャンプ
 	cmp x4, #ESR_EL2_EC_SMC64
 	b.eq el01_sync_smc64
 
