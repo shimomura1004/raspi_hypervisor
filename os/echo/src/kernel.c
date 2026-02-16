@@ -19,8 +19,8 @@ void kernel_main(void)
 			issue_hvc(HYPERCALL_TYPE_CAUSE_PANIC);
 		}
 		else if (c == '#') {
-			printf("Triggering SMC call...\r\n");
-			// issue_smc();
+			printf("Triggering SMC #0 call...\r\n");
+			issue_smc(0);
 		}
 		else {
 			c = c == '\r' ? '\n' : c;

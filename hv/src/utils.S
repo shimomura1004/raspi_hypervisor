@@ -417,6 +417,11 @@ set_vmpidr_el2:
     msr vmpidr_el2, x0
 	ret
 
+.globl issue_smc
+issue_smc:
+	smc #0
+	ret
+
 // 使っていない
 // 引数として仮想アドレスを取り、Stage1 と 2 のアドレス変換を行った値を返す 
 .globl do_at

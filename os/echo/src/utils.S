@@ -28,6 +28,5 @@ issue_hvc:
 
 .globl issue_smc
 issue_smc:
-	mov x8, x0
 	smc #0
 	ret

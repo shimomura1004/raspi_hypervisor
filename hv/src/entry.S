@@ -116,19 +116,6 @@
 	restore_regs
 	.endm
 
-	//-------- handle_sync_call ---------------------------------------------
-	// HVC/SMC 呼び出しの共通処理を行うマクロ
-	// 引数 handler には C 言語のハンドラ関数名を指定する
-	.macro handle_sync_call handler
-	mrs x0, esr_el2
-	and x0, x0, #0xffff
-	// 引数として x8-x11 を渡す (save_regs でスタックに退避された値をロードする)
-	ldp x1, x2, [sp, #16 * 4]
-	ldp x3, x4, [sp, #16 * 5]
-	bl \handler
-	kernel_exit
-	.endm
-	
 	//-----------------------------------------------------------------------
 
 /*
@@ -251,10 +238,23 @@ el01_sync:
 	kernel_exit
 
 el01_sync_hvc64:
-	handle_sync_call handle_sync_exception_hvc64
+	mrs x0, esr_el2
+	and x0, x0, #0xffff
+	// 引数として x8-x11 を渡す (save_regs でスタックに退避された値をロードする)
+	// ハイパーコールのお作法に従う
+	ldp x1, x2, [sp, #16 * 4]
+	ldp x3, x4, [sp, #16 * 5]
+	bl handle_sync_exception_hvc64
+	kernel_exit
 
 el01_sync_smc64:
-	handle_sync_call handle_sync_exception_smc64
+	// 引数として x0-x4 を渡す (save_regs でスタックに退避された値をロードする)
+	// SMCCC準拠: x0 が Function ID
+	ldp x0, x1, [sp, #16 * 0]
+	ldp x2, x3, [sp, #16 * 1]
+	ldr x4, [sp, #16 * 2]
+	bl handle_sync_exception_smc64
+	kernel_exit
 
 // create_vm で作られた VM に切り替わったときに最初に行われる処理
 // x19 には指定された関数のポインタが、x20 には引数が入っている
