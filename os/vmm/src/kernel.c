@@ -92,10 +92,12 @@ void execute_debug_commands(char *args[], int arg_count) {
 	else if (EQUAL(args[1], "hvc")) {
 		// todo: 任意の hvc を呼ぶのではなく、決められたハイパーコールを呼ぶ関数群とするべき
 		printf("Triggering HVC call...\r\n");
+		// todo: 第二引数以降も渡す
 		issue_hvc(args[2][0] - '0');
 	}
 	else if (EQUAL(args[1], "smc")) {
 		printf("Triggering SMC call...\r\n");
+		// todo: 第二引数以降も渡す
 		issue_smc(args[2][0] - '0');
 	}
 	else {
