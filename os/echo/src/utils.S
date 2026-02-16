@@ -19,3 +19,15 @@ delay:
 	subs x0, x0, #1
 	bne delay
 	ret
+
+.globl issue_hvc
+issue_hvc:
+	mov x8, x0
+	hvc #0
+	ret
+
+.globl issue_smc
+issue_smc:
+	mov x8, x0
+	smc #0
+	ret

@@ -2,6 +2,7 @@
 #include "arm/sysregs.h"
 #include "mm.h"
 #include "peripherals/base.h"
+#include "../../../hv/include/hypercall_type.h"
 
 .section ".text.boot"
 
@@ -85,10 +86,11 @@ isb
 
 9999:
 // // マッピングをログ出力
-// mov x8, \start
-// and x9, \phys, #PAGE_MASK
-// mov x10, #SECTION_SIZE
-// hvc #3
+// mov x8, #HYPERCALL_TYPE_INFO_LX_LX_LX_LX
+// mov x9, \start
+// and x10, \phys, #PAGE_MASK
+// mov x11, #SECTION_SIZE
+// hvc #0
 
 	// [\tbl, \start, lsl #3]
 	//   テーブルのベースアドレス(tbl)にインデックス(start)の8倍(3ビット左シフト)する

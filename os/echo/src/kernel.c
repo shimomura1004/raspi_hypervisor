@@ -3,9 +3,6 @@
 #include "mini_uart.h"
 #include "../../../hv/include/hypercall_type.h"
 
-#define STR(x) #x
-#define XSTR(x) STR(x)
-
 void kernel_main(void)
 {
 	uart_init();
@@ -19,11 +16,11 @@ void kernel_main(void)
 		char c = uart_recv();
 		if (c == '!') {
 			printf("Triggering exception...\r\n");
-			asm volatile("hvc #" XSTR(HYPERCALL_TYPE_CAUSE_PANIC));
+			issue_hvc(HYPERCALL_TYPE_CAUSE_PANIC);
 		}
 		else if (c == '#') {
 			printf("Triggering SMC call...\r\n");
-			asm volatile("smc #0");
+			// issue_smc();
 		}
 		else {
 			c = c == '\r' ? '\n' : c;

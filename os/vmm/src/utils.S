@@ -24,24 +24,28 @@ delay:
 
 .globl new_vm
 new_vm:
-    ldr x8, vm_args_p
-    hvc #HYPERCALL_TYPE_CREATE_VM_FROM_ELF
+	mov x8, #HYPERCALL_TYPE_CREATE_VM_FROM_ELF
+    ldr x9, vm_args_p
+    hvc #0
 	ret
 
 .globl destroy_vm
 destroy_vm:
-	mov x8, x0
-	hvc #HYPERCALL_TYPE_DESTOY_VM
+	mov x8, #HYPERCALL_TYPE_DESTOY_VM
+	mov x9, x0
+	hvc #0
 	ret
 
 .globl shutdown_hv
 shutdown_hv:
-	hvc #HYPERCALL_TYPE_SHUTDOWN_HV
+	mov x8, #HYPERCALL_TYPE_SHUTDOWN_HV
+	hvc #0
 	ret
 
 .globl reboot_hv
 reboot_hv:
-	hvc #HYPERCALL_TYPE_REBOOT_HV
+	mov x8, #HYPERCALL_TYPE_REBOOT_HV
+	hvc #0
 	ret
 
 .globl issue_hvc
