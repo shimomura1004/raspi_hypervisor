@@ -16,7 +16,8 @@
 // TZASC を設定できるのは EL3 のみ
 // note: Raspberry Pi 3 (BCM2837) には TZASC が搭載されていないのでアクセス制限ができない
 
-#define HV_BASE 0x80000
+#define HV_BASE 				0x80000
+#define EL3_STACK_SIZE_PER_CORE 0x300
 
 .extern vectors
 
@@ -32,18 +33,17 @@
 // ここが SM のスタートポイントになる
 .globl _start
 _start:
-	// todo: もし単一コアでのみ実行する処理があれば他コアをここでとどめる
+	// もし単一コアでのみ実行する処理があれば他コアをここでとどめる
 	b	el3_entry
 
 el3_entry:
-	// スタックポインタの設定 (SM 領域の末尾 0x3400- を使用)
-	// 各コア用のスタックとして 3KB を確保
-	// SP = 0x4000 - (core_id * 0x300)
-	// todo: 定数を使わずリンカスクリプトなどでシンボルとして定義するべき
+	// スタックポインタの設定 (SM 領域の末尾 0x3400-0x4000 を使用)
+	// 各コア用のスタックとして 768B (0x300) を確保
+	// SP = _el3_stack_top - (core_id * EL3_STACK_SIZE_PER_CORE)
 	mrs	x0, mpidr_el1
 	and	x0, x0, #3
-	ldr	x1, =0x4000
-	mov	x2, #0x300
+	ldr	x1, =_el3_stack_top
+	mov	x2, #EL3_STACK_SIZE_PER_CORE
 	mul	x2, x0, x2
 	sub	x1, x1, x2
 	mov	sp, x1

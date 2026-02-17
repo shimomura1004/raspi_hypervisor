@@ -19,5 +19,6 @@ SECTIONS
 	. = ALIGN(0x00001000);
 	pg_dir = .;
 	.data.pgd : { . += (3 * (1 << 12)); }
-}
 
+	_el3_stack_top = 0x4000;
+}
