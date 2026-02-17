@@ -46,6 +46,10 @@ void print_help_shutdown() {
 void print_help_reboot() {
 	printf("  reboot\n");
 }
+void print_help_debug() {
+	printf("  debug hvc <hvc_nr>\n");
+	printf("  debug smc <smc_nr>\n");
+}
 void print_help_help() {
 	printf("  help\n");
 }
@@ -55,6 +59,7 @@ void print_help() {
 	print_help_list();
 	print_help_shutdown();
 	print_help_reboot();
+	print_help_debug();
 	print_help_help();
 }
 
