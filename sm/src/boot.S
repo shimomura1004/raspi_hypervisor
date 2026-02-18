@@ -5,10 +5,10 @@
 // 普通はデバイスツリーなどのパラメータ情報を使ってお互いが干渉しないようにする
 
 // 物理アドレス空間のメモリ配置:
-//   sm: 0x0-0x4000 (16KB)
+//   sm: 0x0-0x3ffff (256KB)
 //     .text, .data: 0x0000-0x2fff
 //     shared log:   0x3000-0x33ff
-//     el3 stack:    0x3400-0x3fff
+//     el3 stack:    0x3f400-0x3ffff
 //   hv: 0x80000- (raspi の標準的なロード位置)
 
 // note: Secure/Normal world のメモリアクセスを制限するのは MMU ではなくメモリコントローラ側にある TZASC
@@ -37,7 +37,7 @@ _start:
 	b	el3_entry
 
 el3_entry:
-	// スタックポインタの設定 (SM 領域の末尾 0x3400-0x4000 を使用)
+	// スタックポインタの設定 (SM 領域の末尾 0x3f400-0x40000 を使用)
 	// 各コア用のスタックとして 768B (0x300) を確保
 	// SP = _el3_stack_top - (core_id * EL3_STACK_SIZE_PER_CORE)
 	mrs	x0, mpidr_el1
