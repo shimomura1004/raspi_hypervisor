@@ -3,8 +3,7 @@
 
 #include <stdint.h>
 
-// todo: リンカスクリプト内でシンボルとして定義
-#define SM_SHARED_MEM_ADDR  0x3000
+#define SM_SHARED_MEM_ADDR  0x3b800
 #define SM_LOG_BUFFER_SIZE  1024
 
 typedef struct {

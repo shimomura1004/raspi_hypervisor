@@ -6,9 +6,9 @@
 
 // 物理アドレス空間のメモリ配置:
 //   sm: 0x0-0x3ffff (256KB)
-//     .text, .data: 0x0000-0x2fff
-//     shared log:   0x3000-0x33ff
-//     el3 stack:    0x3f400-0x3ffff
+//     .text, .data: 0x00000-0x3b7ff (238KB)
+//     shared log:   0x3b800-0x3bfff (2KB)
+//     el3 stack:    0x3c000-0x3ffff (4KB * 4)
 //   hv: 0x80000- (raspi の標準的なロード位置)
 
 // note: Secure/Normal world のメモリアクセスを制限するのは MMU ではなくメモリコントローラ側にある TZASC
@@ -17,7 +17,7 @@
 // note: Raspberry Pi 3 (BCM2837) には TZASC が搭載されていないのでアクセス制限ができない
 
 #define HV_BASE 				0x80000
-#define EL3_STACK_SIZE_PER_CORE 0x300
+#define EL3_STACK_SIZE_PER_CORE 0x1000
 
 .extern vectors
 
