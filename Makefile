@@ -1,4 +1,4 @@
-.PHONY: all clean os hv sm os-clean hv-clean sm-clean
+.PHONY: all clean os hv sm test os-clean hv-clean sm-clean test-clean
 
 # todo: OS コードを更新したときに fs.img が再作成されない
 all: sm
@@ -12,7 +12,10 @@ hv: os
 os:
 	$(MAKE) -C os
 
-clean: os-clean hv-clean sm-clean
+test:
+	$(MAKE) -C tests test
+
+clean: os-clean hv-clean sm-clean test-clean
 
 os-clean:
 	$(MAKE) -C os clean
@@ -22,3 +25,6 @@ hv-clean:
 
 sm-clean:
 	$(MAKE) -C sm clean
+
+test-clean:
+	$(MAKE) -C tests clean
