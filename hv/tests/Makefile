@@ -81,8 +81,10 @@ test: all
 	./$(BUILD_DIR)/test_fifo
 
 test-aarch64: $(AARCH64_BUILD_DIR)/test_fifo.img $(AARCH64_BUILD_DIR)/test_utils.img
-	@echo "To run tests in QEMU, use launch script or run:"
-	@echo "qemu-system-aarch64 -M raspi3b -kernel $(AARCH64_BUILD_DIR)/test_fifo.img -nographic -serial null -serial mon:stdio"
+	@echo "Running AArch64 tests in QEMU..."
+	qemu-system-aarch64 -M raspi3b -kernel $(AARCH64_BUILD_DIR)/test_fifo.img -nographic -serial null -serial mon:stdio -semihosting
+	qemu-system-aarch64 -M raspi3b -kernel $(AARCH64_BUILD_DIR)/test_utils.img -nographic -serial null -serial mon:stdio -semihosting
+	@echo "All AArch64 tests passed!"
 
 clean:
 	rm -rf $(BUILD_DIR) $(AARCH64_BUILD_DIR)

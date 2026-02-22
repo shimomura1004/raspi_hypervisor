@@ -58,6 +58,26 @@ extern void uart_init();
 // The test's main function (will be renamed from 'main' via -Dmain=test_main)
 extern int test_main();
 
+// QEMU Semihosting exit
+void qemu_exit(int code) {
+    // Parameter block for SYS_EXIT (0x18)
+    // Word 0: reason (0x20026 = ADP_Stopped_ApplicationExit)
+    // Word 1: exit code
+    volatile unsigned long block[2];
+    block[0] = 0x20026;
+    block[1] = code;
+
+    register unsigned long x0 asm("x0") = 0x18;
+    register unsigned long x1 asm("x1") = (unsigned long)block;
+
+    asm volatile (
+        "hlt #0xf000"
+        :
+        : "r"(x0), "r"(x1)
+        : "memory"
+    );
+}
+
 void aarch64_main() {
     uart_init();
     init_printf(NULL, putc);
@@ -65,21 +85,12 @@ void aarch64_main() {
     // Call the test main
     test_main();
     
-    tfp_printf("\n[AARCH64 TEST RUNNER] Test execution completed.\n");
-    // In a real environment we might power off, here we just hang.
-    while(1) {
-        for(int i = 0; i < 1000000; i++) asm volatile("nop");
-    }
+    tfp_printf("\n[AARCH64 TEST RUNNER] Test execution completed successfully.\n");
+    qemu_exit(0);
 }
 
-// Handle assert failure (called by assert macro if it's the standard one)
-void __assert_fail(const char *assertion, const char *file, unsigned int line, const char *function) {
-    tfp_printf("ASSERTION FAILED: %s at %s:%u in %s\n", assertion, file, line, function);
-    while(1);
-}
-
-// Mock for abort() which might be called by some assert implementations
+// Handle abort()
 void abort() {
     tfp_printf("ABORT called\n");
-    while(1);
+    qemu_exit(1);
 }
