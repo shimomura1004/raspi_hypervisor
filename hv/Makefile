@@ -1,8 +1,5 @@
 .PHONY: all clean debug test
 
-test:
-	$(MAKE) -C tests test
-
 ARMGNU ?= aarch64-linux-gnu
 
 # ログレベルの設定(デフォルトはINFO)
@@ -19,6 +16,10 @@ SRC_DIR = src
 
 all: $(BUILD_DIR)/kernel8.img $(BUILD_DIR)/fs.img
 
+test:
+	$(MAKE) -C tests test
+
+
 clean:
 	rm -rf $(BUILD_DIR)
 	$(MAKE) -C tests clean
@@ -28,7 +29,14 @@ debug: kernel8.img
 	-ex 'layout asm' \
 	-ex 'source ./debug_handler.py'
 
-$(BUILD_DIR)/fs.img:
+OS_BINS = \
+	../os/echo/build/echo.bin \
+	../os/test_binary/build/test.bin \
+	../os/mini-os/build/mini-os.bin \
+	../os/raspios/build/kernel8.img \
+	../os/vmm/build/vmm.bin
+
+$(BUILD_DIR)/fs.img: $(OS_BINS)
 	mkdir -p $(BUILD_DIR)
 	dd if=/dev/zero of=$(BUILD_DIR)/fs.img bs=1M count=64
 	mformat -i $(BUILD_DIR)/fs.img -F ::

@@ -1,6 +1,5 @@
 .PHONY: all clean os hv sm test os-clean hv-clean sm-clean test-clean
 
-# todo: OS コードを更新したときに fs.img が再作成されない
 all: sm
 
 sm: hv
