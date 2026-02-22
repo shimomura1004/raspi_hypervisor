@@ -31,7 +31,6 @@ debug: kernel8.img
 
 OS_BINS = \
 	../os/echo/build/echo.bin \
-	../os/test_binary/build/test.bin \
 	../os/mini-os/build/mini-os.bin \
 	../os/raspios/build/kernel8.img \
 	../os/vmm/build/vmm.bin
@@ -41,7 +40,6 @@ $(BUILD_DIR)/fs.img: $(OS_BINS)
 	dd if=/dev/zero of=$(BUILD_DIR)/fs.img bs=1M count=64
 	mformat -i $(BUILD_DIR)/fs.img -F ::
 	-mcopy -i $(BUILD_DIR)/fs.img ../os/echo/build/echo.bin ::ECHO.BIN
-	-mcopy -i $(BUILD_DIR)/fs.img ../os/test_binary/build/test.bin ::TEST2.BIN
 	-mcopy -i $(BUILD_DIR)/fs.img ../os/mini-os/build/mini-os.bin ::MINI-OS.BIN
 	-mcopy -i $(BUILD_DIR)/fs.img ../os/echo/build/kernel8.elf ::ECHO.ELF
 	-mcopy -i $(BUILD_DIR)/fs.img ../os/mini-os/build/kernel8.elf ::MINI-OS.ELF
