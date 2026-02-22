@@ -1,8 +1,14 @@
-*.img
-*.dtb
-*.map
-*.bin
+# Build artifacts
 build/
+*.o
+*.d
+*.elf
+*.img
+*.bin
+*.map
+
+# Others
+*.dtb
 tmp/
 .vscode/
 !/.vscode/launch.json

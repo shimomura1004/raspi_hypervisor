@@ -1,4 +1,7 @@
-.PHONY: all clean debug
+.PHONY: all clean debug test
+
+test:
+	$(MAKE) -C tests test
 
 ARMGNU ?= aarch64-linux-gnu
 
@@ -14,27 +17,29 @@ ASMOPS = -Iinclude -g
 BUILD_DIR = build
 SRC_DIR = src
 
-all: kernel8.img fs.img
+all: $(BUILD_DIR)/kernel8.img $(BUILD_DIR)/fs.img
 
 clean:
-	rm -rf $(BUILD_DIR) *.img kernel8.map
+	rm -rf $(BUILD_DIR)
+	$(MAKE) -C tests clean
 
 debug: kernel8.img
 	gdb-multiarch -ex 'target remote :1234' \
 	-ex 'layout asm' \
 	-ex 'source ./debug_handler.py'
 
-fs.img:
-	dd if=/dev/zero of=fs.img bs=1M count=64
-	mformat -i fs.img -F ::
-	-mcopy -i fs.img ../os/echo/echo.bin ::ECHO.BIN
-	-mcopy -i fs.img ../os/test_binary/test.bin ::TEST2.BIN
-	-mcopy -i fs.img ../os/mini-os/mini-os.bin ::MINI-OS.BIN
-	-mcopy -i fs.img ../os/echo/build/kernel8.elf ::ECHO.ELF
-	-mcopy -i fs.img ../os/mini-os/build/kernel8.elf ::MINI-OS.ELF
-	-mcopy -i fs.img ../os/raspios/kernel8.img ::RASPIOS.BIN
-	-mcopy -i fs.img ../os/raspios/build/kernel8.elf ::RASPIOS.ELF
-	-mcopy -i fs.img ../os/vmm/build/kernel8.elf ::VMM.ELF
+$(BUILD_DIR)/fs.img:
+	mkdir -p $(BUILD_DIR)
+	dd if=/dev/zero of=$(BUILD_DIR)/fs.img bs=1M count=64
+	mformat -i $(BUILD_DIR)/fs.img -F ::
+	-mcopy -i $(BUILD_DIR)/fs.img ../os/echo/build/echo.bin ::ECHO.BIN
+	-mcopy -i $(BUILD_DIR)/fs.img ../os/test_binary/build/test.bin ::TEST2.BIN
+	-mcopy -i $(BUILD_DIR)/fs.img ../os/mini-os/build/mini-os.bin ::MINI-OS.BIN
+	-mcopy -i $(BUILD_DIR)/fs.img ../os/echo/build/kernel8.elf ::ECHO.ELF
+	-mcopy -i $(BUILD_DIR)/fs.img ../os/mini-os/build/kernel8.elf ::MINI-OS.ELF
+	-mcopy -i $(BUILD_DIR)/fs.img ../os/raspios/build/kernel8.img ::RASPIOS.BIN
+	-mcopy -i $(BUILD_DIR)/fs.img ../os/raspios/build/kernel8.elf ::RASPIOS.ELF
+	-mcopy -i $(BUILD_DIR)/fs.img ../os/vmm/build/kernel8.elf ::VMM.ELF
 
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
@@ -54,9 +59,9 @@ DEP_FILES = $(OBJ_FILES:%.o=%.d)
 # kernel8.img は、kernel8.elf を objcopy で raw binary にしたもの
 # raw binary: 実際にメモリに展開される内容がそのままファイルになったもの
 #             elf ファイルのようにセクションごとにパースなどをせず全体をコピーするだけでいいので楽
-kernel8.img: $(SRC_DIR)/linker.ld $(OBJ_FILES)
-	$(ARMGNU)-ld -Map kernel8.map -T $(SRC_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf  $(OBJ_FILES)
-	$(ARMGNU)-objcopy $(BUILD_DIR)/kernel8.elf -O binary kernel8.img
+$(BUILD_DIR)/kernel8.img: $(SRC_DIR)/linker.ld $(OBJ_FILES)
+	$(ARMGNU)-ld -Map $(BUILD_DIR)/kernel8.map -T $(SRC_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf  $(OBJ_FILES)
+	$(ARMGNU)-objcopy $(BUILD_DIR)/kernel8.elf -O binary $(BUILD_DIR)/kernel8.img
 
 # elf バイナリを逆アセンブルする
 #  aarch64-linux-gnu-objdump -D os/raspios/build/kernel8.elf

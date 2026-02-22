@@ -6,10 +6,10 @@ ASMOPS = -Iinclude
 BUILD_DIR = build
 SRC_DIR = src
 
-all : test.bin
+all : $(BUILD_DIR)/test.bin
 
 clean :
-	rm -rf $(BUILD_DIR) *.bin kernel8.map
+	rm -rf $(BUILD_DIR)
 
 $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 	mkdir -p $(@D)
@@ -26,12 +26,12 @@ OBJ_FILES += $(ASM_FILES:$(SRC_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 DEP_FILES = $(OBJ_FILES:%.o=%.d)
 -include $(DEP_FILES)
 
-test.bin: $(SRC_DIR)/linker.ld $(OBJ_FILES)
+$(BUILD_DIR)/test.bin: $(SRC_DIR)/linker.ld $(OBJ_FILES)
 	$(ARMGNU)-ld -T $(SRC_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf  $(OBJ_FILES)
-	$(ARMGNU)-objcopy $(BUILD_DIR)/kernel8.elf -O binary test.bin
+	$(ARMGNU)-objcopy $(BUILD_DIR)/kernel8.elf -O binary $(BUILD_DIR)/test.bin
 
 .PHONY: install
-install: test.bin
-	cp test.bin $(SD_BOOT_DIR)
+install: $(BUILD_DIR)/test.bin
+	cp $(BUILD_DIR)/test.bin $(SD_BOOT_DIR)
 	-umount $(SD_BOOT_DIR)
 	-umount $(SD_ROOTFS_DIR)

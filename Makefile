@@ -13,7 +13,8 @@ os:
 	$(MAKE) -C os
 
 test:
-	$(MAKE) -C tests test
+	$(MAKE) -C hv test
+#	$(MAKE) -C sm test
 
 clean: os-clean hv-clean sm-clean test-clean
 
@@ -27,4 +28,5 @@ sm-clean:
 	$(MAKE) -C sm clean
 
 test-clean:
-	$(MAKE) -C tests clean
+	$(MAKE) -C hv/tests clean
+#	$(MAKE) -C sm/tests clean
