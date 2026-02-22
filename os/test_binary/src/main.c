@@ -1,3 +1,5 @@
+// todo: 本 OS は不要なので削除する
+
 #include "../../../hv/include/loader.h"
 
 char *hello_str = "hello world";
