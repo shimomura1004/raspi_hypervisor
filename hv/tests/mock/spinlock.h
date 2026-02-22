@@ -1,6 +1,11 @@
 #ifndef _SPINLOCK_MOCK_H
 #define _SPINLOCK_MOCK_H
 
+#ifndef _SPINLOCK_H
+#define _SPINLOCK_H
+#define _REAL_SPINLOCK_SKIPPED
+#endif
+
 struct spinlock {
     int dummy;
 };
