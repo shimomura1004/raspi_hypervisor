@@ -18,6 +18,11 @@ void sm_log_dump(void) {
         return;
     }
 
+    // バッファが空であればなにもせず戻る
+    if (read_pos == write_pos) {
+        return;
+    }
+
     // todo: ロックも取らないといけないし、その他のログと統一したほうがいいかも
     acquire_lock(&console_lock);
     printf("%15s ", "\x1b[32m" "SM" "\x1b[39m");
