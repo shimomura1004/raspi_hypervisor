@@ -3,11 +3,7 @@
 #include <stdlib.h>
 #include "fifo.h"
 
-// todo: テストコードに直接埋め込まず、モックにする
-//       ホスト環境だけでなく、qemu-system-aarch64 を使った実機環境でのテストも追加する
 unsigned long allocate_page() {
-    // In our mock environment, just use malloc to grab 4096 bytes 
-    // to simulate a hypervisor page allocation.
     return (unsigned long)malloc(4096);
 }
 
