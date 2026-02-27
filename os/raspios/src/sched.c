@@ -80,7 +80,6 @@ void _schedule(void)
 			}
 
 			// 実行可能なプロセスが見つからなかったら、いったん idle プロセスを実行することで無限ループを回避
-			// todo: ちゃんとしたスケジューラにする
 			next = cpuid;
 			break;
 		}
