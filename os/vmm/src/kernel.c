@@ -6,13 +6,17 @@
 #include "../../../hv/include/hypercall_type.h"
 
 #define BUFFER_LENGTH 128
+#define ARG_MAX 8
+#define HVC_ARG_MAX 4
+#define SMC_ARG_MAX 5
+#define EQUAL(A, B) (strncmp(A, B, sizeof(B)) == 0)
 
 void new_vm();
 void destroy_vm(int vmid);
 void shutdown_hv();
 void reboot_hv();
-void issue_hvc(int hvc_nr);
-void issue_smc(int smc_nr);
+void issue_hvc(int hvc_nr, int arg1, int arg2, int arg3);
+void issue_smc(int smc_nr, int arg1, int arg2, int arg3, int arg4);
 
 struct loader_args vm_args = {
 	.loader_addr = 0x0,
@@ -38,6 +42,30 @@ int atoi(char *s) {
 		s++;
 	}
 	return n;
+}
+
+// "new RASPIOS.ELF 2" -> "new" "RASPIOS.ELF" "2"
+int command_parser(char *buf, char *args[]) {
+	int arg_count = 0;
+	int start_index = 0;
+
+	while (arg_count < ARG_MAX) {
+		for (int idx = start_index; idx < BUFFER_LENGTH; idx++) {
+			if ((buf[idx] == ' ') || (buf[idx] == 0)) {
+				args[arg_count++] = &buf[start_index];
+				start_index = idx + 1;
+
+				if (buf[idx] == 0) {
+					return arg_count;
+				}
+
+				buf[idx] = 0;
+				break;
+			}
+		}
+	}
+
+	return -1;
 }
 
 void print_help_new() {
@@ -72,47 +100,26 @@ void print_help() {
 	print_help_help();
 }
 
-#define ARG_MAX 8
-// "new RASPIOS.ELF 2" -> "new" "RASPIOS.ELF" "2"
-int command_parser(char *buf, char *args[]) {
-	int arg_count = 0;
-	int start_index = 0;
-
-	while (arg_count < ARG_MAX) {
-		for (int idx = start_index; idx < BUFFER_LENGTH; idx++) {
-			if ((buf[idx] == ' ') || (buf[idx] == 0)) {
-				args[arg_count++] = &buf[start_index];
-				start_index = idx + 1;
-
-				if (buf[idx] == 0) {
-					return arg_count;
-				}
-
-				buf[idx] = 0;
-				break;
-			}
-		}
-	}
-
-	return -1;
-}
-
-#define EQUAL(A, B) (strncmp(A, B, sizeof(B)) == 0)
 void execute_debug_commands(char *args[], int arg_count) {
 	if (EQUAL(args[1], "panic")) {
 		printf("Triggering exception...\r\n");
-		issue_hvc(HYPERCALL_TYPE_CAUSE_PANIC);
+		issue_hvc(HYPERCALL_TYPE_CAUSE_PANIC, 0, 0, 0);
 	}
 	else if (EQUAL(args[1], "hvc")) {
-		// todo: 任意の hvc を呼ぶのではなく、決められたハイパーコールを呼ぶ関数群とするべき
 		printf("Triggering HVC call...\r\n");
-		// todo: 第二引数以降も渡す
-		issue_hvc(atoi(args[2]));
+		int int_args[HVC_ARG_MAX] = {0};
+		for (int i=2; i < arg_count; i++) {
+			int_args[i - 2] = atoi(args[i]);
+		}
+		issue_hvc(int_args[0], int_args[1], int_args[2], int_args[3]);
 	}
 	else if (EQUAL(args[1], "smc")) {
 		printf("Triggering SMC call...\r\n");
-		// todo: 第二引数以降も渡す
-		issue_smc(atoi(args[2]));
+		int int_args[SMC_ARG_MAX] = {0};
+		for (int i=2; i < arg_count; i++) {
+			int_args[i - 2] = atoi(args[i]);
+		}
+		issue_smc(int_args[0], int_args[1], int_args[2], int_args[3], int_args[4]);
 	}
 	else {
 		printf("debug command error: %s\n", args[1]);

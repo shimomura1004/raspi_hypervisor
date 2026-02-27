@@ -51,6 +51,9 @@ reboot_hv:
 .globl issue_hvc
 issue_hvc:
 	mov x8, x0
+	mov x9, x1
+	mov x10, x2
+	mov x11, x3
 	hvc #0
 	ret
 
