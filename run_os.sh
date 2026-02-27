@@ -4,4 +4,4 @@
 # イメージをロードするアドレスを指定できないのでフラットバイナリが使えない
 #DISPLAY=:0 qemu-system-aarch64 -m 1024 -M raspi3b -kernel kernel8.img -nographic -serial null -serial mon:stdio -s $*
 
-DISPLAY=:0 qemu-system-aarch64 -m 1024 -M raspi3b -device loader,file=./os/raspios/kernel8.img,addr=0x0 -nographic -serial null -serial mon:stdio -s $*
+DISPLAY=:0 qemu-system-aarch64 -m 1024 -M raspi3b -device loader,file=./os/raspios/build/kernel8.img,addr=0x0 -nographic -serial null -serial mon:stdio -s $*
