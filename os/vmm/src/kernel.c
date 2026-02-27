@@ -31,6 +31,15 @@ int strncmp(char *a, char *b, int n) {
 	return 0;
 }
 
+int atoi(char *s) {
+	int n = 0;
+	while (*s >= '0' && *s <= '9') {
+		n = n * 10 + (*s - '0');
+		s++;
+	}
+	return n;
+}
+
 void print_help_new() {
 	printf("  new <filename> <vcpu_num>\n");
 }
@@ -98,12 +107,12 @@ void execute_debug_commands(char *args[], int arg_count) {
 		// todo: 任意の hvc を呼ぶのではなく、決められたハイパーコールを呼ぶ関数群とするべき
 		printf("Triggering HVC call...\r\n");
 		// todo: 第二引数以降も渡す
-		issue_hvc(args[2][0] - '0');
+		issue_hvc(atoi(args[2]));
 	}
 	else if (EQUAL(args[1], "smc")) {
 		printf("Triggering SMC call...\r\n");
 		// todo: 第二引数以降も渡す
-		issue_smc(args[2][0] - '0');
+		issue_smc(atoi(args[2]));
 	}
 	else {
 		printf("debug command error: %s\n", args[1]);
@@ -128,9 +137,11 @@ void execute_command(char *buf) {
 			print_help_new();
 			return;
 		}
-		printf("create a new vm '%s' with vcpu_num %s\n", args[1], args[2]);
+		int vcpu_num = atoi(args[2]);
+		
+		printf("create a new vm '%s' with vcpu_num %d\n", args[1], vcpu_num);
 		for (int i=0; (vm_args.filename[i] = args[1][i]); i++);
-		vm_args.vcpu_num = *args[2] - '0';
+		vm_args.vcpu_num = vcpu_num;
 		new_vm();
 	}
 	else if (EQUAL(args[0], "kill")) {
@@ -138,8 +149,9 @@ void execute_command(char *buf) {
 			print_help_kill();
 			return;
 		}
-		printf("killing vm %s...\n", args[1]);
-		destroy_vm(*args[1] - '0');
+		int vmid = atoi(args[1]);
+		printf("killing vm %d...\n", vmid);
+		destroy_vm(vmid);
 	}
 	else if (EQUAL(args[0], "list")) {
 		printf("'list' is not supported.\n");
