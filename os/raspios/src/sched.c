@@ -95,10 +95,6 @@ void _schedule(void)
 		if (switched) {
 			break;
 		}
-
-		// todo: 復帰したらカウンタが 0 になるが、これは正しいか？
-		//       プロセスに時間を割り当て、そのプロセスから別プロセスに切り替わる直前に 0 にするべきでは？
-		task[next]->counter = 0;
 	}
 
 	preempt_enable();
@@ -167,10 +163,12 @@ void timer_tick()
 {
 	int cpuid = get_cpuid();
 
+	// tick がくるとカウンタが減るが、0 になるまでは CPU を使い続ける
 	--currents[cpuid]->counter;
 	if (currents[cpuid]->counter > 0 || currents[cpuid]->preempt_count > 0) {
 		return;
 	}
+
 	currents[cpuid]->counter = 0;
 	enable_irq();
 	_schedule();
