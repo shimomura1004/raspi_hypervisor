@@ -43,6 +43,7 @@ void preempt_enable(void)
 }
 
 
+// todo: できるだけ各プロセスが同じ CPU で動作するようにする
 void _schedule(void)
 {
 	preempt_disable();
@@ -162,13 +163,17 @@ void timer_tick()
 {
 	int cpuid = get_cpuid();
 
-	// tick がくるとカウンタが減るが、0 になるまでは CPU を使い続ける
-	--currents[cpuid]->counter;
-	if (currents[cpuid]->counter > 0 || currents[cpuid]->preempt_count > 0) {
+	// tick がくるとカウンタを減らす
+	if (currents[cpuid]->counter > 0) {
+		--currents[cpuid]->counter;
+	}
+
+	// プリエンプションが禁止されている場合は戻る
+	if (currents[cpuid]->preempt_count > 0) {
 		return;
 	}
 
-	currents[cpuid]->counter = 0;
+	// 自分のカウンタが残っていも、より優先度の高いタスクがあれば切り替え
 	enable_irq();
 	_schedule();
 	disable_irq();
