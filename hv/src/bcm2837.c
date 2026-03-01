@@ -256,13 +256,12 @@ static void handle_intctrl_write(struct vcpu_struct *vcpu, unsigned long addr, u
 static unsigned long handle_aux_read(struct vcpu_struct *vcpu, unsigned long addr) {
     struct bcm2837_state *state = (struct bcm2837_state *)vcpu->vm->board_data;
 
-    // todo: アドレスが AUX の範囲内で、無効なら return となっている
-    //       アドレス範囲外 or 無効なら return が正しいのでは？
-    // AUX が無効だったら 0 を返す
-    // if ((state->aux.aux_enables & 0x1) == 0 && ADDR_IN_AUX(addr)) {
-    //     return 0;
-    // }
-    if ((state->aux.aux_enables & 0x1) == 0 || !ADDR_IN_AUX(addr)) {
+    if (!ADDR_IN_AUX(addr)) {
+        return 0;
+    }
+
+    // Mini UART が無効な場合、共通レジスタ (AUX_IRQ, AUX_ENABLES) 以外へのアクセスは 0 を返す
+    if (((state->aux.aux_enables & 0x1) == 0) && (addr != AUX_IRQ) && (addr != AUX_ENABLES)) {
         return 0;
     }
 
@@ -273,8 +272,9 @@ static unsigned long handle_aux_read(struct vcpu_struct *vcpu, unsigned long add
                           !(handle_aux_read(vcpu, AUX_MU_IIR_REG) & 0x1);
         return mu_pending;
     }
-    case AUX_ENABLES:
+    case AUX_ENABLES: {
         return state->aux.aux_enables;
+    }
     case AUX_MU_IO_REG:
         if (state->aux.aux_mu_lcr & LCR_DLAB) {
             // todo: なぜ DLAB をクリアする？
@@ -289,7 +289,7 @@ static unsigned long handle_aux_read(struct vcpu_struct *vcpu, unsigned long add
             set_cpu_virtual_interrupt(vcpu);
             return data & 0xff;
         }
-    case AUX_MU_IER_REG:
+    case AUX_MU_IER_REG: {
         if (state->aux.aux_mu_lcr & LCR_DLAB) {
             // DLAB=1 のときは baudrate の上位 8 ビットを返す
             return state->aux.aux_mu_baud >> 8;
@@ -297,6 +297,7 @@ static unsigned long handle_aux_read(struct vcpu_struct *vcpu, unsigned long add
         else {
             return state->aux.aux_mu_ier;
         }
+    }
     case AUX_MU_IIR_REG: {
         int tx_int = (state->aux.aux_mu_ier & 0x2) && is_empty_fifo(vcpu->vm->console.out_fifo);
         int rx_int = (state->aux.aux_mu_ier & 0x1) && !is_empty_fifo(vcpu->vm->console.in_fifo);
@@ -308,10 +309,12 @@ static unsigned long handle_aux_read(struct vcpu_struct *vcpu, unsigned long add
         // 0x3 << 6 なので IIR[7:6] FIFO enables は常に有効 
         return (!int_id) | (int_id << 1) | (0x3 << 6);
     }
-    case AUX_MU_LCR_REG:
+    case AUX_MU_LCR_REG: {
         return state->aux.aux_mu_lcr;
-    case AUX_MU_MCR_REG:
+    }
+    case AUX_MU_MCR_REG: {
         return state->aux.aux_mu_mcr;
+    }
     case AUX_MU_LSR_REG: {
         int dready = !is_empty_fifo(vcpu->vm->console.in_fifo);
         int rx_overrun = state->aux.mu_rx_overrun;
@@ -322,12 +325,15 @@ static unsigned long handle_aux_read(struct vcpu_struct *vcpu, unsigned long add
         // レジスタの値を生成して返す
         return (dready << 0) | (rx_overrun << 1) | (tx_empty << 5) | (tx_idle << 6);
     }
-    case AUX_MU_MSR_REG:
+    case AUX_MU_MSR_REG: {
         return state->aux.aux_mu_msr;
-    case AUX_MU_SCRATCH:
+    }
+    case AUX_MU_SCRATCH: {
         return state->aux.aux_mu_scratch;
-    case AUX_MU_CNTL_REG:
+    }
+    case AUX_MU_CNTL_REG: {
         return state->aux.aux_mu_cntl;
+    }
     case AUX_MU_STAT_REG: {
         #define MIN(a, b) ((a) < (b) ? (a) : (b))
         int sym_avail = !is_empty_fifo(vcpu->vm->console.in_fifo);
@@ -344,8 +350,9 @@ static unsigned long handle_aux_read(struct vcpu_struct *vcpu, unsigned long add
                (rx_overrun << 4) | (tx_full << 5) | (tx_empty << 8) | (tx_done << 9) |
                (rx_fill_level << 16) | (tx_fill_level << 24);
     }
-    case AUX_MU_BAUD_REG:
+    case AUX_MU_BAUD_REG: {
         return state->aux.aux_mu_baud;
+    }
     }
 
     return 0;
@@ -356,24 +363,18 @@ static void handle_aux_write(struct vcpu_struct *vcpu, unsigned long addr, unsig
     // 本物の UART 自体は常に有効になっていて、ハイパーバイザが board_data を見て処理している
     struct bcm2837_state *state = (struct bcm2837_state *)vcpu->vm->board_data;
 
-    // // todo: aux が disable になると、ここにひっかかって enable にすることができないのでは？
-    // if ((state->aux.aux_enables & 0x1) == 0 && ADDR_IN_AUX(addr)) {
-    //     return;
-    // }
-
-    // ↓ DISABLE のときは AUX_ENABLES のみ操作可能
     if (!ADDR_IN_AUX(addr)) {
         return;
     }
 
     if ((state->aux.aux_enables & 0x1) == 0) {
+        // UART が無効のときは AUX_ENABLES のみ操作可能
         if (addr == AUX_ENABLES) {
             state->aux.aux_enables = val;
         }
 
         return;
     }
-    // ↑
 
     // todo: 一部のレジスタの READ しかできないビットにも値が書き込まれてしまう
     switch (addr) {
