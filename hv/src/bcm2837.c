@@ -58,7 +58,6 @@ struct bcm2837_state {
     struct aux_peripherals_regs {
         int      mu_rx_overrun;
         uint8_t  aux_enables;
-        uint8_t  aux_mu_io;         // todo: 不要では？
         uint8_t  aux_mu_ier;
         uint8_t  aux_mu_lcr;
         uint8_t  aux_mu_mcr;
@@ -102,7 +101,6 @@ const struct bcm2837_state initial_state = {
         // fifo の初期化は bcm2837_initialize で行う
         .mu_rx_overrun  = 0,
         .aux_enables    = 0x0,
-        .aux_mu_io      = 0x0,
         .aux_mu_ier     = 0x0,
         .aux_mu_lcr     = 0x0,
         .aux_mu_mcr     = 0x0,
