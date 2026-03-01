@@ -1,4 +1,4 @@
-SUBDIRS = ./echo ./mini-os ./raspios ./vmm
+SUBDIRS = ./echo ./raspios ./vmm
 
 all: $(SUBDIRS)
 clean: $(SUBDIRS)
