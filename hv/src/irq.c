@@ -88,6 +88,8 @@ void enable_interrupt_controller(unsigned long cpuid)
 static void handle_lic() {
 	// todo: daifset で割込みを止めてもシステムタイマによる割込みが発生してしまう、なぜ？
 
+	// todo: 現状、IRQ_BASIC_PENDIGN は8,9ビット目以外は実装されていない
+	//       つまりシステムタイマと UART 以外の割込みは発生しない
 	unsigned long basic_pending = get32(IRQ_BASIC_PENDING);
 
 	if (basic_pending & PENDING_REGISTER_1_BIT) {
