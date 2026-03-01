@@ -4,7 +4,6 @@
 struct spinlock {
     unsigned long locked;
     char *name;
-    // todo: もう少し情報を追加して構造体にする
     long cpuid;
 };
 

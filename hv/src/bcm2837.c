@@ -83,7 +83,7 @@ struct bcm2837_state {
         uint32_t c1;        // System Timer Compare 1
         uint32_t c2;        // System Timer Compare 2
         uint32_t c3;        // System Timer Compare 3
-        uint32_t c0_expire; // todo: cx_expire の用途が不明
+        uint32_t c0_expire;
         uint32_t c1_expire;
         uint32_t c2_expire;
         uint32_t c3_expire;
