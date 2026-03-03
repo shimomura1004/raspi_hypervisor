@@ -4,7 +4,8 @@
 void irq_vector_init( void );
 void enable_irq( void );
 void disable_irq( void );
-void enable_interrupt_controller(unsigned long cpuid);
+void enable_local_interrupt_controller(unsigned long cpuid);
+void enable_legacy_interrupt_controller();
 int is_interrupt_enabled( void );
 
 #endif  /*_IRQ_H */

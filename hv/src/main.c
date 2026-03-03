@@ -44,7 +44,7 @@ static void initialize_pcpu(unsigned long cpuid) {
 
 	// 割込みコントローラの有効化
 	disable_irq();
-	enable_interrupt_controller(cpuid);
+	enable_local_interrupt_controller(cpuid);
 }
 
 // 全コア共通で一度だけ実施する初期化処理
@@ -56,6 +56,9 @@ static void initialize_hypervisor() {
 	// セキュアモニタ経由で起動された場合はここでセキュアモニタのログを出力
 	// todo: セキュアモニタ経由じゃなくても実行されてしまう
 	sm_log_dump();
+
+	// システム共通の割込み設定を有効化
+	enable_legacy_interrupt_controller();
 
 	// // システムタイマは全コアで共有されるのでここで初期化
 	// systimer_init();
