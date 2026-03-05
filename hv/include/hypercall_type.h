@@ -1,6 +1,8 @@
 #ifndef _HYPERCALL_TYPE_H
 #define _HYPERCALL_TYPE_H
 
+// todo: SMCCC に準拠させる
+
 // デバッグ出力用
 #define HYPERCALL_TYPE_WARN_LU              0   // HVC の番号をデバッグ出力
 #define HYPERCALL_TYPE_INFO_LX              1   // 第1引数の整数をデバッグ出力
