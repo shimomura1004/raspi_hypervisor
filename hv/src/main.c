@@ -75,6 +75,7 @@ static void prepare_vmm() {
 	}
 }
 
+// todo: 起動したらコンソールを VMM に切り替えたい
 // hypervisor としてのスタート地点
 void hypervisor_main(unsigned long cpuid)
 {
