@@ -65,6 +65,15 @@ int is_uart_forwarded_vm(struct vm_struct2 *vm) {
     return vm->vmid == uart_forwarded_vm;
 }
 
+void switch_console_to_vm(int vmid) {
+    uart_forwarded_vm = vmid;
+
+    struct vm_struct2 *vm = vms2[uart_forwarded_vm];
+    if (vm) {
+        flush_vm_console(vm);
+    }
+}
+
 // todo: 送信バッファが空、受信バッファにデータあり、といった割込みを受けて wakeup させる
 static void handle_uart_irq_send(void) {
     INFO("SEND!");
@@ -84,12 +93,8 @@ static void handle_uart_irq_recv(void) {
         if (isdigit(received)) {
             // VM を切り替えるのではなく、単に UART 入力の送り先を変えるだけ
             // todo: ここはロックしなくて大丈夫？
-            uart_forwarded_vm = received - '0';
+            switch_console_to_vm(received - '0');
             INFO("Console is now used by VM %d", uart_forwarded_vm);
-            vm = vms2[uart_forwarded_vm];
-            if (vm) {
-                flush_vm_console(vm);
-            }
         }
         else if (received == 'l') {
             show_vm_list();

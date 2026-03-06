@@ -95,6 +95,8 @@ void hypervisor_main(unsigned long cpuid)
 		prepare_vmm();
 		INFO("Guest VMs are prepared");
 
+		switch_console_to_vm(1);
+
 		initialized_flag = 1;
 		asm volatile ("dc civac, %0" : : "r" (&initialized_flag) : "memory");
 		asm volatile ("sev");
