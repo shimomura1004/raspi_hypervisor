@@ -28,3 +28,7 @@ void sm_print(const char *s) {
         sm_putc(*s++);
     }
 }
+
+void putc(void* p, char c) {
+    sm_putc(c);
+}

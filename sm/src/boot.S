@@ -80,7 +80,7 @@ el3_entry:
 	cbnz	x0, jump_to_hv
 
 	// 起動ログの出力
-	bl sm_log_init
+	//bl sm_log_init
 	bl print_boot_message
 
 jump_to_hv:
