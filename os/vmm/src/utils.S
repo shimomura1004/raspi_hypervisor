@@ -1,4 +1,4 @@
-#include "../../../hv/include/hypercall_type.h"
+#include "hypercall_type.h"
 
 .globl get_el
 get_el:

@@ -1,7 +1,7 @@
 #include "printf.h"
 #include "utils.h"
 #include "mini_uart.h"
-#include "../../../hv/include/hypercall_type.h"
+#include "hypercall_type.h"
 
 void kernel_main(void)
 {

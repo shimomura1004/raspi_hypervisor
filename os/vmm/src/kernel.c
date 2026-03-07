@@ -3,7 +3,7 @@
 #include "mini_uart.h"
 #include "irq.h"
 #include "../../../hv/include/loader.h"
-#include "../../../hv/include/hypercall_type.h"
+#include "hypercall_type.h"
 
 #define BUFFER_LENGTH 128
 #define ARG_MAX 8
