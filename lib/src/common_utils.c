@@ -58,13 +58,9 @@ void *memcpy(void *dst, const void *src, size_t n) {
     return dst;
 }
 
-// todo: memzero を C で置き換えると hv が起動しなくなる
-// void *memzero(void *dst, size_t n) {
-//     for (size_t i = 0; i < n; i++) {
-//         *(uint8_t *)dst++ = 0;
-//     }
-//     return dst;
-// }
+void *memzero(void *dst, size_t n) {
+    return memset(dst, 0, n);
+}
 
 int memcmp(const void *s1, const void *s2, size_t n) {
     size_t i;

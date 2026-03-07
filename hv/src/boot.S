@@ -109,7 +109,7 @@ page_table_setup:
 	// bss 領域のサイズ(x1 - x0)を計算し x1 に入れる
 	sub	x1, x1, x0
 	// bss 領域を 0 クリア
-	bl 	memzero
+	bl 	memzero_without_stack
 
 	// EL3 では仮想アドレスは使用していない
 	// 2段階アドレス変換は、TTBR0_EL1/TTBR1_EL1 -> VTTBR_EL2 の順で変換テーブルを使う
@@ -353,7 +353,7 @@ __create_page_tables:
 	// pg_dir が指す位置から4ページ分を 0 クリアする
 	// PGD, PUD, PMDx2 の4つ分、RPi3 の DRAM は1GBで、2MB の倍数なのでセクションマッピングが使える
 	// よって PTE はいらない
-	bl 	memzero
+	bl 	memzero_without_stack
 
 	// memzero で x0 の値は更新されるので改めて設定
 	adrp	x0, pg_dir
@@ -417,4 +417,25 @@ __create_page_tables:
 
 	// x30 に戻りアドレスを入れて ret する
 	mov	x30, x29						// restore return address
+	ret
+
+// スタックが有効になっていない起動直後のタイミングで使えるアセンブリ実装の memzero
+// コピー元とコピー先の領域が重複していると誤作動する
+.globl memzero_without_stack
+memzero_without_stack:
+	mov x2, x0           // 戻り値(dst)を退避
+	cbz x1, 3f           // サイズが0なら終了
+1:
+	cmp x1, #8
+	b.lo 2f              // 残りが8バイト未満なら1バイト処理へ
+	str xzr, [x0], #8    // 8バイトゼロクリア (post-index)
+	sub x1, x1, #8
+	b 1b
+2:
+	cbz x1, 3f           // 残りが0なら終了
+	strb wzr, [x0], #1   // 1バイトゼロクリア
+	sub x1, x1, #1
+	b 2b
+3:
+	mov x0, x2           // 戻り値を設定
 	ret
