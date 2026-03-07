@@ -6,10 +6,10 @@ ARMGNU ?= aarch64-linux-gnu
 # make 時に変更する場合は make LOG_LEVEL=LOG_LEVEL_DEBUG などとする
 LOG_LEVEL ?= LOG_LEVEL_INFO
 
-COPS = -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -mgeneral-regs-only
+COPS = -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -I../lib/include -mgeneral-regs-only
 COPS += -g -O0
 COPS += -DLOG_LEVEL=$(LOG_LEVEL)
-ASMOPS = -Iinclude -g
+ASMOPS = -Iinclude -I../lib/include -g
 
 BUILD_DIR = build
 SRC_DIR = src

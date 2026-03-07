@@ -3,12 +3,12 @@ AARCH64_BUILD_DIR = build_aarch64
 
 # Host tools
 CC = gcc
-CFLAGS = -I./mock -I../include -Wall -Wextra -g -fno-builtin
+CFLAGS = -I./mock -I../include -I../../lib/include -Wall -Wextra -g -fno-builtin
 
 # Cross-compilation tools
 CROSS_CC = aarch64-linux-gnu-gcc
-AARCH64_CFLAGS = -include mock/spinlock.h -I./mock_aarch64 -I./mock -I../include -Wall -Wextra -g -fno-builtin -ffreestanding -nostdlib -Dmain=test_main -DLOG_LEVEL=3 -Dprintf=tfp_printf
-AARCH64_ASFLAGS = -I../include -g
+AARCH64_CFLAGS = -include mock/spinlock.h -I./mock_aarch64 -I./mock -I../include -I../../lib/include -Wall -Wextra -g -fno-builtin -ffreestanding -nostdlib -Dmain=test_main -DLOG_LEVEL=3 -Dprintf=tfp_printf
+AARCH64_ASFLAGS = -I../include -I../../lib/include -g
 AARCH64_LDFLAGS = -T aarch64.ld -nostdlib
 
 all: $(BUILD_DIR)/test_utils $(BUILD_DIR)/test_fifo
