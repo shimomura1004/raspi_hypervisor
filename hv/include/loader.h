@@ -1,6 +1,8 @@
 #ifndef _LOADER_H
 #define _LOADER_H
 
+// todo: これも lib/include に移す
+
 #define MAX_FILE_PATH 256
 
 struct loader_args {
