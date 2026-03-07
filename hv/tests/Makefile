@@ -7,7 +7,7 @@ CFLAGS = -I./mock -I../include -I../../lib/include -Wall -Wextra -g -fno-builtin
 
 # Cross-compilation tools
 CROSS_CC = aarch64-linux-gnu-gcc
-AARCH64_CFLAGS = -include mock/spinlock.h -I./mock_aarch64 -I./mock -I../include -I../../lib/include -Wall -Wextra -g -fno-builtin -ffreestanding -nostdlib -Dmain=test_main -DLOG_LEVEL=3 -Dprintf=tfp_printf
+AARCH64_CFLAGS = -include mock/spinlock.h -I./mock_aarch64 -I./mock -I../include -I../../lib/include -Wall -Wextra -g -fno-builtin -ffreestanding -nostdlib -Dmain=test_main -DLOG_LEVEL=3 -Dprintf=tfp_printf -DPRINTF_LONG_SUPPORT
 AARCH64_ASFLAGS = -I../include -I../../lib/include -g
 AARCH64_LDFLAGS = -T aarch64.ld -nostdlib
 
@@ -52,7 +52,7 @@ $(AARCH64_BUILD_DIR)/mini_uart.o: ../src/mini_uart.c
 	mkdir -p $(AARCH64_BUILD_DIR)
 	$(CROSS_CC) $(AARCH64_CFLAGS) -c $< -o $@
 
-$(AARCH64_BUILD_DIR)/printf.o: ../src/printf.c
+$(AARCH64_BUILD_DIR)/printf.o: ../../lib/src/printf.c
 	mkdir -p $(AARCH64_BUILD_DIR)
 	$(CROSS_CC) $(AARCH64_CFLAGS) -c $< -o $@
 
