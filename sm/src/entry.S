@@ -94,8 +94,7 @@ sync_handler_aarch64:
 	ldp	x0, x1, [sp, #16 * 0]
 	ldp	x2, x3, [sp, #16 * 1]
 	ldr	x4, [sp, #16 * 2]
-	// todo: 今はダミーのログを表示するだけ
-	bl print_message
+	bl handle_smc
 	restore_regs
 
 irq_handler_aarch64:
