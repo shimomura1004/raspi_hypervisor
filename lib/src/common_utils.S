@@ -1,3 +1,19 @@
+.globl put32
+put32:
+	str w1,[x0]
+	ret
+
+.globl get32
+get32:
+	ldr w0,[x0]
+	ret
+
+.globl get_el
+get_el:
+	mrs x0, CurrentEL
+	lsr x0, x0, #2
+	ret
+
 // スタックが有効になっていない起動直後のタイミングで使えるアセンブリ実装の memzero
 // コピー元とコピー先の領域が重複していると誤作動する
 .globl memzero_without_stack
@@ -19,12 +35,8 @@ memzero_without_stack:
 	mov x0, x2           // 戻り値を設定
 	ret
 
-.globl put32
-put32:
-	str w1,[x0]
-	ret
-
-.globl get32
-get32:
-	ldr w0,[x0]
+.globl delay
+delay:
+	subs x0, x0, #1
+	bne delay
 	ret

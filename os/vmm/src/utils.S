@@ -1,17 +1,5 @@
 #include "hypercall_type.h"
 
-.globl get_el
-get_el:
-	mrs x0, CurrentEL
-	lsr x0, x0, #2
-	ret
-
-.globl delay
-delay:
-	subs x0, x0, #1
-	bne delay
-	ret
-
 .globl new_vm
 new_vm:
 	mov x8, #HYPERCALL_TYPE_CREATE_VM_FROM_ELF
