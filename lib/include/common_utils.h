@@ -7,6 +7,7 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
+extern void *memzero_without_stack(void *, size_t);
 extern void put32(unsigned long, unsigned int);
 extern unsigned int get32(unsigned long);
 
