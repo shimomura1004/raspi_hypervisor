@@ -26,15 +26,6 @@ struct loader_args vm_args = {
 };
 struct loader_args *vm_args_p = &vm_args;
 
-int strncmp(char *a, char *b, int n) {
-	for (int i=0; i < n; i++) {
-		if (a[i] != b[i]) {
-			return 1;
-		}
-	}
-	return 0;
-}
-
 int atoi(char *s) {
 	int n = 0;
 	while (*s >= '0' && *s <= '9') {

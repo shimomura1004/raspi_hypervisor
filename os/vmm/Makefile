@@ -24,11 +24,21 @@ $(BUILD_DIR)/printf_c.o: ../../lib/src/printf.c
 	mkdir -p $(@D)
 	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
 
+$(BUILD_DIR)/common_utils_c.o: ../../lib/src/common_utils.c
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
+
+$(BUILD_DIR)/common_utils_s.o: ../../lib/src/common_utils.S
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
+
 C_FILES = $(wildcard $(SRC_DIR)/*.c)
 ASM_FILES = $(wildcard $(SRC_DIR)/*.S)
 OBJ_FILES = $(C_FILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%_c.o)
 OBJ_FILES += $(ASM_FILES:$(SRC_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 OBJ_FILES += $(BUILD_DIR)/printf_c.o
+OBJ_FILES += $(BUILD_DIR)/common_utils_c.o
+OBJ_FILES += $(BUILD_DIR)/common_utils_s.o
 
 DEP_FILES = $(OBJ_FILES:%.o=%.d)
 -include $(DEP_FILES)
