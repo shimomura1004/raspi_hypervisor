@@ -55,7 +55,7 @@ int move_to_user_mode(unsigned long start, unsigned long size, unsigned long pc)
 	if (code_page == 0)	{
 		return -1;
 	}
-	memcpy(code_page, start, size);
+	memcpy((void*)code_page, (void*)start, size);
 	set_pgd(currents[cpuid]->mm.pgd);
 	return 0;
 }

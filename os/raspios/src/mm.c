@@ -27,7 +27,7 @@ unsigned long get_free_page()
 		if (mem_map[i] == 0){
 			mem_map[i] = 1;
 			unsigned long page = LOW_MEMORY + i*PAGE_SIZE;
-			memzero(page + VA_START, PAGE_SIZE);
+			memzero((void*)(page + VA_START), PAGE_SIZE);
 			return page;
 		}
 	}
@@ -92,7 +92,7 @@ int copy_virt_memory(struct task_struct *dst) {
 		if( kernel_va == 0) {
 			return -1;
 		}
-		memcpy(kernel_va, src->mm.user_pages[i].virt_addr, PAGE_SIZE);
+		memcpy((void*)kernel_va, (void*)src->mm.user_pages[i].virt_addr, PAGE_SIZE);
 	}
 	return 0;
 }

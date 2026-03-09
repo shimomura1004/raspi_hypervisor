@@ -71,7 +71,7 @@ page_table_setup:
 	adr	x0, bss_begin
 	adr	x1, bss_end
 	sub	x1, x1, x0
-	bl 	memzero
+	bl 	memzero_without_stack
 
 	bl 	__create_page_tables
 
@@ -143,7 +143,7 @@ __create_page_tables:
 
 	adrp	x0, pg_dir
 	mov	x1, #PG_DIR_SIZE
-	bl 	memzero
+	bl 	memzero_without_stack
 
 	adrp	x0, pg_dir
 	mov	x1, #VA_START 
