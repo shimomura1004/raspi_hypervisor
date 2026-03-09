@@ -2,6 +2,8 @@
 - このプロジェクトは Raspberry Pi 3 用の実験的なハイパーバイザ実装です
 
 # Project structure
+- `lib/src/`: 共通のソース
+- `lib/include/`: 共通のヘッダ
 - `sm/src/`: セキュアモニタのソース
 - `sm/include/`: セキュアモニタのヘッダ
 - `hv/build/`: セキュアモニタのビルド成果物
