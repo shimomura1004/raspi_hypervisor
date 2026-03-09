@@ -1,6 +1,4 @@
-#include <stdint.h>
-#include <stddef.h>
-#include "utils.h"
+#include "common_utils.h"
 
 int abs(int n) {
     return n < 0 ? -n : n;

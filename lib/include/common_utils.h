@@ -1,6 +1,15 @@
 #ifndef _COMMON_UTILS_H
 #define _COMMON_UTILS_H
 
+#include <stdint.h>
+#include <stddef.h>
+
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+
+extern void put32(unsigned long, unsigned int);
+extern unsigned int get32(unsigned long);
+
 int abs(int);
 char *strncpy(char *, const char *, size_t);
 size_t strlen(const char *);

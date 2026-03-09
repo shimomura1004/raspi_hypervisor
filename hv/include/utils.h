@@ -1,17 +1,11 @@
 #ifndef	_UTILS_H
 #define	_UTILS_H
 
-#include <stddef.h>
 #include "common_utils.h"
-
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
 
 struct cpu_sysregs;
 
 extern void delay(unsigned long);
-extern void put32(unsigned long, unsigned int);
-extern unsigned int get32(unsigned long);
 extern unsigned long get_el(void);
 extern unsigned long translate_el1(unsigned long);
 extern unsigned long translate_el12(unsigned long);
