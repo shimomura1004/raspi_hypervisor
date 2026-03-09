@@ -32,5 +32,6 @@ int isdigit(int);
 int isspace(int);
 int toupper(int);
 int tolower(int);
+int atoi(char *s);
 
 #endif /* _COMMON_UTILS_H */

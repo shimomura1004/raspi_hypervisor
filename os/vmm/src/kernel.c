@@ -26,15 +26,6 @@ struct loader_args vm_args = {
 };
 struct loader_args *vm_args_p = &vm_args;
 
-int atoi(char *s) {
-	int n = 0;
-	while (*s >= '0' && *s <= '9') {
-		n = n * 10 + (*s - '0');
-		s++;
-	}
-	return n;
-}
-
 // "new RASPIOS.ELF 2" -> "new" "RASPIOS.ELF" "2"
 int command_parser(char *buf, char *args[]) {
 	int arg_count = 0;
