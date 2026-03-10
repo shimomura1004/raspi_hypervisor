@@ -355,12 +355,6 @@ get_vttbr_el2:
 	mrs x0, vttbr_el2
 	ret
 
-.globl get_cpuid
-get_cpuid:
-	mrs x0, mpidr_el1
-	and x0, x0, #0xff
-	ret
-
 .globl get_sp
 get_sp:
 	mov x0, sp

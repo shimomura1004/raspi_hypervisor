@@ -14,6 +14,12 @@ get_el:
 	lsr x0, x0, #2
 	ret
 
+.globl get_cpuid
+get_cpuid:
+	mrs x0, mpidr_el1
+	and x0, x0, #0xff
+	ret
+
 // スタックが有効になっていない起動直後のタイミングで使えるアセンブリ実装の memzero
 // コピー元とコピー先の領域が重複していると誤作動する
 .globl memzero_without_stack

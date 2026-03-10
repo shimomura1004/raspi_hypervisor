@@ -3,7 +3,6 @@
 
 #include "common_utils.h"
 
-extern unsigned long get_cpuid();
 extern void set_pgd(unsigned long pgd);
 extern unsigned long get_pgd();
 

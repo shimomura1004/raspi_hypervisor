@@ -11,7 +11,6 @@ extern unsigned long get_ttbr0_el1();
 extern unsigned long get_ttbr1_el1();
 extern unsigned long get_ttbr0_el2();
 extern unsigned long get_vttbr_el2();
-extern unsigned long get_cpuid();
 extern unsigned long get_sp();
 extern void set_vmpidr_el2(unsigned long);
 extern void issue_smc(unsigned long, unsigned long, unsigned long, unsigned long, unsigned long);
