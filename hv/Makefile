@@ -6,11 +6,17 @@ ARMGNU ?= aarch64-linux-gnu
 # make 時に変更する場合は make LOG_LEVEL=LOG_LEVEL_DEBUG などとする
 LOG_LEVEL ?= LOG_LEVEL_INFO
 
+# ターゲットボードの設定 (デフォルトは raspi3)
+BOARD ?= raspi3
+
 COPS = -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -I../lib/include -mgeneral-regs-only
 COPS += -g -O0
 COPS += -DLOG_LEVEL=$(LOG_LEVEL)
 COPS += -DPRINTF_LONG_SUPPORT
+COPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)
+
 ASMOPS = -Iinclude -I../lib/include -g
+ASMOPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)
 
 BUILD_DIR = build
 SRC_DIR = src

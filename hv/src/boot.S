@@ -139,7 +139,8 @@ after_page_table_setup:
 	mul	x1, x1, x2
 	add	x0, x0, x1
 	// 最後に VA_START を足すことでカーネルの仮想アドレスにしている
-	add sp, x0, #VA_START
+	ldr x1, =VA_START
+	add sp, x0, x1
 
 	// TTBR(translate table base register)は複数ある: TTBR{0,1}_el{0,1} + TTBR0_el{2,3}
 	// TTBR は x86 の cr3 に相当する(risc-v のsatp)
@@ -244,7 +245,7 @@ after_page_table_setup:
     // todo: virt を1ページ分ずらさないといけない
     // todo: virt が 0x0 のままになっているので動かない
     // todo: 応急処置で直接設定
-    mov \virt, #0x40000000
+    mov \virt, #LOCAL_PERIPHERAL_BASE
 	create_table_entry \tbl, \virt, PUD_SHIFT, #2, \tmp1, \tmp2, \tmp3
 	add	\tbl, \tbl, #PAGE_SIZE
 .endm
@@ -369,7 +370,7 @@ __create_page_tables:
 	/* Mapping kernel and init stack */
 	// 通常の DRAM 領域のマッピング
 	// xzr はゼロレジスタ
-	mov 	x1, xzr							// start mapping from physical offset 0
+	mov 	x1, #RAM_BASE							// start mapping from physical offset 0
 	mov 	x2, #VA_START					// first virtual address
 
 	// 通常の DRAM 領域の最後のセクションのアドレスを計算している
@@ -410,9 +411,9 @@ __create_page_tables:
     // ローカルペリフェラルは物理アドレス 0x40000000(1GB) 以降にある
     //   0x200000 = 2MB(セクション1つぶん)
     // よって PMD の追加が必要(PMD 1つにつき 1GB まで)
-    mov x1, #0x40000000
-    ldr x2, =(VA_START + 0x40000000)
-    ldr x3, =(VA_START + 0x40200000 - SECTION_SIZE)
+    mov x1, #LOCAL_PERIPHERAL_BASE
+    ldr x2, =(VA_START + LOCAL_PERIPHERAL_BASE)
+    ldr x3, =(VA_START + LOCAL_PERIPHERAL_BASE + 0x00200000 - SECTION_SIZE)
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
 
 	// x30 に戻りアドレスを入れて ret する

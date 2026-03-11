@@ -1,11 +1,10 @@
 #ifndef	_MM_H
 #define	_MM_H
 
+#include "board_config.h"
 #include "peripherals/base.h"
 
-#define VA_START 			0x0000000000000000
-
-#define PHYS_MEMORY_SIZE 		0x40000000
+#define PHYS_MEMORY_SIZE 		RAM_SIZE
 
 #define PAGE_MASK			0xfffffffffffff000
 #define PAGE_SHIFT	 		12

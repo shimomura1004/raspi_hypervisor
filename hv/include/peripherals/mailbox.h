@@ -1,8 +1,10 @@
 #ifndef _MAILBOX_H
 #define _MAILBOX_H
 
+#include "board_config.h"
+
 // Local Peripherals
-#define LOCAL_PERIPHERAL_BASE (0x40000000)
+// (Defined in board_config.h / boards/raspi3.h)
 
 // Mailbox の割込みを有効化するためのレジスタ
 #define MBOX_CORE0_CONTROL      (LOCAL_PERIPHERAL_BASE + 0x50)
