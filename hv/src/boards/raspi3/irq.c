@@ -7,7 +7,7 @@
 #include "arm/sysregs.h"
 #include "sched.h"
 #include "debug.h"
-#include "mini_uart.h"
+#include "console.h"
 
 static const char *entry_error_messages[] = {
 	"SYNC_INVALID_EL2",
@@ -113,7 +113,7 @@ static void handle_lic() {
 		// UART
 		if (irq & AUX_IRQ_BIT) {
 			irq &= ~AUX_IRQ_BIT;
-			handle_uart_irq();
+			handle_console_irq();
 		}
 
 		// それ以外の割込みはエラーとする

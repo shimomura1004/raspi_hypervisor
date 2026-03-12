@@ -1,3 +1,4 @@
+#include "console.h"
 #include "peripherals/mini_uart.h"
 #include "peripherals/gpio.h"
 #include "printf.h"
@@ -119,7 +120,7 @@ enqueue_char:
     }
 }
 
-void handle_uart_irq(void) {
+void handle_console_irq(void) {
     unsigned int iir = get32(AUX_MU_IIR_REG);
     unsigned int iir_interrupt_id = (iir & AUX_MU_IIR_REG_INTERRUPT_ID) >> 1;
 
@@ -133,7 +134,7 @@ void handle_uart_irq(void) {
     }
 }
 
-void uart_init(void) {
+void console_init(void) {
     init_lock(&uart_lock, "uart");
     init_lock(&console_lock, "console");
 

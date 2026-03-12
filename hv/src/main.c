@@ -8,7 +8,7 @@
 #include "peripherals/irq.h"
 #include "vm.h"
 #include "sched.h"
-#include "mini_uart.h"
+#include "console.h"
 #include "mm.h"
 #include "sd.h"
 #include "loader.h"
@@ -50,7 +50,7 @@ static void initialize_pcpu(unsigned long cpuid) {
 // 全コア共通で一度だけ実施する初期化処理
 static void initialize_hypervisor() {
 	mm_init();
-	uart_init();
+	console_init();
 	init_printf(NULL, putc);
 
 	// セキュアモニタ経由で起動された場合はここでセキュアモニタのログを出力
