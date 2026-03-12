@@ -647,3 +647,6 @@ const struct board_ops bcm2837_board_ops = {
     .is_fiq_asserted = bcm2837_is_fiq_asserted,
     .debug = bcm2837_debug,
 };
+const struct board_ops *get_default_board_ops(void) {
+    return &bcm2837_board_ops;
+}

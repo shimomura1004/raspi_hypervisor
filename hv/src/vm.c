@@ -4,7 +4,6 @@
 #include "utils.h"
 #include "entry.h"
 #include "debug.h"
-#include "bcm2837.h"
 #include "board.h"
 #include "fifo.h"
 #include "irq.h"
@@ -211,8 +210,8 @@ int create_vm_with_loader(loader_func_t loader, void *arg) {
 	vms2[vmid] = vm;
 	vm->vmid = vmid;
 
-	// この VM で再現するハードウェア(BCM2837)を初期化
-	vm->board_ops = &bcm2837_board_ops;
+	// この VM で再現するハードウェアを初期化
+	vm->board_ops = get_default_board_ops();
 	if (HAVE_FUNC(vm->board_ops, initialize)) {
 		vm->board_ops->initialize(vm);
 	}
