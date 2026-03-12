@@ -70,10 +70,28 @@ $(BUILD_DIR)/common_utils_s.o: ../lib/src/common_utils.S
 	mkdir -p $(@D)
 	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
 
+$(BUILD_DIR)/boards/$(BOARD)/%_c.o: $(SRC_DIR)/boards/$(BOARD)/%.c
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
+
+$(BUILD_DIR)/boards/$(BOARD)/%_s.o: $(SRC_DIR)/boards/$(BOARD)/%.S
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
+
+# 共通のソースファイル
 C_FILES = $(wildcard $(SRC_DIR)/*.c)
 ASM_FILES = $(wildcard $(SRC_DIR)/*.S)
+
+# ボード固有のソースファイル
+BOARD_SRC_DIR = $(SRC_DIR)/boards/$(BOARD)
+BOARD_C_FILES = $(wildcard $(BOARD_SRC_DIR)/*.c)
+BOARD_ASM_FILES = $(wildcard $(BOARD_SRC_DIR)/*.S)
+
+# オブジェクトファイルの生成
 OBJ_FILES = $(C_FILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%_c.o)
 OBJ_FILES += $(ASM_FILES:$(SRC_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+OBJ_FILES += $(BOARD_C_FILES:$(BOARD_SRC_DIR)/%.c=$(BUILD_DIR)/boards/$(BOARD)/%_c.o)
+OBJ_FILES += $(BOARD_ASM_FILES:$(BOARD_SRC_DIR)/%.S=$(BUILD_DIR)/boards/$(BOARD)/%_s.o)
 OBJ_FILES += $(BUILD_DIR)/printf_c.o
 OBJ_FILES += $(BUILD_DIR)/common_utils_c.o
 OBJ_FILES += $(BUILD_DIR)/common_utils_s.o
