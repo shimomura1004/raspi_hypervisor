@@ -12,7 +12,8 @@
 
 ## ハイパーバイザ
 ### ビルド
-- `make hv`
+- `make hv BOARD=raspi3`
+- `make hv BOARD=virt`
 
 ### 起動
 - `./run_hv.sh`
