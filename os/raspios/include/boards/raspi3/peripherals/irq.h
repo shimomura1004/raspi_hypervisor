@@ -19,4 +19,6 @@
 #define SYSTEM_TIMER_IRQ_2  (1 << 2)
 #define SYSTEM_TIMER_IRQ_3  (1 << 3)
 
+void clear_timer_irq(void);
+
 #endif  /*_P_IRQ_H */

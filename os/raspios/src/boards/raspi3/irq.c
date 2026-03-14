@@ -91,3 +91,12 @@ void handle_irq(void)
 		WARN("Unknown pending irq: %x", irq);
 	}
 }
+
+void clear_timer_irq(void)
+{
+	// ハイパーバイザ環境では、cntv_tval_el0 への書き込みをトラップすることができないので、
+	// ゲストが仮想タイマ割込みを処理したタイミングを自分で知ることができない
+	// よって明示的に IRQ_PENDING_1 にアクセスすることで MMIO によるトラップを発生させ、
+	// ハイパーバイザに仮想割り込みの状態を更新(クリア)させる
+	get32(IRQ_PENDING_1);
+}

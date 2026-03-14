@@ -23,11 +23,9 @@ void handle_timer_irq( void )
 	unsigned long ticks = (frequency * interval_ms) / 1000;
 	asm volatile("msr cntv_tval_el0, %0" : : "r"(ticks));
 
-	// ハイパーバイザ環境では、cntv_tval_el0 への書き込みをトラップすることができないので、
-	// ゲストが仮想タイマ割込みを処理したタイミングを自分で知ることができない
-	// よって明示的に IRQ_PENDING_1 にアクセスすることで MMIO によるトラップを発生させ、
-	// ハイパーバイザに仮想割り込みの状態を更新(クリア)させる
-	get32(IRQ_PENDING_1);
+	// todo: これは raspi3 のシステムタイマを前提にしたときのみ必要なもの？
+	//       raspi3 ボードをエミュレートするときのみ実行されるようにするべき
+	clear_timer_irq();
 
 	timer_tick();
 }
