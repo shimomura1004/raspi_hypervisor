@@ -1,12 +1,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "printf.h"
 #include "utils.h"
 #include "generic_timer.h"
-#include "irq.h"
 #include "fork.h"
-#include "sched.h"
 #include "mini_uart.h"
 #include "sys.h"
 #include "user.h"
