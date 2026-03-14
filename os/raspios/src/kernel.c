@@ -44,7 +44,7 @@ void kernel_main()
 
 		init_sched();
 
-		INFO("raspios initialization complete");
+		INFO("raspios initialization complete (BOARD: %s)", BOARD_NAME);
 	}
 
 	// 各コアで実施する初期化処理

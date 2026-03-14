@@ -14,6 +14,7 @@ COPS += -g -O0
 COPS += -DLOG_LEVEL=$(LOG_LEVEL)
 COPS += -DPRINTF_LONG_SUPPORT
 COPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)
+COPS += -DBOARD_NAME=\"$(BOARD)\"
 
 ASMOPS = -Iinclude -I../lib/include -g
 ASMOPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)

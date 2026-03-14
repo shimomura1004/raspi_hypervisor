@@ -86,7 +86,7 @@ void hypervisor_main(unsigned long cpuid)
 	if (cpuid == 0) {
 		// ハイパーバイザの初期化とゲストのロードを実施
 		initialize_hypervisor();
-		INFO("Raspvisor initialized");
+		INFO("Raspvisor initialized (BOARD: %s)", BOARD_NAME);
 
 		// pCPU の数と同じ数の vCPU を持った idle VM を準備
 		create_idle_vm();

@@ -6,6 +6,7 @@ COPS = -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -I../../lib/includ
 COPS += -g -O0
 COPS += -DPRINTF_LONG_SUPPORT
 COPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)
+COPS += -DBOARD_NAME=\"$(BOARD)\"
 COPS += -Iinclude/boards/$(BOARD)
 
 ASMOPS = -Iinclude -I../../lib/include -g -Iinclude/boards/$(BOARD)
