@@ -1,9 +1,15 @@
 ARMGNU ?= aarch64-linux-gnu
 
+BOARD ?= raspi3
+
 COPS = -Wall -nostdlib -nostartfiles -ffreestanding -Iinclude -I../../lib/include -mgeneral-regs-only
 COPS += -g -O0
 COPS += -DPRINTF_LONG_SUPPORT
-ASMOPS = -Iinclude -I../../lib/include -g 
+COPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)
+COPS += -Iinclude/boards/$(BOARD)
+
+ASMOPS = -Iinclude -I../../lib/include -g -Iinclude/boards/$(BOARD)
+ASMOPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)
 
 BUILD_DIR = build
 SRC_DIR = src
@@ -34,8 +40,23 @@ $(BUILD_DIR)/common_utils_s.o: ../../lib/src/common_utils.S
 
 C_FILES = $(wildcard $(SRC_DIR)/*.c)
 ASM_FILES = $(wildcard $(SRC_DIR)/*.S)
+
+BOARD_SRC_DIR = $(SRC_DIR)/boards/$(BOARD)
+BOARD_C_FILES = $(wildcard $(BOARD_SRC_DIR)/*.c)
+BOARD_ASM_FILES = $(wildcard $(BOARD_SRC_DIR)/*.S)
+
+$(BUILD_DIR)/boards/$(BOARD)/%_c.o: $(BOARD_SRC_DIR)/%.c
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
+
+$(BUILD_DIR)/boards/$(BOARD)/%_s.o: $(BOARD_SRC_DIR)/%.S
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
+
 OBJ_FILES = $(C_FILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%_c.o)
 OBJ_FILES += $(ASM_FILES:$(SRC_DIR)/%.S=$(BUILD_DIR)/%_s.o)
+OBJ_FILES += $(BOARD_C_FILES:$(BOARD_SRC_DIR)/%.c=$(BUILD_DIR)/boards/$(BOARD)/%_c.o)
+OBJ_FILES += $(BOARD_ASM_FILES:$(BOARD_SRC_DIR)/%.S=$(BUILD_DIR)/boards/$(BOARD)/%_s.o)
 OBJ_FILES += $(BUILD_DIR)/printf_c.o
 OBJ_FILES += $(BUILD_DIR)/common_utils_c.o
 OBJ_FILES += $(BUILD_DIR)/common_utils_s.o
