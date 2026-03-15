@@ -3,34 +3,36 @@
 ## 参考にした実装
 - [https://github.com/matsud224/raspvisor](https://github.com/matsud224/raspvisor)
 
-## セキュアモニタ
-### ビルド
-- `make sm`
+## ビルド
+- ビルド時には環境変数 BOARD によりターゲットボードの選択が必要
+  - `BOARD=raspi3 make`
+  - `BOARD=virt make`
 
-### 起動
-- `./run_sm.sh`
+### セキュアモニタ
+- `BOARD=<BOARD> make sm`
 
-## ハイパーバイザ
-### ビルド
-- `make hv BOARD=raspi3`
-- `make hv BOARD=virt`
+### ハイパーバイザ
+- `BOARD=<BOARD> make hv`
 
-### 起動
-- `./run_hv.sh`
-- VMM(virtual machine manager) OSS がコンソール1で動くので切り替える
+## 起動
+### セキュアモニタ
+- `BOARD=<BOARD> ./run_sm.sh`
 
-### 終了
+### ハイパーバイザ
+- `BOARD=<BOARD> ./run_hv.sh`
+
+## 終了
 - VMM にて `shutdown` コマンドの実行 (QEMU 上での再起動)
 - `Ctrl-a` -> `x` (QEMU の終了)
 
-### ハイパーバイザの操作方法
+## ハイパーバイザの操作方法
 |キー操作     |動作                        |
 |------------|----------------------------|
 |`?` -> `0-9`|コンソール切り替え            |
 |`?` -> `t`  |システムタイマ情報の表示      |
 |`?` -> `l`  |各 vCPU 上で動く VM 情報を表示|
 
-### VMM のコマンド
+## VMM のコマンド
 |コマンド                                        |動作                        |
 |-----------------------------------------------|----------------------------|
 |`new` + `OS イメージのファイルパス` + `vcpu の数`   |指定した OS をゲストとして起動 |
