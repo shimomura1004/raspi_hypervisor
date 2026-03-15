@@ -1,4 +1,4 @@
-ifeq ($(filter clean os-clean hv-clean sm-clean test-clean,$(MAKECMDGOALS)),)
+ifeq ($(filter clean,$(MAKECMDGOALS)),)
   ifeq ($(BOARD),)
     $(error BOARD environment variable is not defined. Please set it (e.g., export BOARD=raspi3))
   endif
@@ -20,6 +20,13 @@ ASMOPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)
 
 BUILD_DIR = build
 SRC_DIR = src
+LINKER_SCRIPT = $(SRC_DIR)/boards/$(BOARD)/linker.ld
+
+ifeq ($(filter clean,$(MAKECMDGOALS)),)
+  ifeq ($(wildcard $(LINKER_SCRIPT)),)
+    $(error Linker script not found for BOARD=$(BOARD) at $(LINKER_SCRIPT))
+  endif
+endif
 
 all : $(BUILD_DIR)/kernel8.img
 
@@ -71,6 +78,6 @@ OBJ_FILES += $(BUILD_DIR)/common_utils_s.o
 DEP_FILES = $(OBJ_FILES:%.o=%.d)
 -include $(DEP_FILES)
 
-$(BUILD_DIR)/kernel8.img: $(SRC_DIR)/linker.ld $(OBJ_FILES)
-	$(ARMGNU)-ld -Map $(BUILD_DIR)/kernel8.map -T $(SRC_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf  $(OBJ_FILES)
+$(BUILD_DIR)/kernel8.img: $(LINKER_SCRIPT) $(OBJ_FILES)
+	$(ARMGNU)-ld -Map $(BUILD_DIR)/kernel8.map -T $(LINKER_SCRIPT) -o $(BUILD_DIR)/kernel8.elf  $(OBJ_FILES)
 	$(ARMGNU)-objcopy $(BUILD_DIR)/kernel8.elf -O binary $(BUILD_DIR)/kernel8.img
