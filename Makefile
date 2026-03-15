@@ -1,5 +1,12 @@
 .PHONY: all clean os hv sm test os-clean hv-clean sm-clean test-clean
 
+# `make clean` などクリーン系のターゲットが指定された場合は BOARD 変数のチェックをスキップする
+ifeq ($(filter clean os-clean hv-clean sm-clean test-clean,$(MAKECMDGOALS)),)
+  ifeq ($(BOARD),)
+    $(error BOARD environment variable is not defined. Please set it (e.g., export BOARD=raspi3))
+  endif
+endif
+
 all: sm
 
 sm: hv

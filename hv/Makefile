@@ -1,5 +1,11 @@
 .PHONY: all clean debug test
 
+ifeq ($(filter clean os-clean hv-clean sm-clean test-clean,$(MAKECMDGOALS)),)
+  ifeq ($(BOARD),)
+    $(error BOARD environment variable is not defined. Please set it (e.g., export BOARD=raspi3))
+  endif
+endif
+
 ARMGNU ?= aarch64-linux-gnu
 
 # ログレベルの設定(デフォルトはINFO)
