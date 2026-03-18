@@ -3,6 +3,7 @@
 
 #include "mm.h"
 
+#define PHYS_MEMORY_BASE	0x00000000
 #define DEVICE_BASE 		0x3F000000	
 #define PBASE 			(VA_START + DEVICE_BASE)
 

@@ -149,6 +149,29 @@ __create_page_tables:
 	mov	x1, #VA_START 
 	create_pgd_entry x0, x1, x2, x3
 
+#if defined(BOARD_VIRT)
+	// virt board
+	/* Identity mapping for boot code execution (maps PUD[1] to PMD0) */
+	/* This ensures that virtual 0x40100000 maps to physical 0x40100000 while MMU enables */
+	adrp x2, pg_dir
+	add x2, x2, #PAGE_SIZE
+	mov x1, #1
+	orr x3, x0, #MM_TYPE_PAGE_TABLE
+	str x3, [x2, x1, lsl #3]
+
+	/* Mapping kernel and init stack*/
+	mov 	x1, #PHYS_MEMORY_BASE					// start mapping from physical offset 0x40000000
+	mov 	x2, #VA_START						// first virtual address
+	ldr	x3, =(VA_START + PHYS_MEMORY_SIZE - SECTION_SIZE)		// last virtual address
+	create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
+
+	/* Mapping device memory*/
+	mov 	x1, #DEVICE_BASE					// start mapping from device base address (0x08000000)
+	ldr 	x2, =(VA_START + DEVICE_BASE)				// first virtual address
+	ldr	x3, =(VA_START + 0x40000000 - SECTION_SIZE)	// last virtual address
+	create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
+#else
+	// raspi3 board
 	// create_pgd_entry は PGD と PUD をひとつずつ作るため、1GB までしかマップされていない
 	// 1GB 以降の領域 (Local Peripherals) をマップするために PUD にエントリを追加
 	// x0 は現在 PMD1 (0-1GB用) のアドレスを指している
@@ -183,6 +206,7 @@ __create_page_tables:
     ldr x2, =(VA_START + 0x40000000)
     ldr x3, =(VA_START + 0x40200000 - SECTION_SIZE)
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
+#endif
 
 	mov	x30, x29						// restore return address
 	ret
