@@ -3,7 +3,7 @@
 
 #include "peripherals/base.h"
 
-#define UART_BASE   (PBASE + 0x09000000)
+#define UART_BASE   (VA_START + 0x09000000)
 
 #define UART_DR     (UART_BASE + 0x00)
 #define UART_FR     (UART_BASE + 0x18)
