@@ -113,20 +113,29 @@ after_page_table_setup:
 
 	br 	x2
 
-	.macro	create_pgd_entry, tbl, virt, tmp1, tmp2
+	.macro	create_pgd_pud_entry, tbl, virt, tmp1, tmp2
 	// for PGD (PGD は1エントリで512GBをカバーする)
-	create_table_entry \tbl, \virt, PGD_SHIFT, \tmp1, \tmp2
+	add	\tmp2, \tbl, #PAGE_SIZE				// PUD のアドレスを計算 (PUD は PGD のすぐ後ろ)
+	create_table_entry \tbl, \virt, PGD_SHIFT, \tmp2, \tmp1	// create PGD entry
+	mov	\tbl, \tmp2					// PUD のアドレスをセット
+
 	// for PUD (PUD は1エントリで1GBをカバーする)
-	create_table_entry \tbl, \virt, PUD_SHIFT, \tmp1, \tmp2
+	add	\tmp2, \tbl, #PAGE_SIZE				// PMD のアドレスを計算
+	create_table_entry \tbl, \virt, PUD_SHIFT, \tmp2, \tmp1	// create PUD entry
+	mov	\tbl, \tmp2					// MPD のアドレスをセット
 	.endm
 
-	.macro	create_table_entry, tbl, virt, shift, tmp1, tmp2
+	.macro	create_table_entry, tbl, virt, shift, next_tbl, tmp1
+	// 割当てる仮想アドレスを右シフトしてインデックス部分を一番右に寄せる
 	lsr	\tmp1, \virt, #\shift
-	and	\tmp1, \tmp1, #PTRS_PER_TABLE - 1			// table index
-	add	\tmp2, \tbl, #PAGE_SIZE
-	orr	\tmp2, \tmp2, #MM_TYPE_PAGE_TABLE
-	str	\tmp2, [\tbl, \tmp1, lsl #3]
-	add	\tbl, \tbl, #PAGE_SIZE					// next level table page
+	// ページサイズのビット幅で and を取り、インデックスに変換(0~511)
+	and	\tmp1, \tmp1, #PTRS_PER_TABLE - 1
+	// ひとつのエントリのサイズは8バイトなので、インデックスを8倍(lsl #3)してオフセットに変換してから足す
+	add	\tmp1, \tbl, \tmp1, lsl #3
+	// ページの情報をアドレスの下位ビットにセット
+	orr	\tbl, \next_tbl, #MM_TYPE_PAGE_TABLE
+	// メモリに書き込む
+	str	\tbl, [\tmp1]
 	.endm
 
 	.macro	create_block_map, tbl, phys, start, end, flags, tmp1
@@ -147,13 +156,20 @@ after_page_table_setup:
 __create_page_tables:
 	mov	x29, x30						// save return address
 
+    // ページテーブル用の領域全体(PGD, PUD, PMD)をまずゼロクリア
 	adrp	x0, pg_dir
-	mov	x1, #PG_DIR_SIZE
+#if defined(LOCAL_PERIPHERAL_BASE)
+    // raspi3 の場合はローカルペリフェラルが別途必要なので4個分の領域をクリアする
+	mov	x1, #(4 * PAGE_SIZE)
+#else
+	mov	x1, #(3 * PAGE_SIZE)
+#endif
 	bl 	memzero_without_stack
 
+    // PGD と PUD を設定
 	adrp	x0, pg_dir
 	mov	x1, #VA_START 
-	create_pgd_entry x0, x1, x2, x3
+	create_pgd_pud_entry x0, x1, x2, x3
 
 #if defined(BOARD_VIRT)
 	// virt board
