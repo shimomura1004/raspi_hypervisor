@@ -20,7 +20,8 @@ _start:
 	b.eq el3_entry		// Primary CPU
 
 loop:
-	// CPU0 以外はここでループして待つ
+	// raspi の場合は PSCI がなく電源投入後に自動で全 CPU コアが起動する
+	// CPU0 以外はここでループして initialized 変数がセットされるのを待つ
 
 	// この OS はリンカスクリプトによって 0xffff_0000_0000_0000 に配置される
 	// initialized も高位アドレスに配置されているため、そのまま ldr x1, [x0] はエラーになる
@@ -36,7 +37,7 @@ el3_entry:
 	cmp	x0, #1
 	b.eq el1_entry
 
-	// EL3 から起動した場合は最低限の設定だけして EL1 に切り替える
+	// EL3 から起動した場合(この OS がベアメタルで起動した場合)は最低限の設定だけして EL1 に切り替える
 	ldr	x0, =SCTLR_VALUE_MMU_DISABLED
 	msr	sctlr_el2, x0
 
@@ -59,21 +60,26 @@ el3_entry:
 	eret
 
 el1_entry:
+	// コア0でのみページテーブルの設定を実行する
 	mrs	x0, mpidr_el1
 	and	x0, x0, #0xFF
 	cbz x0, page_table_setup
 	b after_page_table_setup
 
 page_table_setup:
+	// MMU のキャッシュの無効化
 	ldr	x0, =SCTLR_VALUE_MMU_DISABLED
 	msr	sctlr_el1, x0
 
+	// BSS セクションをゼロクリア
 	adr	x0, bss_begin
 	adr	x1, bss_end
 	sub	x1, x1, x0
 	bl 	memzero_without_stack
 
+	// ページテーブルの作成
 	bl 	__create_page_tables
+	b after_page_table_setup
 
 after_page_table_setup:
 	mov x1, #LOW_MEMORY
