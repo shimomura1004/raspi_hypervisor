@@ -166,21 +166,28 @@ __create_page_tables:
 #endif
 	bl 	memzero_without_stack
 
-    // PGD と PUD を設定
+    // メインメモリに対する PGD と PUD を設定
 	adrp	x0, pg_dir
 	mov	x1, #VA_START 
 	create_pgd_pud_entry x0, x1, x2, x3
 
-#if defined(BOARD_VIRT)
-	// virt board
-	/* Identity mapping for boot code execution (maps PUD[1] to PMD0) */
-	/* This ensures that virtual 0x40100000 maps to physical 0x40100000 while MMU enables */
+	// MMU が有効になった直後にクラッシュしないように追加で恒等マッピングも行う
+	// PUD のアドレス(PGD の次のページ)を x2 にセット
 	adrp x2, pg_dir
 	add x2, x2, #PAGE_SIZE
-	mov x1, #1
+	// 物理アドレスの開始位置のインデックスを計算して x1 にセット
+	ldr x1, =PHYS_MEMORY_BASE
+	lsr x1, x1, #PUD_SHIFT
+	and x1, x1, #PTRS_PER_TABLE - 1
+	// メモリ属性を設定
+	// x0 には PMD のアドレスが入っている
 	orr x3, x0, #MM_TYPE_PAGE_TABLE
+	// str 命令は x3 に入ったデータを、x2 が示すベースアドレスに x1 のオフセットを足したアドレスに書き込む
+	// つまり、PUD に既存の PMD への参照を追加している
+	// この PMD は先ほど作成したもので、メモリ空間を正しくマップしている
 	str x3, [x2, x1, lsl #3]
 
+#if defined(BOARD_VIRT)
 	/* Mapping kernel and init stack*/
 	mov 	x1, #PHYS_MEMORY_BASE					// start mapping from physical offset 0x40000000
 	mov 	x2, #VA_START						// first virtual address
