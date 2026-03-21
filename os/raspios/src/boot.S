@@ -11,6 +11,63 @@
 // qemu を -M raspi3b で起動すると EL2 から起動されるため、ネイティブとゲストのソースに差がでてしまう
 // 起動後に EL を見て処理を切り替えれば暫定対応できる
 
+//======== create_pgd_pud_entry ===============================================
+.macro	create_pgd_pud_entry, tbl, virt, tmp1, tmp2
+	// for PGD (PGD は1エントリで512GBをカバーする)
+	add	\tmp2, \tbl, #PAGE_SIZE				// PUD のアドレスを計算 (PUD は PGD のすぐ後ろ)
+	create_table_entry \tbl, \virt, PGD_SHIFT, \tmp2, \tmp1	// create PGD entry
+	mov	\tbl, \tmp2					// PUD のアドレスをセット
+
+	// for PUD (PUD は1エントリで1GBをカバーする)
+	add	\tmp2, \tbl, #PAGE_SIZE				// PMD のアドレスを計算
+	create_table_entry \tbl, \virt, PUD_SHIFT, \tmp2, \tmp1	// create PUD entry
+	mov	\tbl, \tmp2					// PMD のアドレスをセット
+.endm
+
+//======== create_table_entry ===============================================
+// PUD, PMD のエントリを、上位のテーブルに追記するマクロ
+.macro	create_table_entry, tbl, virt, shift, next_tbl, tmp1
+	// 割当てる仮想アドレスを右シフトしてインデックス部分を一番右に寄せる
+	lsr	\tmp1, \virt, #\shift
+	// ページサイズのビット幅で and を取り、インデックスに変換(0~511)
+	and	\tmp1, \tmp1, #PTRS_PER_TABLE - 1
+	// ひとつのエントリのサイズは8バイトなので、インデックスを8倍(lsl #3)してオフセットに変換してから足す
+	add	\tmp1, \tbl, \tmp1, lsl #3
+	// ページの情報をアドレスの下位ビットにセット
+	orr	\tbl, \next_tbl, #MM_TYPE_PAGE_TABLE
+	// メモリに書き込む
+	str	\tbl, [\tmp1]
+.endm
+
+//======== create_block_map ===============================================
+// 実ページへのエントリを、上位のテーブルに追記するマクロ
+// start と end で指定された範囲を tbl で指定されたテーブルに一気に追記していく
+.macro	create_block_map, tbl, phys, start, end, flags, tmp1
+	// 開始アドレスと終了アドレスをテーブル内のインデックスに変換
+	// ページは 2MB 単位なので SECTION_SHIFT 分シフトしてマスクする
+	lsr	\start, \start, #SECTION_SHIFT
+	and	\start, \start, #PTRS_PER_TABLE - 1
+	lsr	\end, \end, #SECTION_SHIFT
+	and	\end, \end, #PTRS_PER_TABLE - 1
+	// マップする物理アドレスをシフトしてから戻し、ページの先頭アドレスを作る
+	// そのときに flags をセットして phys にテーブルエントリを作る(ページ属性は全て同じ)
+	lsr	\phys, \phys, #SECTION_SHIFT
+	mov	\tmp1, #\flags
+	orr	\phys, \tmp1, \phys, lsl #SECTION_SHIFT
+9999:
+	// テーブルエントリを登録
+	str	\phys, [\tbl, \start, lsl #3]
+	// インデックスを1つ進める
+	add	\start, \start, #1
+	// 物理アドレスのほうは1ページ分(2MB)進める
+	add	\phys, \phys, #SECTION_SIZE
+	// end を超えたらループを抜ける、つまり start <= end の間はループする
+	// よって end で指定されたアドレスはマップの対象となる
+	cmp	\start, \end
+	b.ls	9999b
+.endm
+
+//======== entry point ===============================================
 .globl _start
 _start:
 	mrs	x0, mpidr_el1
@@ -112,59 +169,6 @@ after_page_table_setup:
     isb
 
 	br 	x2
-
-	.macro	create_pgd_pud_entry, tbl, virt, tmp1, tmp2
-	// for PGD (PGD は1エントリで512GBをカバーする)
-	add	\tmp2, \tbl, #PAGE_SIZE				// PUD のアドレスを計算 (PUD は PGD のすぐ後ろ)
-	create_table_entry \tbl, \virt, PGD_SHIFT, \tmp2, \tmp1	// create PGD entry
-	mov	\tbl, \tmp2					// PUD のアドレスをセット
-
-	// for PUD (PUD は1エントリで1GBをカバーする)
-	add	\tmp2, \tbl, #PAGE_SIZE				// PMD のアドレスを計算
-	create_table_entry \tbl, \virt, PUD_SHIFT, \tmp2, \tmp1	// create PUD entry
-	mov	\tbl, \tmp2					// PMD のアドレスをセット
-	.endm
-
-	// PUD, PMD のエントリを、上位のテーブルに追記するマクロ
-	.macro	create_table_entry, tbl, virt, shift, next_tbl, tmp1
-	// 割当てる仮想アドレスを右シフトしてインデックス部分を一番右に寄せる
-	lsr	\tmp1, \virt, #\shift
-	// ページサイズのビット幅で and を取り、インデックスに変換(0~511)
-	and	\tmp1, \tmp1, #PTRS_PER_TABLE - 1
-	// ひとつのエントリのサイズは8バイトなので、インデックスを8倍(lsl #3)してオフセットに変換してから足す
-	add	\tmp1, \tbl, \tmp1, lsl #3
-	// ページの情報をアドレスの下位ビットにセット
-	orr	\tbl, \next_tbl, #MM_TYPE_PAGE_TABLE
-	// メモリに書き込む
-	str	\tbl, [\tmp1]
-	.endm
-
-	// 実ページへのエントリを、上位のテーブルに追記するマクロ
-	// start と end で指定された範囲を tbl で指定されたテーブルに一気に追記していく
-	.macro	create_block_map, tbl, phys, start, end, flags, tmp1
-	// 開始アドレスと終了アドレスをテーブル内のインデックスに変換
-	// ページは 2MB 単位なので SECTION_SHIFT 分シフトしてマスクする
-	lsr	\start, \start, #SECTION_SHIFT
-	and	\start, \start, #PTRS_PER_TABLE - 1
-	lsr	\end, \end, #SECTION_SHIFT
-	and	\end, \end, #PTRS_PER_TABLE - 1
-	// マップする物理アドレスをシフトしてから戻し、ページの先頭アドレスを作る
-	// そのときに flags をセットして phys にテーブルエントリを作る(ページ属性は全て同じ)
-	lsr	\phys, \phys, #SECTION_SHIFT
-	mov	\tmp1, #\flags
-	orr	\phys, \tmp1, \phys, lsl #SECTION_SHIFT
-9999:
-	// テーブルエントリを登録
-	str	\phys, [\tbl, \start, lsl #3]
-	// インデックスを1つ進める
-	add	\start, \start, #1
-	// 物理アドレスのほうは1ページ分(2MB)進める
-	add	\phys, \phys, #SECTION_SIZE
-	// end を超えたらループを抜ける、つまり start <= end の間はループする
-	// よって end で指定されたアドレスはマップの対象となる
-	cmp	\start, \end
-	b.ls	9999b
-	.endm
 
 __create_page_tables:
 	mov	x29, x30						// save return address
