@@ -122,9 +122,10 @@ after_page_table_setup:
 	// for PUD (PUD は1エントリで1GBをカバーする)
 	add	\tmp2, \tbl, #PAGE_SIZE				// PMD のアドレスを計算
 	create_table_entry \tbl, \virt, PUD_SHIFT, \tmp2, \tmp1	// create PUD entry
-	mov	\tbl, \tmp2					// MPD のアドレスをセット
+	mov	\tbl, \tmp2					// PMD のアドレスをセット
 	.endm
 
+	// PUD, PMD のエントリを、上位のテーブルに追記するマクロ
 	.macro	create_table_entry, tbl, virt, shift, next_tbl, tmp1
 	// 割当てる仮想アドレスを右シフトしてインデックス部分を一番右に寄せる
 	lsr	\tmp1, \virt, #\shift
@@ -138,17 +139,28 @@ after_page_table_setup:
 	str	\tbl, [\tmp1]
 	.endm
 
+	// 実ページへのエントリを、上位のテーブルに追記するマクロ
+	// start と end で指定された範囲を tbl で指定されたテーブルに一気に追記していく
 	.macro	create_block_map, tbl, phys, start, end, flags, tmp1
+	// 開始アドレスと終了アドレスをテーブル内のインデックスに変換
+	// ページは 2MB 単位なので SECTION_SHIFT 分シフトしてマスクする
 	lsr	\start, \start, #SECTION_SHIFT
-	and	\start, \start, #PTRS_PER_TABLE - 1			// table index
+	and	\start, \start, #PTRS_PER_TABLE - 1
 	lsr	\end, \end, #SECTION_SHIFT
-	and	\end, \end, #PTRS_PER_TABLE - 1				// table end index
+	and	\end, \end, #PTRS_PER_TABLE - 1
+	// マップする物理アドレスをシフトしてから戻し、ページの先頭アドレスを作る
+	// そのときに flags をセットして phys にテーブルエントリを作る(ページ属性は全て同じ)
 	lsr	\phys, \phys, #SECTION_SHIFT
 	mov	\tmp1, #\flags
-	orr	\phys, \tmp1, \phys, lsl #SECTION_SHIFT			// table entry
-9999:	str	\phys, [\tbl, \start, lsl #3]				// store the entry
-	add	\start, \start, #1					// next entry
-	add	\phys, \phys, #SECTION_SIZE				// next block
+	orr	\phys, \tmp1, \phys, lsl #SECTION_SHIFT
+9999:
+	// テーブルエントリを登録
+	str	\phys, [\tbl, \start, lsl #3]
+	// インデックスを1つ進める
+	add	\start, \start, #1
+	// 物理アドレスのほうは1ページ分(2MB)進める
+	add	\phys, \phys, #SECTION_SIZE
+	// end に到達したらその時点でループを抜ける(end はマップされない)
 	cmp	\start, \end
 	b.ls	9999b
 	.endm
@@ -166,7 +178,7 @@ __create_page_tables:
 #endif
 	bl 	memzero_without_stack
 
-    // メインメモリに対する PGD と PUD を設定
+    // メインメモリに対する PGD と PUD を設定(PMD までのリンク構造を作成)
 	adrp	x0, pg_dir
 	mov	x1, #VA_START 
 	create_pgd_pud_entry x0, x1, x2, x3
@@ -187,17 +199,19 @@ __create_page_tables:
 	// この PMD は先ほど作成したもので、メモリ空間を正しくマップしている
 	str x3, [x2, x1, lsl #3]
 
-#if defined(BOARD_VIRT)
-	/* Mapping kernel and init stack*/
-	mov 	x1, #PHYS_MEMORY_BASE					// start mapping from physical offset 0x40000000
-	mov 	x2, #VA_START						// first virtual address
-	ldr	x3, =(VA_START + PHYS_MEMORY_SIZE - SECTION_SIZE)		// last virtual address
+	// PMD の中身(各エントリ)を作成
+	// 1回目の create_block_map ではまずメインメモリをマップする
+	// この時点でも x0 には PMD のアドレスが入っている
+	ldr 	x1, =PHYS_MEMORY_BASE					// マップする物理アドレスの開始位置
+	ldr 	x2, =VA_START						// マップ先の仮想アドレスの開始位置
+	ldr	x3, =(VA_START + RAM_SIZE - SECTION_SIZE)		// マップ先の仮想アドレスの終了位置
 	create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
 
-	/* Mapping device memory*/
-	mov 	x1, #DEVICE_BASE					// start mapping from device base address (0x08000000)
-	ldr 	x2, =(VA_START + DEVICE_BASE)				// first virtual address
-	ldr	x3, =(VA_START + 0x40000000 - SECTION_SIZE)	// last virtual address
+	// 2回目の create_block_map では周辺機器をマップする
+	// この時点でも x0 には PMD のアドレスが入っている
+	ldr 	x1, =DEVICE_BASE
+	ldr 	x2, =(VA_START + DEVICE_BASE)
+	ldr	x3, =(VA_START + PHYS_MEMORY_SIZE - SECTION_SIZE)
 	create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
 #else
 	// raspi3 board
