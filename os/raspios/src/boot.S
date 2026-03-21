@@ -160,7 +160,8 @@ after_page_table_setup:
 	add	\start, \start, #1
 	// 物理アドレスのほうは1ページ分(2MB)進める
 	add	\phys, \phys, #SECTION_SIZE
-	// end に到達したらその時点でループを抜ける(end はマップされない)
+	// end を超えたらループを抜ける、つまり start <= end の間はループする
+	// よって end で指定されたアドレスはマップの対象となる
 	cmp	\start, \end
 	b.ls	9999b
 	.endm
@@ -188,7 +189,7 @@ __create_page_tables:
 	adrp x2, pg_dir
 	add x2, x2, #PAGE_SIZE
 	// 物理アドレスの開始位置のインデックスを計算して x1 にセット
-	ldr x1, =PHYS_MEMORY_BASE
+	ldr x1, =RAM_BASE
 	lsr x1, x1, #PUD_SHIFT
 	and x1, x1, #PTRS_PER_TABLE - 1
 	// メモリ属性を設定
@@ -202,16 +203,16 @@ __create_page_tables:
 	// PMD の中身(各エントリ)を作成
 	// 1回目の create_block_map ではまずメインメモリをマップする
 	// この時点でも x0 には PMD のアドレスが入っている
-	ldr 	x1, =PHYS_MEMORY_BASE					// マップする物理アドレスの開始位置
-	ldr 	x2, =VA_START						// マップ先の仮想アドレスの開始位置
-	ldr	x3, =(VA_START + RAM_SIZE - SECTION_SIZE)		// マップ先の仮想アドレスの終了位置
+	ldr 	x1, =RAM_BASE							// マップ元の物理アドレスの開始位置
+	ldr 	x2, =VA_START							// マップ先の仮想アドレスの開始位置
+	ldr	x3, =(VA_START + RAM_SIZE - SECTION_SIZE)	// マップ先の仮想アドレスの終了位置(このアドレスを含んでマップされる)
 	create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
 
 	// 2回目の create_block_map では周辺機器をマップする
 	// この時点でも x0 には PMD のアドレスが入っている
 	ldr 	x1, =DEVICE_BASE
 	ldr 	x2, =(VA_START + DEVICE_BASE)
-	ldr	x3, =(VA_START + PHYS_MEMORY_SIZE - SECTION_SIZE)
+	ldr	x3, =(VA_START + DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE)
 	create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
 #else
 	// raspi3 board
