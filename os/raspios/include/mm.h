@@ -5,8 +5,6 @@
 
 #define VA_START 			0xffff000000000000
 
-#define PHYS_MEMORY_SIZE 		0x40000000	
-
 #define PAGE_MASK			0xfffffffffffff000
 #define PAGE_SHIFT	 		12
 #define TABLE_SHIFT 			9
@@ -15,8 +13,12 @@
 #define PAGE_SIZE   			(1 << PAGE_SHIFT)	
 #define SECTION_SIZE			(1 << SECTION_SHIFT)	
 
-#define LOW_MEMORY              	(2 * SECTION_SIZE)
-#define HIGH_MEMORY             	DEVICE_BASE
+#define LOW_MEMORY              	(RAM_BASE + 2 * SECTION_SIZE)
+#if defined(BOARD_VIRT)
+#define HIGH_MEMORY             	(RAM_BASE + DEVICE_BASE)
+#else
+#define HIGH_MEMORY             	(RAM_BASE + RAM_SIZE)
+#endif
 
 #define PAGING_MEMORY 			(HIGH_MEMORY - LOW_MEMORY)
 #define PAGING_PAGES 			(PAGING_MEMORY/PAGE_SIZE)
@@ -31,7 +33,12 @@
 
 #ifndef __ASSEMBLER__
 
-#include "sched.h"
+// 受けとった物理アドレス(pa)から、ボード上のメモリの開始位置(RAM_BASE)を引いてオフセットを計算
+// それに仮想アドレスの開始位置(VA_START)を足すことで、仮想アドレスに変換
+#define PHYS_TO_VIRT(pa) ((pa) - RAM_BASE + VA_START)
+#define VIRT_TO_PHYS(va) ((va) - VA_START + RAM_BASE)
+
+struct task_struct;
 
 unsigned long get_free_page();
 void free_page(unsigned long p);
