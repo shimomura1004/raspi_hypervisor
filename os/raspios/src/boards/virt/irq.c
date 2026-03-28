@@ -70,13 +70,32 @@ void show_invalid_entry_message(int type, unsigned long esr, unsigned long addre
 	WARN("%s, ESR_EL1: %x, address: %x", entry_error_messages[type], esr, address);
 }
 
+// このハンドラはベクタから呼び出される
+// ハイパーバイザ上で動作することを考えると、割込みは大きく2種類の方法で通知される
+// 1. ハイパーバイザがソフトで仮想化を行う
+// 2. ハイパーバイザが vGIC を使って仮想化を行う
+//    仮想マシンから見ると通常の GIC 割込みとして通知される
 void handle_irq(void)
 {
+	int timer_handled = 0;
+
+	// 1. HCR_EL2.VI などにより割込みが注入された場合は仮想タイマを直接確認
+	unsigned long cntv_ctl;
+	asm volatile("mrs %0, cntv_ctl_el0" : "=r"(cntv_ctl));
+	if (cntv_ctl & 0x4) { // ISTATUS bit: 割込み条件が成立しているか
+		handle_timer_irq();
+		timer_handled = 1;
+	}
+
+	// 2. vGIC を使っている場合は GIC から割込み要因を取得
 	unsigned int iar = get32(GICC_IAR);
 	unsigned int irq = iar & 0x3ff;
 
 	if (irq == 27) {
-		handle_timer_irq();
+		// すでにタイマレジスタのチェックで処理済みの場合はスキップ
+		if (!timer_handled) {
+			handle_timer_irq();
+		}
 	} else if (irq == 33) {
 		handle_uart_irq();
 	} else if (irq < 1022) {
