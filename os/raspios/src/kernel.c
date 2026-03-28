@@ -4,6 +4,8 @@
 #include "utils.h"
 #include "generic_timer.h"
 #include "fork.h"
+// todo: raspi3/virt のどちらの場合でも mini_uart が使われている。hv にならって console.h を作る。
+//       それか、lib の中に board/raspi3 or board/virt を作ってそこに入れる？
 #include "mini_uart.h"
 #include "sys.h"
 #include "user.h"
