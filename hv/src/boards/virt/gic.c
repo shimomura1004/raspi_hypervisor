@@ -1,5 +1,7 @@
 #include "utils.h"
 #include "board_config.h"
+#include "generic_timer.h"
+#include "irq.h"
 #include <inttypes.h>
 
 /* GICv2 Registers (relative to GIC_DIST_BASE and GIC_CPU_BASE) */
@@ -34,9 +36,21 @@ void handle_irq(void) {
     unsigned int iar = get32(GICC_IAR);
     unsigned int irq = iar & 0x3ff;
 
-    if (irq < 1022) {
-        /* Handle specific IRQs here (e.g., UART, Timer) */
-        /* For now, just clear it */
+    if (irq == IRQ_HYP_PHYS_TIMER) {
+        handle_generic_timer_irq();
+    } else if (irq == IRQ_VIRT_TIMER) {
+        handle_virtual_timer_irq();
+    } else if (irq < 1022) {
+        // その他の IRQ (UART など) は今は無視
+    }
+
         put32(GICC_EOIR, iar);
     }
+
+void enable_virtual_timer_irq(void) {
+    put32(GICD_ISENABLER, (1 << IRQ_VIRT_TIMER));
+}
+
+void disable_virtual_timer_irq(void) {
+    put32(GICD_ICENABLER, (1 << IRQ_VIRT_TIMER));
 }

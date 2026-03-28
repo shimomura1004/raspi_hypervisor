@@ -148,3 +148,17 @@ void handle_irq(void)
 	}
 }
 
+void enable_virtual_timer_irq(void) {
+	unsigned long cpuid = get_cpuid();
+	unsigned long cntl = get32(timer_controls[cpuid]);
+	cntl |= TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED;
+	put32(timer_controls[cpuid], cntl);
+}
+
+void disable_virtual_timer_irq(void) {
+	unsigned long cpuid = get_cpuid();
+	unsigned long cntl = get32(timer_controls[cpuid]);
+	cntl &= ~TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED;
+	put32(timer_controls[cpuid], cntl);
+}
+
