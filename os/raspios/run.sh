@@ -1,11 +1,9 @@
 #!/bin/bash
 
-# -kernel オプションを使うと el2 から開始できるが、
-# イメージをロードするアドレスを指定できないのでフラットバイナリが使えない
-#DISPLAY=:0 qemu-system-aarch64 -m 1024 -M raspi3b -kernel kernel8.img -nographic -serial null -serial mon:stdio -s $*
-
-# -kernel オプションを使うと、指定した elf ファイルに埋め込まれた p_paddr を見てロード先を決める
+# virt ボードの場合、-kernel オプションで ELF ファイルを指定すると
+# QEMU が ELF ファイルに埋め込まれた p_paddr を見てその場所にイメージをロードする
 # またそのとき PC の初期値は p_paddr に設定される
+# virtualization=on とすれば EL2 で、 virtualization=off とすれば EL1 で開始できる
 
 BOARD=${BOARD:-raspi3}
 KERNEL_IMG=./build/kernel8.img
