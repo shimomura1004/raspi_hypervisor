@@ -4,6 +4,9 @@
 # イメージをロードするアドレスを指定できないのでフラットバイナリが使えない
 #DISPLAY=:0 qemu-system-aarch64 -m 1024 -M raspi3b -kernel kernel8.img -nographic -serial null -serial mon:stdio -s $*
 
+# -kernel オプションを使うと、指定した elf ファイルに埋め込まれた p_paddr を見てロード先を決める
+# またそのとき PC の初期値は p_paddr に設定される
+
 BOARD=${BOARD:-raspi3}
 KERNEL_IMG=./build/kernel8.img
 KERNEL_ELF=./build/kernel8.elf
