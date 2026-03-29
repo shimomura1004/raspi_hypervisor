@@ -1,8 +1,8 @@
 ENTRY("_start")
 SECTIONS
 {
-	. = 0xffff000000000000;
-	.text.boot : { *(.text.boot) }
+	. = 0xffff000000080000;
+	.text.boot : AT(0x80000) { *(.text.boot) }
 	. = ALIGN(0x00001000);
 	user_begin = .;
 	.text.user : { build/user* (.text) }
@@ -21,4 +21,3 @@ SECTIONS
 	pg_dir = .;
 	.data.pgd : { . += (3 * (1 << 12)); }
 }
-

@@ -7,7 +7,7 @@ SECTIONS
 	   MMU が有効になるとカーネルは TTBR1_EL1 のほうを使うので、0xffff... にマップしなければいけない
 	 */
 	. = 0xffff000000100000;
-	.text.boot : { *(.text.boot) }
+	.text.boot : AT(0x40100000) { *(.text.boot) }
 	. = ALIGN(0x00001000);
 	user_begin = .;
 	.text.user : { build/user* (.text) }
@@ -26,4 +26,3 @@ SECTIONS
 	pg_dir = .;
 	.data.pgd : { . += (3 * (1 << 12)); }
 }
-
