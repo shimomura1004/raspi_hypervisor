@@ -22,17 +22,23 @@ COPS += -DPRINTF_LONG_SUPPORT
 COPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)
 COPS += -DBOARD_NAME=\"$(BOARD)\"
 
-ASMOPS = -Iinclude -I../lib/include -g
+ASMOPS = -Iinclude -I../lib/include -g -Iinclude/boards/$(BOARD)
 ASMOPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)
 
 BUILD_DIR = build
 SRC_DIR = src
+LINKER_SCRIPT = $(SRC_DIR)/boards/$(BOARD)/linker.ld
+
+ifeq ($(filter clean,$(MAKECMDGOALS)),)
+  ifeq ($(wildcard $(LINKER_SCRIPT)),)
+    $(error Linker script not found for BOARD=$(BOARD) at $(LINKER_SCRIPT))
+  endif
+endif
 
 all: $(BUILD_DIR)/kernel8.img $(BUILD_DIR)/fs.img
 
 test:
 	$(MAKE) -C tests test
-
 
 clean:
 	rm -rf $(BUILD_DIR)
@@ -77,13 +83,13 @@ $(BUILD_DIR)/common_utils_s.o: ../lib/src/common_utils.S
 	mkdir -p $(@D)
 	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
 
-$(BUILD_DIR)/boards/$(BOARD)/%_c.o: $(SRC_DIR)/boards/$(BOARD)/%.c
-	mkdir -p $(@D)
-	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
-
-$(BUILD_DIR)/boards/$(BOARD)/%_s.o: $(SRC_DIR)/boards/$(BOARD)/%.S
+$(BUILD_DIR)/smccc_s.o: ../lib/src/smccc.S
 	mkdir -p $(@D)
 	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
+
+$(BUILD_DIR)/psci_c.o: ../lib/src/psci.c
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
 
 # 共通のソースファイル
 C_FILES = $(wildcard $(SRC_DIR)/*.c)
@@ -94,6 +100,14 @@ BOARD_SRC_DIR = $(SRC_DIR)/boards/$(BOARD)
 BOARD_C_FILES = $(wildcard $(BOARD_SRC_DIR)/*.c)
 BOARD_ASM_FILES = $(wildcard $(BOARD_SRC_DIR)/*.S)
 
+$(BUILD_DIR)/boards/$(BOARD)/%_c.o: $(BOARD_SRC_DIR)/%.c
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
+
+$(BUILD_DIR)/boards/$(BOARD)/%_s.o: $(BOARD_SRC_DIR)/%.S
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
+
 # オブジェクトファイルの生成
 OBJ_FILES = $(C_FILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%_c.o)
 OBJ_FILES += $(ASM_FILES:$(SRC_DIR)/%.S=$(BUILD_DIR)/%_s.o)
@@ -102,6 +116,8 @@ OBJ_FILES += $(BOARD_ASM_FILES:$(BOARD_SRC_DIR)/%.S=$(BUILD_DIR)/boards/$(BOARD)
 OBJ_FILES += $(BUILD_DIR)/printf_c.o
 OBJ_FILES += $(BUILD_DIR)/common_utils_c.o
 OBJ_FILES += $(BUILD_DIR)/common_utils_s.o
+OBJ_FILES += $(BUILD_DIR)/smccc_s.o
+OBJ_FILES += $(BUILD_DIR)/psci_c.o
 
 DEP_FILES = $(OBJ_FILES:%.o=%.d)
 -include $(DEP_FILES)
@@ -109,8 +125,8 @@ DEP_FILES = $(OBJ_FILES:%.o=%.d)
 # kernel8.img は、kernel8.elf を objcopy で raw binary にしたもの
 # raw binary: 実際にメモリに展開される内容がそのままファイルになったもの
 #             elf ファイルのようにセクションごとにパースなどをせず全体をコピーするだけでいいので楽
-$(BUILD_DIR)/kernel8.img: $(SRC_DIR)/linker.ld $(OBJ_FILES)
-	$(ARMGNU)-ld -Map $(BUILD_DIR)/kernel8.map -T $(SRC_DIR)/linker.ld -o $(BUILD_DIR)/kernel8.elf  $(OBJ_FILES)
+$(BUILD_DIR)/kernel8.img: $(LINKER_SCRIPT) $(OBJ_FILES)
+	$(ARMGNU)-ld -Map $(BUILD_DIR)/kernel8.map -T $(LINKER_SCRIPT) -o $(BUILD_DIR)/kernel8.elf  $(OBJ_FILES)
 	$(ARMGNU)-objcopy $(BUILD_DIR)/kernel8.elf -O binary $(BUILD_DIR)/kernel8.img
 
 # elf バイナリを逆アセンブルする
