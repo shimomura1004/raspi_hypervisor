@@ -52,6 +52,14 @@ $(BUILD_DIR)/common_utils_s.o: ../../lib/src/common_utils.S
 	mkdir -p $(@D)
 	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
 
+$(BUILD_DIR)/smccc_s.o: ../../lib/src/smccc.S
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
+
+$(BUILD_DIR)/psci_c.o: ../../lib/src/psci.c
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
+
 C_FILES = $(wildcard $(SRC_DIR)/*.c)
 ASM_FILES = $(wildcard $(SRC_DIR)/*.S)
 
@@ -74,6 +82,8 @@ OBJ_FILES += $(BOARD_ASM_FILES:$(BOARD_SRC_DIR)/%.S=$(BUILD_DIR)/boards/$(BOARD)
 OBJ_FILES += $(BUILD_DIR)/printf_c.o
 OBJ_FILES += $(BUILD_DIR)/common_utils_c.o
 OBJ_FILES += $(BUILD_DIR)/common_utils_s.o
+OBJ_FILES += $(BUILD_DIR)/smccc_s.o
+OBJ_FILES += $(BUILD_DIR)/psci_c.o
 
 DEP_FILES = $(OBJ_FILES:%.o=%.d)
 -include $(DEP_FILES)

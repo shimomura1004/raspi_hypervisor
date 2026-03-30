@@ -4,6 +4,11 @@
 #include "utils.h"
 #include "generic_timer.h"
 #include "fork.h"
+
+// todo: 今提供しているハイパーバイザの機能を smccc に準拠させる
+//   smccc には、vm 作成などの機能は定義されていないので、vendor specific な機能として定義する必要がある
+//   (0x84000000 - 0x8400FFFF)
+
 // todo: raspi3/virt のどちらの場合でも mini_uart が使われている。hv にならって console.h を作る。
 //       それか、lib の中に board/raspi3 or board/virt を作ってそこに入れる？
 #include "mini_uart.h"
@@ -56,7 +61,7 @@ void kernel_main()
 		for (int i = 1; i < 4; i++) {
 			// virt ボードではセカンダリ CPU は PSCI を使って起動する必要がある
 			// エントリポイントは _start の物理アドレス (0x40100000)
-			int res = psci_cpu_on(i, 0x40100000, 0);
+			int res = psci_cpu_on_hvc(i, 0x40100000, 0);
 			if (res != 0) {
 				WARN("Failed to start CPU %d via PSCI: %d", i, res);
 			}

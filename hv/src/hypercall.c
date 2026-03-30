@@ -3,12 +3,36 @@
 #include "pm.h"
 #include "hypercall.h"
 #include "hypercall_type.h"
+#include "psci.h"
 #include "utils.h"
 #include "debug.h"
 
+// todo: これは common に移す？
 void hypercall(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigned long a2, unsigned long a3) {
     struct pt_regs *regs = vcpu_pt_regs(current_pcpu()->current_vcpu);
     unsigned long id = a0;
+
+	// todo: 修正する
+	// PSCI 呼び出しのチェック
+	if ((id & 0xFF000000) == 0x84000000 || (id & 0xFF000000) == 0xC4000000) {
+		switch (id) {
+			case PSCI_0_2_FN_SYSTEM_OFF:
+				INFO("PSCI SYSTEM_OFF called");
+				system_shutdown();
+				return;
+			case PSCI_0_2_FN_SYSTEM_RESET:
+				INFO("PSCI SYSTEM_RESET called");
+				system_reboot();
+				return;
+			case PSCI_0_2_FN_PSCI_VERSION:
+				regs->regs[0] = 0x00020000; // PSCI v2.0
+				return;
+			default:
+				WARN("Unsupported PSCI call: 0x%lx", id);
+				regs->regs[0] = -1; // NOT_SUPPORTED
+				return;
+		}
+	}
 
     switch (id) {
 	case HYPERCALL_TYPE_WARN_LU: {

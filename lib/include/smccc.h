@@ -30,8 +30,11 @@
 #define ARM_SMCCC_STD_CALL      0x01    // PSCI はここに含まれる
 #define ARM_SMCCC_VENDOR_CALL   0x30    // 自作の関数はここに含める
 
-// PSCI Function IDs (SMC64)
-#define PSCI_0_2_FN64_BASE      0xC4000000
-#define PSCI_0_2_FN64_CPU_ON    0xC4000003
+#ifndef __ASSEMBLER__
+
+unsigned long hvc_call_4(unsigned long x0, unsigned long x1, unsigned long x2, unsigned long x3);
+unsigned long smc_call_4(unsigned long x0, unsigned long x1, unsigned long x2, unsigned long x3);
+
+#endif
 
 #endif /* _SMCCC_H */

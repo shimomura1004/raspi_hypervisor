@@ -1,5 +1,5 @@
 #include "log.h"
-#include "smccc.h"
+#include "psci.h"
 #include "printf.h"
 
 void print_boot_message() {
