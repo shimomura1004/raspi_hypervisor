@@ -31,6 +31,8 @@
 
 #define PG_DIR_SIZE			(3 * PAGE_SIZE)
 
+#define STACK_SIZE			0x400000
+
 #ifndef __ASSEMBLER__
 
 // 受けとった物理アドレス(pa)から、ボード上のメモリの開始位置(RAM_BASE)を引いてオフセットを計算

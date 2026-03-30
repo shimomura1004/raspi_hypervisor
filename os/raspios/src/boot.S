@@ -80,10 +80,15 @@ loop:
 	// raspi の場合は PSCI がなく電源投入後に自動で全 CPU コアが起動する
 	// CPU0 以外はここでループして initialized 変数がセットされるのを待つ
 
-	// この OS はリンカスクリプトによって 0xffff_0000_0000_0000 に配置される
+	// この OS はリンカスクリプトで指定された値によって 0xffff_0000_0000_0000 に配置される
 	// initialized も高位アドレスに配置されているため、そのまま ldr x1, [x0] はエラーになる
-	ldr x0, =initialized
-	and x0, x0, #0x00000000ffffffff
+	//   ldr で initialized 変数の絶対アドレスを直接参照するとエラーになってしまう
+	// adrp は PC からの相対距離でアドレスを計算するので、物理アドレスでも仮想アドレスでも正しいアドレスを計算できる
+	//   adrp (address of page, pc-relative) は、指定したシンボルのページのアドレスを返す
+	//   :lo12: (low 12 bits) はページ内のオフセットを返すので、これらを足すと正しいアドレスになる
+	// RAM_BASE が 0 以外（virt ボードなど）の場合でも正しく動作する
+	adrp x0, initialized
+	add x0, x0, :lo12:initialized
 	ldr x1, [x0]
 	cbz x1, loop
 	dsb ish
@@ -139,7 +144,9 @@ page_table_setup:
 	b after_page_table_setup
 
 after_page_table_setup:
-	mov x1, #LOW_MEMORY
+	// 各 CPU のスタックポインタを設定する
+	// 1コアあたり 4MB (0x400000) のスタック領域を割り当てる
+	mov x1, #STACK_SIZE
 	bl get_cpuid
 	add x0, x0, #1
 	mul x0, x1, x0

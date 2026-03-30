@@ -12,6 +12,10 @@
 #include "spinlock.h"
 #include "debug.h"
 
+#ifdef BOARD_VIRT
+#include "psci.h"
+#endif
+
 volatile unsigned long initialized = 0;
 
 // ゲストから systimer にアクセスすると MMIO 領域にアクセスすることになるので、
@@ -47,6 +51,17 @@ void kernel_main()
 		init_sched();
 
 		INFO("raspios initialization complete (BOARD: %s)", BOARD_NAME);
+
+#ifdef BOARD_VIRT
+		for (int i = 1; i < 4; i++) {
+			// virt ボードではセカンダリ CPU は PSCI を使って起動する必要がある
+			// エントリポイントは _start の物理アドレス (0x40100000)
+			int res = psci_cpu_on(i, 0x40100000, 0);
+			if (res != 0) {
+				WARN("Failed to start CPU %d via PSCI: %d", i, res);
+			}
+		}
+#endif
 	}
 
 	// 各コアで実施する初期化処理
