@@ -5,6 +5,8 @@
 #include "generic_timer.h"
 #include "fork.h"
 
+// todo: PSCI でシャットダウンする
+
 // todo: 今提供しているハイパーバイザの機能を smccc に準拠させる
 //   smccc には、vm 作成などの機能は定義されていないので、vendor specific な機能として定義する必要がある
 //   (0x84000000 - 0x8400FFFF)
