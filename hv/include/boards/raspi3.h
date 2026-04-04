@@ -1,7 +1,11 @@
 #ifndef _BOARDS_RASPI3_H
 #define _BOARDS_RASPI3_H
 
-// Raspberry Pi 3B Specific Constants
+// Raspberry Pi 3B Specific Constants (物理アドレス)
+
+// これは Arm コア側からみたアドレス(物理アドレス)
+//   videocore からみたアドレスもある(バスアドレス)
+// https://www.reddit.com/r/osdev/comments/uc98tz/raspberry_pi_3_base_peripheral_address/#:~:text=Physical%20addresses%20range%20from%200x3F000000,address%20range%20starting%20at%200x7E000000.
 
 #define RAM_BASE                0x00000000
 #define RAM_SIZE                0x40000000      // 1GB

@@ -1,6 +1,7 @@
 #include "board_config.h"
 #include "console.h"
 #include "utils.h"
+#include "mm.h"
 
 /* PL011 UART Registers (relative to UART_BASE) */
 #define UART_DR     (UART_BASE + 0x00)
@@ -26,27 +27,27 @@ void console_init(void) {
      */
     
     /* Disable UART */
-    put32(UART_CR, 0);
+    put32(P2V(UART_CR), 0);
     
     /* Clear interrupts */
-    put32(UART_ICR, 0x7ff);
+    put32(P2V(UART_ICR), 0x7ff);
     
     /* Set baud rate (dummy values for QEMU) */
-    put32(UART_IBRD, 1);
-    put32(UART_FBRD, 0);
+    put32(P2V(UART_IBRD), 1);
+    put32(P2V(UART_FBRD), 0);
     
     /* 8 bits, FIFO enabled, 1 stop bit, no parity */
-    put32(UART_LCRH, (3 << 5) | (1 << 4));
+    put32(P2V(UART_LCRH), (3 << 5) | (1 << 4));
     
     /* Enable UART, TX, RX */
-    put32(UART_CR, (1 << 0) | (1 << 8) | (1 << 9));
+    put32(P2V(UART_CR), (1 << 0) | (1 << 8) | (1 << 9));
 }
 
 static void _uart_send(char c) {
     /* Wait until transmit FIFO is not full */
-    while (get32(UART_FR) & UART_FR_TXFF)
+    while (get32(P2V(UART_FR)) & UART_FR_TXFF)
         ;
-    put32(UART_DR, c);
+    put32(P2V(UART_DR), c);
 }
 
 void putc(void *p, char c) {

@@ -24,6 +24,7 @@
  */
 
 #include "peripherals/base.h"
+#include "mm.h"
 #include "peripherals/gpio.h"
 #include "debug.h"
 #include "delays.h"
@@ -151,10 +152,10 @@ struct spinlock sd_lock;
 int sd_status(unsigned int mask)
 {
     int cnt = 500000;
-    while ((get32(EMMC_STATUS) & mask) && !(get32(EMMC_INTERRUPT) & INT_ERROR_MASK) && cnt--) {
+    while ((get32(P2V(EMMC_STATUS)) & mask) && !(get32(P2V(EMMC_INTERRUPT)) & INT_ERROR_MASK) && cnt--) {
         wait_msec_st(1);
     }
-    return (cnt <= 0 || (get32(EMMC_INTERRUPT) & INT_ERROR_MASK)) ? SD_ERROR : SD_OK;
+    return (cnt <= 0 || (get32(P2V(EMMC_INTERRUPT)) & INT_ERROR_MASK)) ? SD_ERROR : SD_OK;
 }
 
 /**
@@ -164,19 +165,19 @@ int sd_int(unsigned int mask)
 {
     unsigned int r, m = mask | INT_ERROR_MASK;
     int cnt = 1000000;
-    while (!(get32(EMMC_INTERRUPT) & m) && cnt--) {
+    while (!(get32(P2V(EMMC_INTERRUPT)) & m) && cnt--) {
         wait_msec_st(1);
     }
-    r = get32(EMMC_INTERRUPT);
+    r = get32(P2V(EMMC_INTERRUPT));
     if (cnt <= 0 || (r & INT_CMD_TIMEOUT) || (r & INT_DATA_TIMEOUT) ) {
-        put32(EMMC_INTERRUPT, r);
+        put32(P2V(EMMC_INTERRUPT), r);
         return SD_TIMEOUT;
     }
     else if (r & INT_ERROR_MASK) {
-        put32(EMMC_INTERRUPT, r);
+        put32(P2V(EMMC_INTERRUPT), r);
         return SD_ERROR;
     }
-    put32(EMMC_INTERRUPT, mask);
+    put32(P2V(EMMC_INTERRUPT), mask);
     return 0;
 }
 
@@ -202,9 +203,9 @@ int sd_cmd(unsigned int code, unsigned int arg)
         return 0;
     }
     // INFO("EMMC: Sending command %x arg %x", code, arg);
-    put32(EMMC_INTERRUPT, get32(EMMC_INTERRUPT));
-    put32(EMMC_ARG1, arg);
-    put32(EMMC_CMDTM, code);
+    put32(P2V(EMMC_INTERRUPT), get32(P2V(EMMC_INTERRUPT)));
+    put32(P2V(EMMC_ARG1), arg);
+    put32(P2V(EMMC_CMDTM), code);
     if (code == CMD_SEND_OP_COND) {
         wait_msec_st(1000);
     }
@@ -218,7 +219,7 @@ int sd_cmd(unsigned int code, unsigned int arg)
         return 0;
     }
 
-    r = get32(EMMC_RESP0);
+    r = get32(P2V(EMMC_RESP0));
 
     if (code == CMD_GO_IDLE || code == CMD_APP_CMD) {
         return 0;
@@ -233,9 +234,9 @@ int sd_cmd(unsigned int code, unsigned int arg)
         return r == arg ? SD_OK : SD_ERROR;
     }
     else if (code == CMD_ALL_SEND_CID) {
-        r |= get32(EMMC_RESP3);
-        r |= get32(EMMC_RESP2);
-        r |= get32(EMMC_RESP1);
+        r |= get32(P2V(EMMC_RESP3));
+        r |= get32(P2V(EMMC_RESP2));
+        r |= get32(P2V(EMMC_RESP1));
         return r;
     }
     else if (code == CMD_SEND_REL_ADDR) {
@@ -274,14 +275,14 @@ int sd_readblock(unsigned int lba, unsigned char *buffer, unsigned int num) {
                 return 0;
             }
         }
-        put32(EMMC_BLKSIZECNT, (num << 16) | 512);
+        put32(P2V(EMMC_BLKSIZECNT), (num << 16) | 512);
         sd_cmd(num == 1 ? CMD_READ_SINGLE : CMD_READ_MULTI, lba);
         if (sd_err) {
             release_lock(&sd_lock);
             return 0;
         }
     } else {
-        put32(EMMC_BLKSIZECNT, (1 << 16) | 512);
+        put32(P2V(EMMC_BLKSIZECNT), (1 << 16) | 512);
     }
     while (c < num) {
         if (!(sd_scr[0] & SCR_SUPP_CCS)) {
@@ -298,7 +299,7 @@ int sd_readblock(unsigned int lba, unsigned char *buffer, unsigned int num) {
             return 0;
         }
         for (d = 0; d < 128; d++) {
-            buf[d] = get32(EMMC_DATA);
+            buf[d] = get32(P2V(EMMC_DATA));
         }
         c++;
         buf += 128;
@@ -319,7 +320,7 @@ int sd_readblock(unsigned int lba, unsigned char *buffer, unsigned int num) {
 int sd_clk(unsigned int f) {
     unsigned int d, c = 41666666 / f, x, s = 32, h = 0;
     int cnt = 100000;
-    while ((get32(EMMC_STATUS) & (SR_CMD_INHIBIT | SR_DAT_INHIBIT)) && cnt--) {
+    while ((get32(P2V(EMMC_STATUS)) & (SR_CMD_INHIBIT | SR_DAT_INHIBIT)) && cnt--) {
         wait_msec_st(1);
     }
     if (cnt <= 0) {
@@ -327,7 +328,7 @@ int sd_clk(unsigned int f) {
         return SD_ERROR;
     }
 
-    put32(EMMC_CONTROL1, get32(EMMC_CONTROL1) & ~C1_CLK_EN);
+    put32(P2V(EMMC_CONTROL1), get32(P2V(EMMC_CONTROL1)) & ~C1_CLK_EN);
     wait_msec_st(10);
     x = c - 1;
     if (!x) {
@@ -376,12 +377,12 @@ int sd_clk(unsigned int f) {
         h = (d & 0x300) >> 2;
     }
     d = (((d & 0x0ff) << 8) | h);
-    put32(EMMC_CONTROL1, (get32(EMMC_CONTROL1) & 0xffff003f) | d);
+    put32(P2V(EMMC_CONTROL1), (get32(P2V(EMMC_CONTROL1)) & 0xffff003f) | d);
     wait_msec_st(10);
-    put32(EMMC_CONTROL1, get32(EMMC_CONTROL1) | C1_CLK_EN);
+    put32(P2V(EMMC_CONTROL1), get32(P2V(EMMC_CONTROL1)) | C1_CLK_EN);
     wait_msec_st(10);
     cnt = 10000;
-    while (!(get32(EMMC_CONTROL1) & C1_CLK_STABLE) && cnt--) {
+    while (!(get32(P2V(EMMC_CONTROL1)) & C1_CLK_STABLE) && cnt--) {
         wait_msec_st(10);
     }
     if (cnt <= 0) {
@@ -400,63 +401,63 @@ int sd_init() {
     init_lock(&sd_lock, "sd_lock");
 
     // GPIO_CD
-    r = get32(GPFSEL4);
+    r = get32(P2V(GPFSEL4));
     r &= ~(7 << (7 * 3));
-    put32(GPFSEL4, r);
-    put32(GPPUD, 2);
+    put32(P2V(GPFSEL4), r);
+    put32(P2V(GPPUD), 2);
     wait_cycles(150);
-    put32(GPPUDCLK1, (1) << 15);
+    put32(P2V(GPPUDCLK1), (1) << 15);
     wait_cycles(150);
-    put32(GPPUD, 0);
-    put32(GPPUDCLK1, 0);
-    r = get32(GPHEN1);
+    put32(P2V(GPPUD), 0);
+    put32(P2V(GPPUDCLK1), 0);
+    r = get32(P2V(GPHEN1));
     r |= 1 << 15;
-    put32(GPHEN1, r);
+    put32(P2V(GPHEN1), r);
 
     // GPIO_CLK, GPIO_CMD
-    r = get32(GPFSEL4);
+    r = get32(P2V(GPFSEL4));
     r |= (7 << (8 * 3)) | (7 << (9 * 3));
-    put32(GPFSEL4, r);
-    put32(GPPUD, 2);
+    put32(P2V(GPFSEL4), r);
+    put32(P2V(GPPUD), 2);
     wait_cycles(150);
-    put32(GPPUDCLK1, (1 << 16) | (1 << 17));
+    put32(P2V(GPPUDCLK1), (1 << 16) | (1 << 17));
     wait_cycles(150);
-    put32(GPPUD, 0);
-    put32(GPPUDCLK1, 0);
+    put32(P2V(GPPUD), 0);
+    put32(P2V(GPPUDCLK1), 0);
 
     // GPIO_DAT0, GPIO_DAT1, GPIO_DAT2, GPIO_DAT3
-    r = get32(GPFSEL5);
+    r = get32(P2V(GPFSEL5));
     r |= (7 << (0 * 3)) | (7 << (1 * 3)) | (7 << (2 * 3)) | (7 << (3 * 3));
-    put32(GPFSEL5, r);
-    put32(GPPUD, 2);
+    put32(P2V(GPFSEL5), r);
+    put32(P2V(GPPUD), 2);
     wait_cycles(150);
-    put32(GPPUDCLK1, (1 << 18) | (1 << 19) | (1 << 20) | (1 << 21));
+    put32(P2V(GPPUDCLK1), (1 << 18) | (1 << 19) | (1 << 20) | (1 << 21));
     wait_cycles(150);
-    put32(GPPUD, 0);
-    put32(GPPUDCLK1, 0);
+    put32(P2V(GPPUD), 0);
+    put32(P2V(GPPUDCLK1), 0);
 
-    sd_hv = (get32(EMMC_SLOTISR_VER) & HOST_SPEC_NUM) >> HOST_SPEC_NUM_SHIFT;
+    sd_hv = (get32(P2V(EMMC_SLOTISR_VER)) & HOST_SPEC_NUM) >> HOST_SPEC_NUM_SHIFT;
     // INFO("EMMC: GPIO set up");
     // Reset the card.
-    put32(EMMC_CONTROL0, 0);
-    put32(EMMC_CONTROL1, get32(EMMC_CONTROL1) | C1_SRST_HC);
+    put32(P2V(EMMC_CONTROL0), 0);
+    put32(P2V(EMMC_CONTROL1), get32(P2V(EMMC_CONTROL1)) | C1_SRST_HC);
     cnt = 10000;
     do {
         wait_msec_st(10);
-    } while ((get32(EMMC_CONTROL1) & C1_SRST_HC) && cnt--);
+    } while ((get32(P2V(EMMC_CONTROL1)) & C1_SRST_HC) && cnt--);
     if (cnt <= 0) {
         WARN("ERROR: failed to reset EMMC");
         return SD_ERROR;
     }
     // INFO("EMMC: reset OK");
-    put32(EMMC_CONTROL1, get32(EMMC_CONTROL1) | C1_CLK_INTLEN | C1_TOUNIT_MAX);
+    put32(P2V(EMMC_CONTROL1), get32(P2V(EMMC_CONTROL1)) | C1_CLK_INTLEN | C1_TOUNIT_MAX);
     wait_msec_st(10);
     // Set clock to setup frequency.
     if ((r = sd_clk(400000))) {
         return r;
     }
-    put32(EMMC_INT_EN, 0xffffffff);
-    put32(EMMC_INT_MASK, 0xffffffff);
+    put32(P2V(EMMC_INT_EN), 0xffffffff);
+    put32(P2V(EMMC_INT_MASK), 0xffffffff);
     sd_scr[0] = sd_scr[1] = sd_rca = sd_err = 0;
     sd_cmd(CMD_GO_IDLE, 0);
     if (sd_err) {
@@ -518,7 +519,7 @@ int sd_init() {
     if (sd_status(SR_DAT_INHIBIT)) {
         return SD_TIMEOUT;
     }
-    put32(EMMC_BLKSIZECNT, (1 << 16) | 8);
+    put32(P2V(EMMC_BLKSIZECNT), (1 << 16) | 8);
     sd_cmd(CMD_SEND_SCR, 0);
     if (sd_err) {
         return sd_err;
@@ -530,8 +531,8 @@ int sd_init() {
     r = 0;
     cnt = 100000;
     while (r < 2 && cnt) {
-        if (get32(EMMC_STATUS) & SR_READ_AVAILABLE) {
-            sd_scr[r++] = get32(EMMC_DATA);
+        if (get32(P2V(EMMC_STATUS)) & SR_READ_AVAILABLE) {
+            sd_scr[r++] = get32(P2V(EMMC_DATA));
         }
         else {
             wait_msec_st(1);
@@ -545,7 +546,7 @@ int sd_init() {
         if (sd_err) {
             return sd_err;
         }
-        put32(EMMC_CONTROL0, get32(EMMC_CONTROL0) | C0_HCTL_DWITDH);
+        put32(P2V(EMMC_CONTROL0), get32(P2V(EMMC_CONTROL0)) | C0_HCTL_DWITDH);
     }
     // add software flag
     // const char *suppstr = "";

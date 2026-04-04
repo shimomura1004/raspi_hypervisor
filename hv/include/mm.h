@@ -6,6 +6,11 @@
 
 #define PHYS_MEMORY_SIZE 		RAM_SIZE
 
+// 現状ではすべてオフセットマッピングされることを想定している
+// 別のマッピングが必要であればこのマクロを修正する
+#define P2V(pa) ((pa) + VA_START)
+#define V2P(va) ((va) - VA_START)
+
 #define PAGE_MASK			0xfffffffffffff000
 #define PAGE_SHIFT	 		12
 #define TABLE_SHIFT 			9

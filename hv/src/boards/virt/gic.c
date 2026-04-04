@@ -2,6 +2,7 @@
 #include "board_config.h"
 #include "generic_timer.h"
 #include "irq.h"
+#include "mm.h"
 #include <inttypes.h>
 
 // GIC では割込みは SGI, PPI, SPI, LPI に分かれている
@@ -59,26 +60,26 @@ void enable_local_interrupt_controller(unsigned long cpuid) {
     // まず GIC の CPU interface を初期化
 
     // 全ての割込みを許可(0xff より小さい割込みをすべて許可)
-    put32(GICC_PMR, 0xff);
+    put32(P2V(GICC_PMR), 0xff);
     // CPU interface を有効化
-    put32(GICC_CTLR, GICC_CTLR_ENABLE);
+    put32(P2V(GICC_CTLR), GICC_CTLR_ENABLE);
 
     // 次に GIC の Distributor を初期化
     // 有効化するのは別途 enable_legacy_interrupt_controller() で行う
 
     // GICD_ISENABLER は Set-Enable レジスタなので、有効化したいビットだけを 1 にして書き込めばよい
     //   Set-Enable: 1 を書き込むと有効化され、0 を書き込むと変化しない(もとの値が保たれる)
-    put32(GICD_ISENABLER, (1 << IRQ_HYP_PHYS_TIMER) | (1 << IRQ_VIRT_TIMER));
+    put32(P2V(GICD_ISENABLER), (1 << IRQ_HYP_PHYS_TIMER) | (1 << IRQ_VIRT_TIMER));
 }
 
 void enable_legacy_interrupt_controller(void) {
     // GIC Distributor を有効化
-    put32(GICD_CTLR, GICD_CTLR_ENABLE);    /* Enable Distributor */
+    put32(P2V(GICD_CTLR), GICD_CTLR_ENABLE);    /* Enable Distributor */
 }
 
 // handle_irq はベクタから呼び出される
 void handle_irq(void) {
-    unsigned int iar = get32(GICC_IAR);
+    unsigned int iar = get32(P2V(GICC_IAR));
     unsigned int irq = iar & GICC_IAR_ID_MASK;
 
     // 1022 (No pending interrupts) や 1023 (Spurious interrupt) のチェックを入れるとより安全
@@ -96,13 +97,13 @@ void handle_irq(void) {
         // その他の IRQ (UART など) は今は無視
     }
 
-    put32(GICC_EOIR, iar);
+    put32(P2V(GICC_EOIR), iar);
 }
 
 void enable_virtual_timer_irq(void) {
-    put32(GICD_ISENABLER, (1 << IRQ_VIRT_TIMER));
+    put32(P2V(GICD_ISENABLER), (1 << IRQ_VIRT_TIMER));
 }
 
 void disable_virtual_timer_irq(void) {
-    put32(GICD_ICENABLER, (1 << IRQ_VIRT_TIMER));
+    put32(P2V(GICD_ICENABLER), (1 << IRQ_VIRT_TIMER));
 }

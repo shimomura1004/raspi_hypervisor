@@ -1,4 +1,5 @@
 #include "pm.h"
+#include "mm.h"
 #include "peripherals/mailbox.h"
 #include "irq.h"
 #include "utils.h"
@@ -34,10 +35,10 @@ void system_shutdown() {
 
     // 他のコアを停止させるために Mailbox 割込み(IPI)を送る
     unsigned long cpuid = get_cpuid();
-    if (cpuid != 0) put32(MBOX_CORE0_SET_0, 1);
-    if (cpuid != 1) put32(MBOX_CORE1_SET_0, 1);
-    if (cpuid != 2) put32(MBOX_CORE2_SET_0, 1);
-    if (cpuid != 3) put32(MBOX_CORE3_SET_0, 1);
+    if (cpuid != 0) put32(P2V(MBOX_CORE0_SET_0), 1);
+    if (cpuid != 1) put32(P2V(MBOX_CORE1_SET_0), 1);
+    if (cpuid != 2) put32(P2V(MBOX_CORE2_SET_0), 1);
+    if (cpuid != 3) put32(P2V(MBOX_CORE3_SET_0), 1);
 
     halt_current_cpu();
 }
@@ -47,8 +48,8 @@ void system_reboot() {
     // 割込みを含む一部のコントローラやメモリがクリアされないので注意
 
     // Watchdog タイマを設定してリセットをトリガする
-    put32(PM_RSTC, PM_PASSWORD | 0x20);
-    put32(PM_WDOG, PM_PASSWORD | 10);
+    put32(P2V(PM_RSTC), PM_PASSWORD | 0x20);
+    put32(P2V(PM_WDOG), PM_PASSWORD | 10);
 
     while (1) { asm volatile("wfi"); }
 }

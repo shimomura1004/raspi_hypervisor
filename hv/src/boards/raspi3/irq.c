@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "mm.h"
 #include "systimer.h"
 #include "generic_timer.h"
 #include "entry.h"
@@ -43,12 +44,12 @@ static const unsigned int mbox_rd_clrs[] = {
 void enable_local_interrupt_controller(unsigned long cpuid)
 {
 	// Generic Timer (nCNTPNSIRQ) 割込みの有効化
-	put32(timer_controls[cpuid], TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);
+	put32(P2V(timer_controls[cpuid]), TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);
 
 	// Mailbox 割込みの有効化
 	// このレジスタは各コアが個別に持つ ARM Local interrupt controller (QA7) のもの
 	// CPU コア間の通信に使う
-	put32(mbox_controls[cpuid], 1);
+	put32(P2V(mbox_controls[cpuid]), 1);
 }
 
 // RPi は割込みの有効・無効の管理用に3つのレジスタを持つ
@@ -60,14 +61,14 @@ void enable_local_interrupt_controller(unsigned long cpuid)
 // 通常は Core 0 が一度だけ実行する
 void enable_legacy_interrupt_controller()
 {
-	// put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_1_BIT);
-	// put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_3_BIT);
-	put32(ENABLE_IRQS_1, AUX_IRQ_BIT);
+	// put32(P2V(ENABLE_IRQS_1), SYSTEM_TIMER_IRQ_1_BIT);
+	// put32(P2V(ENABLE_IRQS_1), SYSTEM_TIMER_IRQ_3_BIT);
+	put32(P2V(ENABLE_IRQS_1), AUX_IRQ_BIT);
 
 	// Mailbox 割込みを有効化 
 	// こちらは BCM2837 の Legacy Interrupt Controller のもの
 	// GPU との通信に使うもので、本来は有効化する必要はない
-	put32(ENABLE_BASIC_IRQS, MBOX_IRQ_BIT);
+	put32(P2V(ENABLE_BASIC_IRQS), MBOX_IRQ_BIT);
 }
 
 // LIC(Legacy Interrupt Controller) が発生させる割込みを処理する
@@ -76,10 +77,10 @@ static void handle_lic() {
 
 	// todo: 現状、IRQ_BASIC_PENDIGN は8,9ビット目以外は実装されていない
 	//       つまりシステムタイマと UART 以外の割込みは発生しない
-	unsigned long basic_pending = get32(IRQ_BASIC_PENDING);
+	unsigned long basic_pending = get32(P2V(IRQ_BASIC_PENDING));
 
 	if (basic_pending & PENDING_REGISTER_1_BIT) {
-		unsigned int irq = get32(IRQ_PENDING_1);
+		unsigned int irq = get32(P2V(IRQ_PENDING_1));
 
 		// // システムタイマ
 		// if (irq & SYSTEM_TIMER_IRQ_1_BIT) {
@@ -103,7 +104,7 @@ static void handle_lic() {
 		}
 	}
 	if (basic_pending & PENDING_REGISTER_2_BIT) {
-		unsigned int irq = get32(IRQ_PENDING_2);
+		unsigned int irq = get32(P2V(IRQ_PENDING_2));
 		if (irq) {
 			WARN("unknown pending irq: %x", irq);
 		}
@@ -117,14 +118,14 @@ static void handle_lic() {
 void handle_irq(void)
 {
 	unsigned long cpuid = get_cpuid();
-	unsigned long source = get32(irq_sources[cpuid]);
+	unsigned long source = get32(P2V(irq_sources[cpuid]));
 
 	// Mailbox
 	{
 		// mailbox が割込みを発生させると basic_irq のビットが立つはずだが、そうなっていない
 		// よって mailbox のソースを直接確認する
 		if (source & IRQ_SOURCE_MBOX_0_BIT) {
-			put32(mbox_rd_clrs[cpuid], 0x1);
+			put32(P2V(mbox_rd_clrs[cpuid]), 0x1);
 			handle_mailbox_irq(cpuid);
 		}
 	}
@@ -150,15 +151,15 @@ void handle_irq(void)
 
 void enable_virtual_timer_irq(void) {
 	unsigned long cpuid = get_cpuid();
-	unsigned long cntl = get32(timer_controls[cpuid]);
+	unsigned long cntl = get32(P2V(timer_controls[cpuid]));
 	cntl |= TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED;
-	put32(timer_controls[cpuid], cntl);
+	put32(P2V(timer_controls[cpuid]), cntl);
 }
 
 void disable_virtual_timer_irq(void) {
 	unsigned long cpuid = get_cpuid();
-	unsigned long cntl = get32(timer_controls[cpuid]);
+	unsigned long cntl = get32(P2V(timer_controls[cpuid]));
 	cntl &= ~TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED;
-	put32(timer_controls[cpuid], cntl);
+	put32(P2V(timer_controls[cpuid]), cntl);
 }
 

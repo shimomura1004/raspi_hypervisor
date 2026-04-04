@@ -25,6 +25,7 @@
 
 
 #include "peripherals/systimer.h"
+#include "mm.h"
 #include "utils.h"
 
 /**
@@ -61,12 +62,12 @@ void wait_msec(unsigned int n) {
 unsigned long get_system_timer() {
     unsigned int h = -1, l;
     // we must read MMIO area as two separate 32 bit reads
-    h = get32(TIMER_CHI);
-    l = get32(TIMER_CLO);
+    h = get32(P2V(TIMER_CHI));
+    l = get32(P2V(TIMER_CLO));
     // we have to repeat it if high word changed during read
-    if (h != get32(TIMER_CHI)) {
-        h = get32(TIMER_CHI);
-        l = get32(TIMER_CLO);
+    if (h != get32(P2V(TIMER_CHI))) {
+        h = get32(P2V(TIMER_CHI));
+        l = get32(P2V(TIMER_CLO));
     }
     // compose long int value
     return ((unsigned long)h << 32) | l;

@@ -589,7 +589,7 @@ static void bcm2837_entering_vm(struct vcpu_struct *vcpu) {
     // todo: 複数のゲストからアクセスすると競合するのでは？
     if (upcoming != 0xffffffff) {
         // ハイパーバイザは C3 を使ってゲスト OS にシステムタイマ C0~C3 のすべてを提供している
-        put32(TIMER_C3, get32(TIMER_CLO) + upcoming);
+        put32(P2V(TIMER_C3), get32(P2V(TIMER_CLO)) + upcoming);
     }
 
     // ~state->systimer.cs: 前回まだ発火していなかったタイマのビットが立っている
