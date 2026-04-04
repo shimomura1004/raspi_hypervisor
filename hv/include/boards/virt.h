@@ -8,10 +8,10 @@
 #define VA_START                0x0000000040000000
 
 // QEMU Virt UART0 (PL011)
-#define UART_BASE               0x09000000
+#define UART_BASE               (VA_START + 0x09000000)
 
 // GIC v2 (Standard for virt machine unless GICv3 is specified)
-#define GIC_BASE                0x08000000
+#define GIC_BASE                (VA_START + 0x08000000)
 #define GIC_DIST_BASE           (GIC_BASE + 0x0000)
 #define GIC_CPU_BASE            (GIC_BASE + 0x10000)
 
