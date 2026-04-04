@@ -127,6 +127,9 @@
 - ゲストの起動直後はまだ MMU が MMU は無効なので、ゲストの VA=IPA となる
 - そのため PC が 0xffff000000000000 の場合、VTTBR_EL2 で IPA の 0xffff000000000000 を PA に変換できないといけない
 
+## HV のロード先
+- HVE が有効になっていない場合、EL2 用の TTBR は TTBR0_EL2 しかなく、0xffff... から始まる高位アドレスは使えない
+
 # Multicore
 - aarch64 では、多くのレジスタは CPU コアごとに独立して存在している
 - armv8.1 以降の CPU では、いわゆる compare-and-swap 命令である casa/casal が使える

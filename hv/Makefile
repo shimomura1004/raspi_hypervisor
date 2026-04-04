@@ -44,10 +44,11 @@ clean:
 	rm -rf $(BUILD_DIR)
 	$(MAKE) -C tests clean
 
-debug: kernel8.img
+debug:
 	gdb-multiarch -ex 'target remote :1234' \
 	-ex 'layout asm' \
-	-ex 'source ./debug_handler.py'
+	-ex 'add-symbol-file $(BUILD_DIR)/kernel8.elf'
+# 	-ex 'source ./debug_handler.py'
 
 OS_BINS = \
 	../os/echo/build/echo.bin \

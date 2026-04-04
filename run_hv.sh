@@ -13,19 +13,15 @@
 #DISPLAY=:0 qemu-system-aarch64 -m 1024 -M raspi3b -device loader,file=./kernel8.img,addr=0x0 -nographic -serial null -serial mon:stdio -s $*
 
 BOARD=${BOARD:-raspi3}
+KERNEL_ELF=./hv/build/kernel8.elf
 
-# // todo: raspios と同様、リンカスクリプトをボードごとに分けてロードアドレスを変更する
 echo "Run Hypervisor on $BOARD"
 if [ "$BOARD" = "virt" ]; then
     DISPLAY=:0 qemu-system-aarch64 -m 1024 -M virt,gic-version=2,virtualization=on -cpu cortex-a53 -smp 4 \
-        -device loader,file=./hv/build/kernel8.elf \
+        -kernel $KERNEL_ELF \
         -nographic -serial mon:stdio -net none -drive format=raw,file=./hv/build/fs.img -s $*
 else
     DISPLAY=:0 qemu-system-aarch64 -m 1024 -M raspi3b \
-        -device loader,file=./hv/build/kernel8.img,addr=0x80000 \
-        -device loader,addr=0x80000,cpu-num=0 \
-        -device loader,addr=0x80000,cpu-num=1 \
-        -device loader,addr=0x80000,cpu-num=2 \
-        -device loader,addr=0x80000,cpu-num=3 \
+        -kernel $KERNEL_ELF \
         -nographic -serial null -serial mon:stdio -drive format=raw,file=./hv/build/fs.img -s $*
 fi
