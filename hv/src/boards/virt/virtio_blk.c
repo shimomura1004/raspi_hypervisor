@@ -7,7 +7,11 @@
 #define SECTOR_SIZE                 512
 #define VIRTQ_ENTRY_NUM             16
 #define VIRTIO_DEVICE_BLK           2
-// #define VIRTIO_BLK_PADDR            0x10001000
+#define VIRTIO_MMIO_VIRTQ_ALIGN     512
+// todo: 決め打ちになっているが、本来はデバイスツリーから探すべき
+#define VIRTIO_BLK_PADDR            (VIRTIO_BLK_BASE + 0x3e00)
+
+// virtio-blk デバイスの MMIO レジスタのオフセット
 #define VIRTIO_REG_MAGIC            0x00
 #define VIRTIO_REG_VERSION          0x04
 #define VIRTIO_REG_DEVICE_ID        0x08
@@ -20,6 +24,8 @@
 #define VIRTIO_REG_QUEUE_NOTIFY     0x50
 #define VIRTIO_REG_DEVICE_STATUS    0x70
 #define VIRTIO_REG_DEVICE_CONFIG    0x100
+
+// virti-blk デバイスのステータスビット
 #define VIRTIO_STATUS_ACK           1
 #define VIRTIO_STATUS_DRIVER        2
 #define VIRTIO_STATUS_DRIVER_OK     4
@@ -28,9 +34,6 @@
 #define VIRTQ_AVAIL_F_NO_INTERRUPT  1
 #define VIRTIO_BLK_T_IN             0
 #define VIRTIO_BLK_T_OUT            1
-
-// todo: 決め打ちになっているが、本来はデバイスツリーから探すべき
-#define VIRTIO_BLK_PADDR    (VIRTIO_BLK_BASE + 0x3e00)
 
 struct virtq_desc {
     uint64_t addr;
@@ -59,7 +62,10 @@ struct virtq_used {
 struct virtio_virtq {
     struct virtq_desc descs[VIRTQ_ENTRY_NUM];
     struct virtq_avail avail;
-    struct virtq_used used __attribute__((aligned(PAGE_SIZE)));
+    // used ring の位置は VIRTIO_REG_PAGE_SIZE のアラインメントに合わせる必要がある
+    //   通常のページサイズ(4KB)を使うと virtio_virtq のために連続した2ページが必要になるので
+    //   VIRTIO_REG_PAGE_SIZE を 512B にしている
+    struct virtq_used used __attribute__((aligned(VIRTIO_MMIO_VIRTQ_ALIGN)));
     int queue_index;
     volatile uint16_t *used_index;
     uint16_t last_used_index;
@@ -75,7 +81,7 @@ struct virtio_blk_req {
 
 struct virtio_virtq *blk_request_vq;
 struct virtio_blk_req *blk_req;
-// paddr_t blk_req_paddr;
+uint64_t blk_req_paddr;
 uint64_t blk_capacity;
 
 static uint32_t virtio_reg_read32(unsigned offset) {
@@ -90,19 +96,30 @@ static uint64_t virtio_reg_read64(unsigned offset) {
     return *((volatile uint64_t *) (P2V(VIRTIO_BLK_PADDR) + offset));
 }
 
-// static struct virtio_virtq *virtq_init(unsigned index) {
-//     paddr_t virtq_paddr = alloc_pages(align_up(sizeof(struct virtio_virtq), PAGE_SIZE) / PAGE_SIZE);
-//     struct virtio_virtq *vq = (struct virtio_virtq *) virtq_paddr;
-//     vq->queue_index = index;
-//     vq->used_index = (volatile uint16_t *) &vq->used.index;
-//     // キューを選択: virtqueueのインデックスを書き込む (最初のキューは0)
-//     virtio_reg_write32(VIRTIO_REG_QUEUE_SEL, index);
-//     // キューサイズを指定: 使用するディスクリプタの数を書き込む
-//     virtio_reg_write32(VIRTIO_REG_QUEUE_NUM, VIRTQ_ENTRY_NUM);
-//     // キューのページフレーム番号 (物理アドレスではない!) を書き込む
-//     virtio_reg_write32(VIRTIO_REG_QUEUE_PFN, virtq_paddr / PAGE_SIZE);
-//     return vq;
-// }
+static struct virtio_virtq *virtq_init(unsigned index) {
+    // 1ページ分(4KB)を確保
+    // ハイパーバイザでは全メモリ領域がリニアマッピングされているため、ページテーブルの追加設定は不要
+    unsigned long virtq_paddr = get_free_page();
+    if (virtq_paddr == 0) {
+        return NULL;
+    }
+
+    struct virtio_virtq *vq = (struct virtio_virtq *) P2V(virtq_paddr);
+    vq->queue_index = index;
+    vq->used_index = (volatile uint16_t *) &vq->used.index;
+
+    // キューを選択
+    virtio_reg_write32(VIRTIO_REG_QUEUE_SEL, index);
+
+    // キューサイズ(使用するディスクリプタの数)を指定
+    virtio_reg_write32(VIRTIO_REG_QUEUE_NUM, VIRTQ_ENTRY_NUM);
+
+    // キューのページフレーム番号(PFN)を書き込む
+    //   PFN は物理アドレスをページサイズで割った値
+    // VIRTIO_REG_PAGE_SIZE で指定したアライメント単位で割る必要がある
+    virtio_reg_write32(VIRTIO_REG_QUEUE_PFN, virtq_paddr / VIRTIO_MMIO_VIRTQ_ALIGN);
+    return vq;
+}
 
 int virtio_blk_init(void) {
     const uint32_t magic = virtio_reg_read32(VIRTIO_REG_MAGIC);
@@ -134,28 +151,32 @@ int virtio_blk_init(void) {
     status = virtio_reg_read32(VIRTIO_REG_DEVICE_STATUS);
     virtio_reg_write32(VIRTIO_REG_DEVICE_STATUS, status | VIRTIO_STATUS_DRIVER);
 
-    // ページサイズを 4KB に設定
-    virtio_reg_write32(VIRTIO_REG_PAGE_SIZE, PAGE_SIZE);
+    // このドライバで使うページサイズをデバイス側に伝える
+    // 通常のページサイズは 4KB だが、ここではあえて小さい 512B を指定している
+    virtio_reg_write32(VIRTIO_REG_PAGE_SIZE, VIRTIO_MMIO_VIRTQ_ALIGN);
 
     // ディスク読み書き用のキューを初期化
-    // blk_request_vq = virtq_init(0);
+    blk_request_vq = virtq_init(0);
 
     // DRIVER_OK ステータスビットを設定
     virtio_reg_write32(VIRTIO_REG_DEVICE_STATUS, VIRTIO_STATUS_DRIVER_OK);
 
     // ディスクの容量を取得
     blk_capacity = virtio_reg_read64(VIRTIO_REG_DEVICE_CONFIG + 0) * SECTOR_SIZE;
-    INFO("virtio-blk: capacity is %d bytes", (int)blk_capacity);
+    INFO("virtio-blk: capacity is %llu bytes", blk_capacity);
 
     // デバイスへの処理要求を格納する領域を確保
-    // blk_req_paddr = alloc_pages(align_up(sizeof(*blk_req), PAGE_SIZE) / PAGE_SIZE);
-    // blk_req = (struct virtio_blk_req *) blk_req_paddr;
+    blk_req_paddr = get_free_page();
+    if (blk_req_paddr == 0) {
+        return BLOCK_ERROR;
+    }
+    blk_req = (struct virtio_blk_req *) P2V(blk_req_paddr);
 
     return BLOCK_OK;
 }
 
 int virtio_blk_read(unsigned int lba, unsigned char *buffer, unsigned int num) {
-    // TODO: Implement VirtIO read logic
+    // todo: Implement VirtIO read logic
     WARN("virtio_blk_read: Not implemented yet");
     return 0; // 0 bytes read (error)
 }
