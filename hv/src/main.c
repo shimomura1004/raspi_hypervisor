@@ -10,7 +10,7 @@
 #include "sched.h"
 #include "console.h"
 #include "mm.h"
-#include "sd.h"
+#include "block.h"
 #include "loader.h"
 #include "cpu_core.h"
 #include "sm_log.h"
@@ -63,9 +63,9 @@ static void initialize_hypervisor() {
 	// // システムタイマは全コアで共有されるのでここで初期化
 	// systimer_init();
 
-	// SD カードの初期化
-	if (sd_init() < 0) {
-		PANIC("sd_init() failed");
+	// ブロックデバイス（ストレージ）の初期化
+	if (block_init() < 0) {
+		PANIC("block_init() failed");
 	}
 }
 

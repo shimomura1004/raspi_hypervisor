@@ -15,6 +15,9 @@
 #define GIC_DIST_BASE           (GIC_BASE + 0x0000)
 #define GIC_CPU_BASE            (GIC_BASE + 0x10000)
 
+// QEMU VirtIO MMIO (Block device)
+#define VIRTIO_BLK_BASE         (VA_START + 0x0a000000)
+
 // For abstraction compatibility
 #define PERIPHERAL_BASE         GIC_BASE
 #define LOCAL_PERIPHERAL_BASE   0x00000000 // Placeholder for virt

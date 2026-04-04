@@ -1,4 +1,4 @@
-#include "sd.h"
+#include "block.h"
 #include "mm.h"
 #include "debug.h"
 #include "utils.h"
@@ -107,7 +107,7 @@ struct fat32_lfnentry {
 // 空きページを確保して、指定された LBA から 1ブロック分のデータを読み込む
 static uint8_t *alloc_and_readblock(unsigned int lba) {
     uint8_t *buf = (uint8_t *)allocate_page();
-    if (sd_readblock(lba, buf, 1) < 0) {
+    if (block_readblock(lba, buf, 1) == 0) {
         PANIC("sd_readblock() failed.");
     }
     return buf;
