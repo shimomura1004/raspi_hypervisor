@@ -24,7 +24,7 @@ unsigned long allocate_page() {
 	}
 	// RPi OS はリニアマッピング
 	// 単純に仮想アドレス空間の開始アドレスをオフセットとして足すと仮想アドレスになる
-	return page + VA_START;
+	return P2V(page);
 }
 
 // VM で使うためのページを確保してマッピングし、ハイパーバイザ上の仮想アドレスを返す
@@ -41,7 +41,7 @@ unsigned long allocate_vm_page(struct vm_struct2 *vm, unsigned long ipa) {
 	//	 vcpu->vm->vmid, ipa & 0xffffffffffff, ipa, page);
 
 	// 新たに確保したページの仮想アドレスを返す(リニアマッピングなのでオフセットを足すだけ)
-	return page + VA_START;
+	return P2V(page);
 }
 
 void set_vm_page_notaccessable(struct vm_struct2 *vm, unsigned long va) {
@@ -58,10 +58,9 @@ unsigned long get_free_page()
 		if (mem_map[i] == 0){
 			// 未使用領域を見つけたらフラグを立てる
 			mem_map[i] = 1;
-			unsigned long page = LOW_MEMORY + i*PAGE_SIZE;
-			// RPi OS はリニアマッピングなので VA_START を足せば仮想アドレスになる
-			// そのアドレスを使ってページの内容をゼロクリアする
-			memzero((void *)(page + VA_START), PAGE_SIZE);
+			unsigned long page = LOW_MEMORY + i * PAGE_SIZE;
+			// ページの内容をゼロクリアする
+			memzero((void *)P2V(page), PAGE_SIZE);
 
 			release_lock(&mm_lock);
 			return page;
@@ -139,24 +138,24 @@ void map_stage2_page(struct vm_struct2 *vm, unsigned long ipa, unsigned long pag
 	// 新しくテーブルが追加されたかを示すフラグ
 	int new_table;
 	// Level 1 のテーブル(lv1_table)から対応するエントリ(lv2_table)を探す
-	unsigned long lv2_table = map_stage2_table((unsigned long *)(lv1_table + VA_START), LV1_SHIFT, ipa, &new_table);
+	unsigned long lv2_table = map_stage2_table((unsigned long *)(P2V(lv1_table)), LV1_SHIFT, ipa, &new_table);
 	if (new_table) {
 		// もし新たにページが確保されていたらカウントアップする
 		vm->mm.kernel_pages_count++;
 	}
 	// Level 2 のテーブル(lv2_table)から対応するエントリ(lv3_table)を探す
-	unsigned long lv3_table = map_stage2_table((unsigned long *)(lv2_table + VA_START) , LV2_SHIFT, ipa, &new_table);
+	unsigned long lv3_table = map_stage2_table((unsigned long *)(P2V(lv2_table)) , LV2_SHIFT, ipa, &new_table);
 	if (new_table) {
 		vm->mm.kernel_pages_count++;
 	}
 	// Level 3 のテーブル(lv3_table)の対応するエントリを探してページを登録
-	map_stage2_table_entry((unsigned long *)(lv3_table + VA_START), ipa, page, flags);
+	map_stage2_table_entry((unsigned long *)(P2V(lv3_table)), ipa, page, flags);
 	// ユーザ空間用のページ数をカウントアップする　
 	vm->mm.vm_pages_count++;
 }
 
 static void free_stage2_table(unsigned long table, int level) {
-	unsigned long *pgd = (unsigned long *)(table + VA_START);
+	unsigned long *pgd = (unsigned long *)(P2V(table));
 	for (int i = 0; i < PTRS_PER_TABLE; i++) {
 		if (pgd[i]) {
 			unsigned long next = pgd[i] & PAGE_MASK;
@@ -165,13 +164,13 @@ static void free_stage2_table(unsigned long table, int level) {
 			} else {
 				// レベル3のエントリは物理ページを参照しているのでこれを free する
 				if (next >= LOW_MEMORY && next < HIGH_MEMORY) {
-					free_page((void *)(next + VA_START));
+					free_page((void *)(P2V(next)));
 				}
 			}
 		}
 	}
 	// 子のテーブルをすべて解放したら自分自身を開放する
-	free_page((void *)(table + VA_START));
+	free_page((void *)(P2V(table)));
 }
 
 void free_vm_memory(struct mm_struct *mm) {
