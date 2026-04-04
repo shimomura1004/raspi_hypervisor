@@ -14,6 +14,7 @@ void mm_init() {
 	init_lock(&mm_lock, "mm_lock");
 }
 
+// todo: 使われていない？
 // ハイパーバイザで使うためのページを確保し、その仮想アドレスを返す
 // RPi OS では "カーネルのアドレス空間" はないのでマッピングの追加は行わない
 unsigned long allocate_page() {
@@ -49,6 +50,7 @@ void set_vm_page_notaccessable(struct vm_struct2 *vm, unsigned long va) {
 // if (vcpu->vmid != 0)INFO("VA 0x%lx -> IPA 0x%lx -> PA 0x%lx (set_vm_page_notaccessable)", va, get_ipa(va), 0);
 }
 
+// todo: 連続した複数ページを取得する関数も必要
 // 未使用のページを探してその場所(DRAM 内のオフセット)を返す
 unsigned long get_free_page()
 {
