@@ -53,7 +53,7 @@ debug:
 OS_BINS = \
 	../os/echo/build/echo.bin \
 	../os/raspios/build/kernel8.img \
-	../os/vmm/build/vmm.bin
+	../os/vmm/build/kernel8.elf
 
 $(BUILD_DIR)/fs.img: $(OS_BINS)
 	mkdir -p $(BUILD_DIR)
