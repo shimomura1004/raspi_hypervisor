@@ -10,6 +10,7 @@
 #include "loader.h"
 #include "cpu_core.h"
 #include "mini_uart.h"
+#include "board_config.h"
 
 // 各スレッド用の領域の末尾に置かれた vcpu_struct へのポインタを返す
 struct pt_regs * vcpu_pt_regs(struct vcpu_struct *vcpu) {
@@ -155,7 +156,7 @@ int create_idle_vm() {
 	idle_vm->vmid = vmid;
 	
 	unsigned long pc = 0x0;
-	unsigned long sp = 0x100000;
+	unsigned long sp = VMM_DEFAULT_STACK_ADDR;
 
 	// 指定したアドレスに格納されたテキストコードを VM 領域のアドレス 0 にコピーする
 	copy_code_to_memory(idle_vm, 0, (unsigned long)idle_loop, PAGE_SIZE);
