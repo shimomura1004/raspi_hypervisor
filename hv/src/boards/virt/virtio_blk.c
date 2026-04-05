@@ -20,6 +20,7 @@
 #define VIRTIO_REG_QUEUE_NUM_MAX    0x34
 #define VIRTIO_REG_QUEUE_NUM        0x38
 #define VIRTIO_REG_QUEUE_PFN        0x40
+#define VIRTIO_REG_QUEUE_ALIGN      0x3C
 #define VIRTIO_REG_QUEUE_READY      0x44
 #define VIRTIO_REG_QUEUE_NOTIFY     0x50
 #define VIRTIO_REG_DEVICE_STATUS    0x70
@@ -114,6 +115,9 @@ static struct virtio_virtq *virtq_init(unsigned index) {
 
     // キューサイズ(使用するディスクリプタの数)を指定
     virtio_reg_write32(VIRTIO_REG_QUEUE_NUM, VIRTQ_ENTRY_NUM);
+
+    // キューのアライメントを指定
+    virtio_reg_write32(VIRTIO_REG_QUEUE_ALIGN, VIRTIO_MMIO_VIRTQ_ALIGN);
 
     // キューのページフレーム番号(PFN)を書き込む
     //   PFN は物理アドレスをページサイズで割った値
