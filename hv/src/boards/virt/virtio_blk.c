@@ -55,11 +55,12 @@ struct virtq_used_elem {
     uint32_t len;
 } __attribute__((packed));
 
+// packged にすると virtio_virtq の vq->used.index このようなアクセスが危険とみなされる
 struct virtq_used {
     uint16_t flags;
     uint16_t index;
     struct virtq_used_elem ring[VIRTQ_ENTRY_NUM];
-} __attribute__((packed));
+};// __attribute__((packed));
 
 struct virtio_virtq {
     struct virtq_desc descs[VIRTQ_ENTRY_NUM];
