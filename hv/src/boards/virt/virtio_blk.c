@@ -29,6 +29,7 @@
 #define VIRTIO_STATUS_ACK           1
 #define VIRTIO_STATUS_DRIVER        2
 #define VIRTIO_STATUS_DRIVER_OK     4
+#define VIRTIO_STATUS_FEATURES_OK   8
 #define VIRTQ_DESC_F_NEXT           1
 #define VIRTQ_DESC_F_WRITE          2
 #define VIRTQ_AVAIL_F_NO_INTERRUPT  1
@@ -118,6 +119,10 @@ static struct virtio_virtq *virtq_init(unsigned index) {
     //   PFN は物理アドレスをページサイズで割った値
     // VIRTIO_REG_PAGE_SIZE で指定したアライメント単位で割る必要がある
     virtio_reg_write32(VIRTIO_REG_QUEUE_PFN, virtq_paddr / VIRTIO_MMIO_VIRTQ_ALIGN);
+
+    // デバイスにキューの準備ができたことを伝える (Modern の場合は READY レジスタ、Legacy は PFN 書き込みで有効化)
+    virtio_reg_write32(VIRTIO_REG_QUEUE_READY, 1);
+
     return vq;
 }
 
@@ -151,6 +156,10 @@ int virtio_blk_init(void) {
     status = virtio_reg_read32(VIRTIO_REG_DEVICE_STATUS);
     virtio_reg_write32(VIRTIO_REG_DEVICE_STATUS, status | VIRTIO_STATUS_DRIVER);
 
+    // 機能ネゴシエーション完了 (本来は機能の読み書きが必要だが、簡易実装のためそのまま OK を出す)
+    status = virtio_reg_read32(VIRTIO_REG_DEVICE_STATUS);
+    virtio_reg_write32(VIRTIO_REG_DEVICE_STATUS, status | VIRTIO_STATUS_FEATURES_OK);
+
     // このドライバで使うページサイズをデバイス側に伝える
     // 通常のページサイズは 4KB だが、ここではあえて小さい 512B を指定している
     virtio_reg_write32(VIRTIO_REG_PAGE_SIZE, VIRTIO_MMIO_VIRTQ_ALIGN);
@@ -175,8 +184,75 @@ int virtio_blk_init(void) {
     return BLOCK_OK;
 }
 
-int virtio_blk_read(unsigned int lba, unsigned char *buffer, unsigned int num) {
-    // todo: Implement VirtIO read logic
-    WARN("virtio_blk_read: Not implemented yet");
-    return 0; // 0 bytes read (error)
+static int virtq_is_busy(struct virtio_virtq *vq) {
+    // メモリ同期: デバイスが書いた used_index を確実に読み込む
+    __asm__ volatile("dsb sy" ::: "memory");
+    // ドライバが最後に確認した位置と、デバイスが更新した位置が同じなら、まだ未処理（ビジー）
+    return vq->last_used_index == *vq->used_index;
+}
+
+static void virtq_kick(struct virtio_virtq *vq, int desc_index) {
+    vq->avail.ring[vq->avail.index % VIRTQ_ENTRY_NUM] = desc_index;
+
+    // インデックスを増やす前に、リングの内容がメモリに書き込まれていることを保証
+    __asm__ volatile("dsb sy" ::: "memory");
+    vq->avail.index++;
+
+    // インデックスの更新をデバイスに見えるようにしてから Notify する
+    __asm__ volatile("dsb sy" ::: "memory");
+
+    virtio_reg_write32(VIRTIO_REG_QUEUE_NOTIFY, vq->queue_index);
+}
+
+// `lba` のセクタから `num` セクタ読んで `buf` に書き込む
+int virtio_blk_read(unsigned int lba, unsigned char *buf, unsigned int num) {
+    if (lba + num > blk_capacity / SECTOR_SIZE) {
+        WARN("virtio: out of bounds read: sector=%u, num=%u, capacity=%llu",
+             lba, num, blk_capacity / SECTOR_SIZE);
+        return 0;
+    }
+
+    for (unsigned int i = 0; i < num; i++) {
+        // virtio_blk デバイスに対する読み込み要求を準備
+        blk_req->sector = lba + i;
+        blk_req->type = VIRTIO_BLK_T_IN;
+        // ステータスを初期化(デバイスが 0 以外に書き込むことで完了を知らせる)
+        blk_req->status = 0xFF;
+
+        struct virtio_virtq *vq = blk_request_vq;
+        
+        // ヘッダ部 (type, reserved, sector)
+        vq->descs[0].addr = blk_req_paddr;
+        vq->descs[0].len = 16; 
+        vq->descs[0].flags = VIRTQ_DESC_F_NEXT;
+        vq->descs[0].next = 1;
+
+        // データ部
+        vq->descs[1].addr = blk_req_paddr + offsetof(struct virtio_blk_req, data);
+        vq->descs[1].len = SECTOR_SIZE;
+        vq->descs[1].flags = VIRTQ_DESC_F_NEXT | VIRTQ_DESC_F_WRITE;
+        vq->descs[1].next = 2;
+
+        // ステータス部
+        vq->descs[2].addr = blk_req_paddr + offsetof(struct virtio_blk_req, status);
+        vq->descs[2].len = 1;
+        vq->descs[2].flags = VIRTQ_DESC_F_WRITE;
+
+        // デバイス側に要求を通知し、完了を待つ
+        virtq_kick(vq, 0);
+        while (virtq_is_busy(vq))
+            ;
+        
+        // デバイスが処理を終えたので、ドライバ側のインデックスを進める
+        vq->last_used_index++;
+
+        if (blk_req->status != 0) {
+            WARN("virtio: read error at sector %u, status=%d", lba + i, blk_req->status);
+            return i * SECTOR_SIZE; // 読み込みに成功したバイト数までを返す
+        }
+
+        memcpy(buf + (i * SECTOR_SIZE), blk_req->data, SECTOR_SIZE);
+    }
+
+    return num * SECTOR_SIZE;
 }
