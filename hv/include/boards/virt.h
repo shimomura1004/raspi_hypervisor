@@ -4,9 +4,9 @@
 // QEMU Virt Machine Specific Constants (物理アドレス)
 
 // QEMU では DRAM は 0x40000000 から配置される
-#define RAM_BASE                0x40000000
-#define RAM_SIZE                0x40000000      // 1GB default for now
-#define VA_START                0x0000000040000000
+#define RAM_BASE                0x40000000UL
+#define RAM_SIZE                0x40000000UL
+#define VA_START                0x0000000040000000UL
 
 // QEMU Virt UART0 (PL011)
 #define UART_BASE               0x09000000
@@ -21,6 +21,7 @@
 
 // For abstraction compatibility
 #define PERIPHERAL_BASE         GIC_BASE
+#define DEVICE_BASE             PERIPHERAL_BASE
 #define LOCAL_PERIPHERAL_BASE   0x00000000 // Placeholder for virt
 
 #define UART_TYPE_PL011         1

@@ -57,7 +57,7 @@ unsigned long get_free_page()
 	acquire_lock(&mm_lock);
 
 	for (int i = 0; i < PAGING_PAGES; i++){
-		if (mem_map[i] == 0){
+		if (mem_map[i] == 0) {
 			// 未使用領域を見つけたらフラグを立てる
 			mem_map[i] = 1;
 			unsigned long page = LOW_MEMORY + i * PAGE_SIZE;

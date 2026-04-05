@@ -117,29 +117,19 @@ page_table_setup:
 	bl 	__create_page_tables
 
 after_page_table_setup:
-	// #define PAGE_SHIFT	 	12
-	// #define TABLE_SHIFT 		9
-	// #define SECTION_SHIFT	(PAGE_SHIFT + TABLE_SHIFT)
-	// #define PAGE_SIZE   		(1 << PAGE_SHIFT)
-	// #define SECTION_SIZE		(1 << SECTION_SHIFT)
-	// #define LOW_MEMORY      	(2 * SECTION_SIZE)
-	// Arm では少し大きなセクション(2MB)という単位でメモリを扱うこともできる
-	// aarch64 もスタックは下方向に伸びるので、スタックは 2 * 2MB で 4MB 確保されている
-	// sp には仮想アドレスが入っているので MMU が有効になってからじゃないと使えない
-	// add	sp, x0, #LOW_MEMORY
-
 	// スタック領域の設定
-	// ロードアドレスが 0x80000 になると 0x0 付近は使えない可能性があるため、
+	// SP = bss_end + (SECTION_SIZE * (CPUID + 1))
 	// イメージの末尾(bss_end)の後ろにスタックを配置する
-	// SP = bss_end + (LOW_MEMORY * (CPUID + 1))
+	// todo: x0 に bss_end を入れるタイミングがおかしいので修正する
 	adr	x0, bss_end
-	mov	x1, #LOW_MEMORY
+	mov	x1, #SECTION_SIZE
 	bl get_cpuid
 	add	x2, x0, #1
 	mul	x1, x1, x2
 	add	x0, x0, x1
 	// 最後に VA_START を足すことでカーネルの仮想アドレスにしている
 	ldr x1, =VA_START
+	// sp には仮想アドレスが入っているので MMU が有効になってからじゃないと使えない
 	add sp, x0, x1
 
 	// TTBR(translate table base register)は複数ある: TTBR{0,1}_el{0,1} + TTBR0_el{2,3}
@@ -211,7 +201,8 @@ after_page_table_setup:
 // ただ1GB以降の物理アドレスに存在するローカルペリフェラルも同様にリニアマップしたいので
 // PMD をもう1つ追加する
 
-// create_pgd_entry を実行すると、4ページ分確保したメモリ領域に、前から順番に
+// (raspi3 の場合)
+// create_pgd_pud_entry を実行すると、4ページ分確保したメモリ領域に、前から順番に
 //   [PGD] pg_dir が指すところ
 //   [PUD]
 //   [PMD] DRAM 用、未初期化
@@ -224,35 +215,55 @@ after_page_table_setup:
 // #define PGD_SHIFT			PAGE_SHIFT + 3*TABLE_SHIFT
 // #define PUD_SHIFT			PAGE_SHIFT + 2*TABLE_SHIFT
 
-//======== create_pgd_entry ===============================================
+//======== create_pgd_pud_entry ===============================================
 
-// ページグローバルディレクトリを作る
-// メモリ上に [PGD][PUD][PMD] の順にテーブルが直接並んでいることを前提にしている
+// ページグローバルディレクトリとページアッパーディレクトリにエントリを登録する
+// raspi3/virt の場合のどちらも、物理メモリ上に [PGD][PUD][PMD][PMD] の順に
+// テーブルが並んでいることを前提にしている
 
-.macro	create_pgd_entry, tbl, virt, tmp1, tmp2, tmp3
+.macro	create_pgd_pud_entry, tbl, virt, tmp1, tmp2, tmp3
 	// PGD(page global directory) を作る
-    //   直後にある PMD を指すエントリが追加される
 	// PGD は1エントリで512GBをカバーする
+	// 第4引数が #1 になっているので、PUD はすぐ次のページに作られることになる
 	create_table_entry \tbl, \virt, PGD_SHIFT, #1, \tmp1, \tmp2, \tmp3
 	add	\tbl, \tbl, #PAGE_SIZE
 
 	// PUD(page upper directory) を作る
-    //   直後にある PMD を指すエントリ(DRAM 用とローカルペリフェラル用)が追加される
 	// PMD は1エントリで1GBをカバーする
+	// todo: ボードごとに初期化処理をわけるか、デバイスツリーを読んで切り替える
+#if defined(BOARD_RASPI3)
+	// raspi3 用のPUD作成
+	//   0x00000000: RAM / DEVICE (BCM Peripherals)
+	//   0x40000000: LOCAL_PERIPHERAL (ARM Control)
+
+	// 第4引数が #1 になっているので、PMD はすぐ次のページに作られることになる
 	create_table_entry \tbl, \virt, PUD_SHIFT, #1, \tmp1, \tmp2, \tmp3
 
 	// 2つめの PUD を作る(ローカルペリフェラル用)
-    // todo: virt を1ページ分ずらさないといけない
-    // todo: virt が 0x0 のままになっているので動かない
-    // todo: 応急処置で直接設定
-    mov \virt, #LOCAL_PERIPHERAL_BASE
+	// 第4引数が #2 になっているので、先ほど作った PMD と連続して並ぶことになる
+	mov \virt, #LOCAL_PERIPHERAL_BASE
 	create_table_entry \tbl, \virt, PUD_SHIFT, #2, \tmp1, \tmp2, \tmp3
-	add	\tbl, \tbl, #PAGE_SIZE
-.endm
 
-// #define PTRS_PER_TABLE	(1 << TABLE_SHIFT) ページ1つあたりのエントリ数(512個)
-// #define PAGE_SIZE   		(1 << PAGE_SHIFT)
-// #define MM_TYPE_PAGE_TABLE		0x3
+	// todo: このマクロ内で進めるのが適切か？
+	add	\tbl, \tbl, #PAGE_SIZE
+#elif defined(BOARD_VIRT)
+	// virt 用のPUD作成
+	//   0x08000000: DEVICE -> 1つめの PMD(0x00000000-0x3fffffff)
+	//   0x40000000: RAM    -> 2つめの PMD(0x40000000-0x7fffffff)
+
+	// DEVICE_BASE(0GB〜1GB空間)用
+	mov \virt, #0
+	create_table_entry \tbl, \virt, PUD_SHIFT, #1, \tmp1, \tmp2, \tmp3
+
+	 // RAM_BASE(1GB〜2GB空間)用
+	 // マッピングの設定は2GBまでしかないので、QEMU の引数で RAM を増やす場合はマッピングを増やす必要がある
+	mov \virt, #RAM_BASE
+	create_table_entry \tbl, \virt, PUD_SHIFT, #2, \tmp1, \tmp2, \tmp3
+
+	// todo: このマクロ内で進めるのが適切か？
+	add	\tbl, \tbl, #PAGE_SIZE
+#endif
+.endm
 
 //======== create_table_entry ===============================================
 
@@ -283,7 +294,7 @@ after_page_table_setup:
 	orr	\tmp2, \tmp2, #MM_TYPE_PAGE_TABLE
 
 	// ページエントリを書き込む
-	//   tmp1: 更新したいエントリのインデックス(アドレスにするために8倍する必要がある)
+	//   tmp1: 更新したいエントリのインデックス(アドレスにするために8倍(lsl #3)する必要がある)
     //   tmp2: 書き込む値(PGD を更新するときは PUD のアドレス、PUD を更新するときは PMD のアドレス)
 	str	\tmp2, [\tbl, \tmp1, lsl #3]
 .endm
@@ -360,27 +371,25 @@ __create_page_tables:
 	adrp	x0, pg_dir
 
 	mov	x1, #VA_START
-	// create_pgd_entry は以下のように定義されたマクロ
-	// 	.macro	create_pgd_entry, tbl, virt, tmp1, tmp2
+	// create_pgd_pud_entry は以下のように定義されたマクロ
+	// 	.macro	create_pgd_pud_entry, tbl, virt, tmp1, tmp2
 	// x0 で指定したページテーブルに、x1 のアドレス以降を使ったマッピングを作る
 	// x2, x3 は作業用に自由に使っていいレジスタ
-	create_pgd_entry x0, x1, x2, x3, x4
+	create_pgd_pud_entry x0, x1, x2, x3, x4
 
 
-	/* Mapping kernel and init stack */
-	// 通常の DRAM 領域のマッピング
-	// xzr はゼロレジスタ
-	mov 	x1, #RAM_BASE							// start mapping from physical offset 0
-	mov 	x2, #VA_START					// first virtual address
-
-	// 通常の DRAM 領域の最後のセクションのアドレスを計算している
-	// #define DEVICE_BASE 		0x3F000000
-	// SECTION_SIZE は 1<<21 なので、2MB
-	ldr	x3, =(VA_START + DEVICE_BASE - SECTION_SIZE)		// last virtual address
+#if defined(BOARD_RASPI3)
+	// ---- 物理アドレス 0x0000_0000-0x3fff_ffff を仮想アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
+	// DRAM 領域のマッピング(リニアマッピング)
+	mov x1, #RAM_BASE   // RAM の物理アドレス
+	mov x2, #VA_START   // 仮想アドレスの開始位置 (今のところ raspi3/virt のどちらも RAM_BASE = VA_START)
+	// これは、RAM の末尾にデバイスの領域が重なっている raspi3 を前提にしたコードになっている
+	// todo: DEVICE_BASE を足しているが、これは VA_START が 0 であることを前提にしておりわかりにくい
+	ldr	x3, =(VA_START + DEVICE_BASE - SECTION_SIZE)
 
 	// create_block_map, tbl, phys, start, end, flags, tmp1
 	// tbl = x0 = pg_dir
-	// phys = x1 = 0
+	// phys = x1 = RAM_BASE
 	// start = x2 = VA_START
 	// end = x3 = VA_START + DEVICE_BASE - SECTION_SIZE
 	// flags = MMU_FLAGS
@@ -390,31 +399,48 @@ __create_page_tables:
 	//   つまり1ブロック分小さくしておかないとオーバーランする
 	create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
 
-	/* Mapping device memory */
-	// デバイス領域のマッピング
-	mov 	x1, #DEVICE_BASE                                // start mapping from device base address
-	ldr 	x2, =(VA_START + DEVICE_BASE)                   // first virtual address
-	ldr	x3, =(VA_START + PHYS_MEMORY_SIZE - SECTION_SIZE)   // last virtual address
-
-	// tbl = x0 = pg_dir
-	// phys = x1 = DEVICE_BASE
-	// start = x2 = VA_START + DEVICE_BASE
-	// end = x3 = VA_START + PHYS_MEMORY_SIZE - SECTION_SIZE
+	// デバイス領域のマッピング(リニアマッピング)
+	mov x1, #DEVICE_BASE
+	ldr x2, =(VA_START + DEVICE_BASE)
+	// todo: DEVICE_BASE を足しているが、これは VA_START が 0 であることを前提にしておりわかりにくい
+	ldr	x3, =(VA_START + PHYS_MEMORY_SIZE - SECTION_SIZE)
 	create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
+	// ---- 物理アドレス 0x0000_0000-0x3fff_ffff を仮想アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
+
+	// エントリの追加対象を次の PMD に進める
 	add	x0, x0, #PAGE_SIZE
 
-	// 現状 VA_START が 0x0000_0000_0000_0000 なので、
-	// ここまでくると、カーネルのアドレス空間(0x0000_0000_0000_0000 以降)に、
-	// 物理アドレス 0x0000_0000_0000_0000~0x0000_0000_4000_0000 がマップされている
-	// つまり RPi3 のすべての有効な物理アドレスがマップされているということ
-
-    // ローカルペリフェラルは物理アドレス 0x40000000(1GB) 以降にある
-    //   0x200000 = 2MB(セクション1つぶん)
-    // よって PMD の追加が必要(PMD 1つにつき 1GB まで)
+	// ---- 物理アドレス 0x4000_0000-0x7fff_ffff を仮想アドレス 0x4000_0000-0x7fff_ffff にマッピング ----
+    // ローカルペリフェラル領域のマッピング(リニアマッピング)
+	// ローカルペリフェラル領域は 2MB 分で十分
     mov x1, #LOCAL_PERIPHERAL_BASE
     ldr x2, =(VA_START + LOCAL_PERIPHERAL_BASE)
     ldr x3, =(VA_START + LOCAL_PERIPHERAL_BASE + 0x00200000 - SECTION_SIZE)
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
+	// ---- 物理アドレス 0x4000_0000-0x7fff_ffff を仮想アドレス 0x4000_0000-0x7fff_ffff にマッピング ----
+#elif defined(BOARD_VIRT)
+	// ---- 物理アドレス 0x0000_0000-0x3fff_ffff を仮想アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
+	// デバイス領域のマッピング
+	// virt の場合、デバイス領域は RAM より前にあり、サイズとしては 128MB(0x08000000) で十分
+	//   GIC/UART/VirtIO など
+	mov x1, #DEVICE_BASE
+	ldr x2, =(DEVICE_BASE)
+	ldr	x3, =(DEVICE_BASE + 0x08000000 - SECTION_SIZE)
+	create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
+	// ---- 物理アドレス 0x0000_0000-0x3fff_ffff を仮想アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
+
+	// エントリの追加対象を次の PMD に進める
+	add	x0, x0, #PAGE_SIZE
+
+	// ---- 物理アドレス 0x4000_0000-0x7fff_ffff を仮想アドレス 0x4000_0000-0x7fff_ffff にマッピング ----
+	// RAM 領域のマッピング
+	// RAM 全体をマッピングしているが、QEMU の引数で RAM を 1GB 以上にする場合は PMD を増やす必要がある
+	mov x1, #RAM_BASE
+	ldr x2, =(VA_START)
+	ldr	x3, =(VA_START + RAM_SIZE - SECTION_SIZE)
+	create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
+	// ---- 物理アドレス 0x4000_0000-0x7fff_ffff を仮想アドレス 0x4000_0000-0x7fff_ffff にマッピング ----
+#endif
 
 	// x30 に戻りアドレスを入れて ret する
 	mov	x30, x29						// restore return address
