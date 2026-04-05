@@ -1,9 +1,9 @@
 ENTRY("_start")
 SECTIONS
 {
-	. = 0xffff000000100000;
-	.text.boot : AT(0x40100000) { *(.text.boot) }
-	. = ALIGN(0x00001000);
+	/* VMM では仮想アドレスを用いていないので LMA と VMA を分ける必要はない */
+	. = 0x40100000;
+	.text.boot : { *(.text.boot) }
 	.text : { *(.text) }
 	.rodata : { *(.rodata) }
 	.data : { *(.data) }

@@ -282,8 +282,9 @@
 #define VTCR_IRGN0      (0 << 8)    // inner write-back ...
 #define VTCR_SL0        (1 << 6)    // start at level1?
 #define VTCR_T0SZ       (64 - 38)   // 仮想アドレスのサイズは 2^38 = 256GB
+#define VTCR_RES1       ((1UL << 31) | (1UL << 2))
 #define VTCR_VALUE \
-    (VTCR_NSA | VTCR_NSW | VTCR_VS | VTCR_PS | VTCR_TG0 | \
+    (VTCR_RES1 | VTCR_NSA | VTCR_NSW | VTCR_VS | VTCR_PS | VTCR_TG0 | \
      VTCR_SH0 | VTCR_ORGN0 | VTCR_IRGN0 | VTCR_SL0 | VTCR_T0SZ)
 
 #endif
