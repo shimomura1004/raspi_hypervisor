@@ -22,11 +22,10 @@
 //   簡易実装の場合はこの処理が漏れる可能性がある
 volatile unsigned long initialized_flag __attribute__((section(".data"))) = 0;
 
-// todo: VMM のパラメータは elf から読んで設定するべき
 static struct loader_args vmm_elf_args = {
 	.loader_addr = 0x0,
 	.entry_point = 0x0,
-	.sp = VMM_DEFAULT_STACK_ADDR,
+	.sp = 0x0,
 	.filename = "VMM.ELF",
 	.vcpu_num = 1,
 };

@@ -20,7 +20,4 @@
 
 #define UART_TYPE_MINI          1
 
-// VMM(ELF)の初期スタックポインタ
-#define VMM_DEFAULT_STACK_ADDR  (RAM_BASE + 0x200000)
-
 #endif /* _BOARDS_RASPI3_H */

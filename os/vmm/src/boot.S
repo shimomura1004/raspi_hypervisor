@@ -24,6 +24,7 @@ el1_entry:
 	sub	x1, x1, x0
 	bl 	memzero_without_stack
 
-	mov	sp, #LOW_MEMORY
+	ldr	x0, =stack_top
+	mov	sp, x0
 	bl	kernel_main
 	b 	proc_hang		// should never come here
