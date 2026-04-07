@@ -1,36 +1,38 @@
 #include "utils.h"
 #include "peripherals/mini_uart.h"
 #include "peripherals/gpio.h"
-#include "printf.h"
-#include "spinlock.h"
-
-struct spinlock console_lock;
+#include "drivers/uart.h"
 
 #define BUF_SIZE 256
 static char rx_buffer[BUF_SIZE];
 static volatile int rx_head = 0;
 static volatile int rx_tail = 0;
 
-// todo: HV の fifo がいっぱいだと while 文を抜けられず実行が止まる
-static void uart_send ( char c )
+void uart_send ( char c )
 {
 	while(1) {
-		if(get32(AUX_MU_LSR_REG) & 0x20)
+		if(get32(AUX_MU_LSR_REG)&0x20) {
 			break;
+		}
 	}
-	put32(AUX_MU_IO_REG, c);
+	put32(AUX_MU_IO_REG,c);
 }
 
-// static char uart_recv ( void )
-// {
-// 	while(1) {
-// 		if(rx_head != rx_tail)
-// 			break;
-// 	}
-// 	char c = rx_buffer[rx_tail];
-// 	rx_tail = (rx_tail + 1) % BUF_SIZE;
-// 	return c;
-// }
+char uart_recv ( void )
+{
+	while(1) {
+		if(rx_head != rx_tail) {
+			break;
+		}
+
+		// UART を受信して割込みが発生するまでは CPU 停止
+		// UART 以外の割込みでも復帰するので while 文でガードする
+		asm volatile("wfi");
+	}
+	char c = rx_buffer[rx_tail];
+	rx_tail = (rx_tail + 1) % BUF_SIZE;
+	return c;
+}
 
 void handle_uart_irq(void)
 {
@@ -44,17 +46,8 @@ void handle_uart_irq(void)
 	}
 }
 
-// static void uart_send_string(char* str)
-// {
-// 	for (int i = 0; str[i] != '\0'; i ++) {
-// 		uart_send((char)str[i]);
-// 	}
-// }
-
 void uart_init ( void )
 {
-	init_lock(&console_lock, "console");
-
 	unsigned int selector;
 
 	selector = get32(GPFSEL1);
@@ -70,7 +63,7 @@ void uart_init ( void )
 	delay(150);
 	put32(GPPUDCLK0,0);
 
-	put32(AUX_ENABLES,1);                   //Enable mini uart (this also enables access to its registers)
+	put32(AUX_ENABLES,1);                   //Enable mini uart (this also enables access to it registers)
 	put32(AUX_MU_CNTL_REG,0);               //Disable auto flow control and disable receiver and transmitter (for now)
 	put32(AUX_MU_IER_REG,1);                //Enable receive interrupts
 	put32(AUX_MU_LCR_REG,3);                //Enable 8 bit mode
@@ -79,7 +72,6 @@ void uart_init ( void )
 
 	put32(AUX_MU_CNTL_REG,3);               //Finally, enable transmitter and receiver
 }
-
 
 // This function is required by printf function
 void putc ( void* p, char c)

@@ -1,20 +1,32 @@
 #include "utils.h"
 #include "peripherals/pl011_uart.h"
-#include "spinlock.h"
-
-struct spinlock console_lock;
+#include "drivers/uart.h"
 
 #define BUF_SIZE 256
 static char rx_buffer[BUF_SIZE];
 static volatile int rx_head = 0;
 static volatile int rx_tail = 0;
 
-static void uart_send(char c)
+void uart_send(char c)
 {
 	/* Wait until transmit FIFO is not full */
 	while (get32(UART_FR) & UART_FR_TXFF)
 		;
 	put32(UART_DR, c);
+}
+
+char uart_recv(void)
+{
+	while (1) {
+		if (rx_head != rx_tail) {
+			break;
+		}
+		// Wait for interrupt
+		asm volatile("wfi");
+	}
+	char c = rx_buffer[rx_tail];
+	rx_tail = (rx_tail + 1) % BUF_SIZE;
+	return c;
 }
 
 void handle_uart_irq(void)
@@ -33,8 +45,6 @@ void handle_uart_irq(void)
 
 void uart_init(void)
 {
-	init_lock(&console_lock, "console");
-
 	/* Disable UART */
 	put32(UART_CR, 0);
 
