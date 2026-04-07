@@ -16,9 +16,13 @@ COPS += -DPRINTF_LONG_SUPPORT
 COPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)
 COPS += -DBOARD_NAME=\"$(BOARD)\"
 COPS += -Iinclude/boards/$(BOARD)
+COPS += -I../../lib/include/boards/$(BOARD)
 
 ASMOPS = -Iinclude -I../../lib/include -g -Iinclude/boards/$(BOARD)
+ASMOPS += -I../../lib/include/boards/$(BOARD)
 ASMOPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)
+
+UART_DRV = $(if $(filter raspi3,$(BOARD)),mini_uart,pl011_uart)
 
 BUILD_DIR = build
 SRC_DIR = src
@@ -74,6 +78,10 @@ $(BUILD_DIR)/boards/$(BOARD)/%_s.o: $(BOARD_SRC_DIR)/%.S
 	mkdir -p $(@D)
 	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
 
+$(BUILD_DIR)/uart_c.o: ../../lib/src/drivers/uart/$(UART_DRV).c
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
+
 OBJ_FILES = $(C_FILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%_c.o)
 OBJ_FILES += $(ASM_FILES:$(SRC_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 OBJ_FILES += $(BOARD_C_FILES:$(BOARD_SRC_DIR)/%.c=$(BUILD_DIR)/boards/$(BOARD)/%_c.o)
@@ -81,6 +89,7 @@ OBJ_FILES += $(BOARD_ASM_FILES:$(BOARD_SRC_DIR)/%.S=$(BUILD_DIR)/boards/$(BOARD)
 OBJ_FILES += $(BUILD_DIR)/printf_c.o
 OBJ_FILES += $(BUILD_DIR)/common_utils_c.o
 OBJ_FILES += $(BUILD_DIR)/common_utils_s.o
+OBJ_FILES += $(BUILD_DIR)/uart_c.o
 
 DEP_FILES = $(OBJ_FILES:%.o=%.d)
 -include $(DEP_FILES)
