@@ -1,8 +1,9 @@
 #include "utils.h"
 #include "printf.h"
-#include "mini_uart.h"
+#include "drivers/uart.h"
 #include "peripherals/irq.h"
 
+// todo: abstract な irq.h が必要では？
 void enable_interrupt_controller(void)
 {
 	// UART (AUX int) を有効化する
