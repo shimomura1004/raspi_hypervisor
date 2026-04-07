@@ -12,7 +12,15 @@
             "program": "${workspaceFolder}/hv/build/kernel8.elf",
             "cwd": "${workspaceFolder}",
             "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb-multiarch",
+            "sourceFileMap": {
+                "/work": "${workspaceFolder}"
+            },
+            "windows": {
+                "miDebuggerPath": "/usr/bin/gdb-multiarch"
+            },
+            "osx": {
+                "miDebuggerPath": "/opt/homebrew/bin/gdb"
+            },
             "miDebuggerServerAddress": "localhost:1234",
             "miDebuggerArgs": "-x \"${workspaceFolder}/hv/debug_handler.py\"",
             "stopAtEntry": true,
@@ -42,7 +50,15 @@
             "program": "${workspaceFolder}/sm/build/kernel8.elf",
             "cwd": "${workspaceFolder}",
             "MIMode": "gdb",
-            "miDebuggerPath": "/usr/bin/gdb-multiarch",
+            "sourceFileMap": {
+                "/work": "${workspaceFolder}"
+            },
+            "windows": {
+                "miDebuggerPath": "/usr/bin/gdb-multiarch"
+            },
+            "osx": {
+                "miDebuggerPath": "/opt/homebrew/bin/gdb"
+            },
             "miDebuggerServerAddress": "localhost:1234",
             "miDebuggerArgs": "-x \"${workspaceFolder}/sm/debug_handler.py\"",
             "stopAtEntry": true,
