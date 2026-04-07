@@ -1,6 +1,6 @@
 #include "fork.h"
 #include "printf.h"
-#include "mini_uart.h"
+#include "drivers/uart.h"
 #include "utils.h"
 #include "sched.h"
 

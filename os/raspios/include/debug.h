@@ -3,7 +3,8 @@
 
 #include "printf.h"
 #include "irq.h"
-#include "mini_uart.h"
+#include "drivers/uart.h"
+
 
 #define _LOG_COMMON(level, fmt, ...) do { \
     acquire_lock(&console_lock); \

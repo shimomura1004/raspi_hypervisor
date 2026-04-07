@@ -1,6 +1,6 @@
 #include "printf.h"
 #include "utils.h"
-#include "mini_uart.h"
+#include "drivers/uart.h"
 #include "irq.h"
 #include "../../../hv/include/loader.h"
 #include "hypercall_type.h"
