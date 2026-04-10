@@ -3,6 +3,7 @@
 #include "drivers/uart.h"
 #include "utils.h"
 #include "sched.h"
+#include "debug.h"
 
 void sys_write(char * buf){
 	acquire_lock(&console_lock);

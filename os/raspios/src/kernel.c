@@ -17,6 +17,8 @@
 #include "sys.h"
 #include "user.h"
 #include "spinlock.h"
+
+struct spinlock console_lock;
 #include "debug.h"
 
 #ifdef BOARD_VIRT

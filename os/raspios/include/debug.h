@@ -4,7 +4,9 @@
 #include "printf.h"
 #include "irq.h"
 #include "drivers/uart.h"
+#include "spinlock.h"
 
+extern struct spinlock console_lock;
 
 #define _LOG_COMMON(level, fmt, ...) do { \
     acquire_lock(&console_lock); \
