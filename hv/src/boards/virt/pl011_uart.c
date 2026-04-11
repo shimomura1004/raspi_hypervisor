@@ -19,6 +19,17 @@
 
 struct spinlock console_lock;
 
+static void _uart_send(char c) {
+    // 送信バッファが空くまで待つビジーループ
+    while (get32(P2V(UART_FR)) & UART_FR_TXFF)
+        ;
+    put32(P2V(UART_DR), c);
+}
+
+void handle_console_irq(void) {
+    // todo: 実装する
+}
+
 void console_init(void) {
     init_lock(&console_lock, "console");
     /* QEMU virt console is typically already initialized, 
@@ -43,21 +54,9 @@ void console_init(void) {
     put32(P2V(UART_CR), (1 << 0) | (1 << 8) | (1 << 9));
 }
 
-static void _uart_send(char c) {
-    /* Wait until transmit FIFO is not full */
-    while (get32(P2V(UART_FR)) & UART_FR_TXFF)
-        ;
-    put32(P2V(UART_DR), c);
-}
-
 void putc(void *p, char c) {
     if (c == '\n') {
         _uart_send('\r');
     }
     _uart_send(c);
 }
-
-void handle_console_irq(void) {
-    // todo: 実装する
-}
-

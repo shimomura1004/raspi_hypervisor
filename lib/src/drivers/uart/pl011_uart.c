@@ -9,7 +9,7 @@ static volatile int rx_tail = 0;
 
 void uart_send(char c)
 {
-	/* Wait until transmit FIFO is not full */
+    // 送信バッファが空くまで待つビジーループ
 	while (get32(UART_FR) & UART_FR_TXFF)
 		;
 	put32(UART_DR, c);
