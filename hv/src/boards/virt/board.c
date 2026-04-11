@@ -2,11 +2,12 @@
 #include <stddef.h>
 
 static void virt_initialize(struct vm_struct2 *vm) {
-    // Basic initialization for virt board
+    // todo: 実装する
 }
 
 static int virt_is_irq_asserted(struct vcpu_struct *vcpu) {
-    return 0; // Placeholder
+    // todo: 実装する
+    return 0;
 }
 
 const struct board_ops virt_board_ops = {
