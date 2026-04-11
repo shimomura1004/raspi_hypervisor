@@ -2,6 +2,8 @@
 #include "utils.h"
 #include "drivers/uart.h"
 #include "irq.h"
+// todo: hv と vmm で共通なので lib に移動する
+//       使っているのは loader_args の定義だけ？
 #include "../../../hv/include/loader.h"
 #include "hypercall_type.h"
 
