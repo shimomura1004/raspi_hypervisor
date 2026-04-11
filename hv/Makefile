@@ -21,8 +21,11 @@ COPS += -DLOG_LEVEL=$(LOG_LEVEL)
 COPS += -DPRINTF_LONG_SUPPORT
 COPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)
 COPS += -DBOARD_NAME=\"$(BOARD)\"
+COPS += -Iinclude/boards/$(BOARD)
+COPS += -I../lib/include/boards/$(BOARD)
 
 ASMOPS = -Iinclude -I../lib/include -g -Iinclude/boards/$(BOARD)
+ASMOPS += -I../lib/include/boards/$(BOARD)
 ASMOPS += -DBOARD_$(shell echo $(BOARD) | tr a-z A-Z)
 
 BUILD_DIR = build
