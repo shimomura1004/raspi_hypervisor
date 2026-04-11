@@ -56,69 +56,16 @@ static void _uart_send(char c) {
 //     }
 // }
 
-// このハイパーバイザのエスケープ文字
-#define ESCAPE_CHAR '?'
 
-// UART から入力されたデータを送り込む先の VM の番号(0 のときはホスト)
-// todo: ホスト用にたまったデータはいつ出力されている？
-static int uart_forwarded_vm = 0;
-
-int is_uart_forwarded_vm(struct vm_struct2 *vm) {
-    return vm->vmid == uart_forwarded_vm;
-}
-
-void switch_console_to_vm(int vmid) {
-    uart_forwarded_vm = vmid;
-
-    struct vm_struct2 *vm = vms2[uart_forwarded_vm];
-    if (vm) {
-        flush_vm_console(vm);
-    }
-}
 
 // todo: 送信バッファが空、受信バッファにデータあり、といった割込みを受けて wakeup させる
 static void handle_uart_irq_send(void) {
     INFO("SEND!");
 }
 
-// uart_forwarded_vm が指す VM かホストに文字データを追加する
-// todo: キューに値が入っているときは、そのゲストに切り替わったときに仮想割り込みを発生させる
 static void handle_uart_irq_recv(void) {
-    static int is_escaped = 0;
-
     char received = get32(P2V(AUX_MU_IO_REG)) & AUX_MU_IO_REG_DATA;
-    struct vm_struct2 *vm;
-
-    if (is_escaped) {
-        is_escaped = 0;
-
-        if (isdigit(received)) {
-            // VM を切り替えるのではなく、単に UART 入力の送り先を変えるだけ
-            // todo: ここはロックしなくて大丈夫？
-            switch_console_to_vm(received - '0');
-            INFO("Console is now used by VM %d", uart_forwarded_vm);
-        }
-        else if (received == 'l') {
-            show_vm_list();
-        }
-        else if (received == 't') {
-            show_systimer_info();
-        }
-        else if (received == ESCAPE_CHAR) {
-            goto enqueue_char;
-        }
-    }
-    else if (received == ESCAPE_CHAR) {
-        is_escaped = 1;
-    }
-    else {
-enqueue_char:
-        vm = vms2[uart_forwarded_vm];
-        // もし VM が動いていたらキューに入れておく
-        if (vm) {
-            enqueue_fifo(vm->console.in_fifo, received);
-        }
-    }
+    console_handle_char(received);
 }
 
 void handle_console_irq(void) {

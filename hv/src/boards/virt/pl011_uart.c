@@ -61,11 +61,3 @@ void handle_console_irq(void) {
     // todo: 実装する
 }
 
-int is_uart_forwarded_vm(struct vm_struct2 *vm) {
-    // todo: 実装する
-    return 0;
-}
-
-void switch_console_to_vm(int vmid) {
-    // todo: 実装する
-}

@@ -12,5 +12,6 @@ void putc(void *p, char c);
 void handle_console_irq(void);
 int is_uart_forwarded_vm(struct vm_struct2 *vm);
 void switch_console_to_vm(int vmid);
+void console_handle_char(char received);
 
 #endif /* _CONSOLE_H */
