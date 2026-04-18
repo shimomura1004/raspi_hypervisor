@@ -18,6 +18,7 @@
 // ARM Local Peripheral Base (QA7)
 #define LOCAL_PERIPHERAL_BASE   0x40000000
 
+// Use Mini UART for Raspberry Pi 3
 #define UART_TYPE_MINI          1
 
 #endif /* _BOARDS_RASPI3_H */

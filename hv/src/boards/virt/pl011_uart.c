@@ -1,21 +1,8 @@
 #include "board_config.h"
+#include "peripherals/pl011_uart.h"
 #include "console.h"
 #include "utils.h"
 #include "mm.h"
-
-/* PL011 UART Registers (relative to UART_BASE) */
-#define UART_DR     (UART_BASE + 0x00)
-#define UART_FR     (UART_BASE + 0x18)
-#define UART_IBRD   (UART_BASE + 0x24)
-#define UART_FBRD   (UART_BASE + 0x28)
-#define UART_LCRH   (UART_BASE + 0x2c)
-#define UART_CR     (UART_BASE + 0x30)
-#define UART_IMSC   (UART_BASE + 0x38)
-#define UART_ICR    (UART_BASE + 0x44)
-
-/* Flag Register bits */
-#define UART_FR_TXFF (1 << 5) /* Transmit FIFO full */
-#define UART_FR_RXFE (1 << 4) /* Receive FIFO empty */
 
 struct spinlock console_lock;
 
@@ -32,25 +19,21 @@ void handle_console_irq(void) {
 
 void console_init(void) {
     init_lock(&console_lock, "console");
-    /* QEMU virt console is typically already initialized, 
-     * but we can set basic parameters here if needed.
-     * For now, we assume simple output is enough.
-     */
-    
-    /* Disable UART */
+
+    // まず UART を無効化
     put32(P2V(UART_CR), 0);
     
-    /* Clear interrupts */
+    // 割込みをクリア
     put32(P2V(UART_ICR), 0x7ff);
-    
-    /* Set baud rate (dummy values for QEMU) */
+
+    // ボーレートの設定 (dummy values for QEMU)
     put32(P2V(UART_IBRD), 1);
     put32(P2V(UART_FBRD), 0);
     
     /* 8 bits, FIFO enabled, 1 stop bit, no parity */
     put32(P2V(UART_LCRH), (3 << 5) | (1 << 4));
     
-    /* Enable UART, TX, RX */
+    // UART の割込みを有効化
     put32(P2V(UART_CR), (1 << 0) | (1 << 8) | (1 << 9));
 }
 

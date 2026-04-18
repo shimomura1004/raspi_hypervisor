@@ -5,11 +5,8 @@
 
 // qemu virt board のメモリマップは qemu のソースコードで定義されている
 // https://github.com/qemu/qemu/blob/master/hw/arm/virt.c
-
 // [VIRT_UART0] = { 0x09000000, 0x00001000 }
-// VA_START を足しているので、リニアマッピングされた仮想アドレスとなる
-// todo: 定数としてはあくまで virt ボードの物理アドレスとしておくべき
-#define UART_BASE   (VA_START + 0x09000000)
+#define UART_BASE   (0x09000000)
 
 #define UART_DR     (UART_BASE + 0x00)
 #define UART_FR     (UART_BASE + 0x18)
