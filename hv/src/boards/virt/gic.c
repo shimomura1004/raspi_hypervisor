@@ -29,6 +29,20 @@
 
 #define GICD_CTLR_ENABLE (1 << 0)
 
+// GICD_ITARGETSR<n>: Interrupt Processor Targets Registers, n = 0 - 254
+//   ひとつひとつのレジスタは32ビットで、8ビットずつに区切って使う
+//     n 番目のレジスタは割込み ID の 4n から 4n+3 までのターゲットを設定する
+//   GICv2 では CPU は8個までとなっているので、割込みを入れる先の CPU をビットで指定する
+//   たとえば GICD_ITARGETSR<32> が 0b0000 0001 0000 0011 0000 0111 0000 1111 なら
+//    ID 4x32 から 4x32+3 まで、つまり ID 128-131 の割込み先 CPU が指定されていて
+//      ID 128 は CPU 0 に送る
+//      ID 129 は CPU 0,1 に送る
+//      ID 130 は CPU 0,1,2 に送る
+//      ID 131 は CPU 0,1,2,3 に送る
+//   GICD_ITARGETSR の初期値は実装依存だが 0 である場合が多く、この場合はどの CPU にも配送されないので注意
+//   ID 0-31 は SGI/PPI であり CPU 固有の割込みなので読み取り専用である
+//   GICD_ITARGETSR は GICv2 のためのもので、GICv3 以降では別の仕組みを使う
+
 // PMR: CPU interface priority mask register
 //   https://developer.arm.com/documentation/ddi0601/2025-12/External-Registers/GICC-PMR--CPU-Interface-Priority-Mask-Register
 //   この値より優先度の高い割込みのみ PE に通知される
