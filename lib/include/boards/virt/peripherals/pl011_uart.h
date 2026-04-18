@@ -133,7 +133,9 @@
 
 // UARTIMSC: Interrupt mask set/clear register
 //   https://developer.arm.com/documentation/ddi0183/f/programmer-s-model/register-descriptions/interrupt-mask-set-clear-register--uartimsc
-//   割込みマスクレジスタで、読むとマスク状態が返され、1 を書くとマスクされ、0 を書くとマスク解除される
+//   割込みマスクレジスタ。1 を書くとその割込みが許可（有効）され、0 を書くと禁止（無効）される。
+//   一般的には "マスクする" は "割込みを CPU に伝えないようにする" という意味で使われるが、Arm PrimeCell 周辺機器では逆になる
+//     "CPU への割込み" = "デバイスからの割込み" and "マスク"
 //   [15:11] Reserved, read as zero, do not modify.
 //   [10] OEIM: Overrun error interrupt mask
 //   [9] BEIM: Break error interrupt mask
@@ -147,6 +149,7 @@
 //   [1] CTSMIM: nUARTCTS modem interrupt mask
 //   [0] RIMIM: nUARTRI modem interrupt mask
 #define UART_IMSC_RXIM (1 << 4) /* Receive interrupt mask */
+#define UART_IMSC_RTIM (1 << 6) /* Receive timeout interrupt mask */
 
 // UARTICR: Interrupt clear register
 //   https://developer.arm.com/documentation/ddi0183/f/programmer-s-model/register-descriptions/interrupt-clear-register--uarticr
@@ -164,6 +167,7 @@
 //   [1] CTSMIC: nUARTCTS modem interrupt clear
 //   [0] RIMIC: nUARTRI modem interrupt clear
 #define UART_ICR_RXIC  (1 << 4) /* Receive interrupt clear */
+#define UART_ICR_RTIC  (1 << 6) /* Receive timeout interrupt clear */
 
 void uart_init(void);
 void handle_uart_irq(void);

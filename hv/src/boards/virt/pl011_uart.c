@@ -19,7 +19,7 @@ void handle_console_irq(void) {
         char c = get32(P2V(UART_DR)) & 0xFF;
         console_handle_char(c);
     }
-    put32(P2V(UART_ICR), UART_ICR_RXIC);
+    put32(P2V(UART_ICR), UART_ICR_RXIC | UART_ICR_RTIC);
 }
 
 void console_init(void) {
@@ -38,8 +38,8 @@ void console_init(void) {
     /* 8 bits, FIFO enabled, 1 stop bit, no parity */
     put32(P2V(UART_LCRH), UART_LCRH_WLEN_8BIT | UART_LCRH_FEN);
 
-    /* Enable RX interrupt */
-    put32(P2V(UART_IMSC), UART_IMSC_RXIM);
+    /* Enable RX and RX timeout interrupts */
+    put32(P2V(UART_IMSC), UART_IMSC_RXIM | UART_IMSC_RTIM);
     
     // UART の割込みを有効化
     put32(P2V(UART_CR), UART_CR_UARTEN | UART_CR_TXE | UART_CR_RXE);

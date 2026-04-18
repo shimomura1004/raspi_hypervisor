@@ -86,6 +86,13 @@ void enable_legacy_interrupt_controller(void) {
     // GIC Distributor を有効化
     put32(P2V(GICD_CTLR), GICD_CTLR_ENABLE);
 
+    // todo: GICD_ITARGETSR は GICv2 のためのもの、GICv3 以降では別の仕組みを使う
+    // UART 割込みのターゲットを CPU 0 に設定
+    // SPI 1 (ID 33) は (33 = 8x4+1) なので、GICD_ITARGETSR[8]  の 2 バイト目 (bits 8-15) に対応
+    unsigned int target_reg = get32(P2V(GICD_ITARGETSR + 32));
+    target_reg |= (0x01 << 8);
+    put32(P2V(GICD_ITARGETSR + 32), target_reg);
+
     // UART 割込みを有効化
     // SPI 1 の割込み番号は IRQ_UART0(33) で、ISENABLER[1] に相当する
     put32(P2V(GICD_ISENABLER + 4), (1 << (IRQ_UART0 - 32)));
