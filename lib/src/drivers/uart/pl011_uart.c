@@ -45,13 +45,13 @@ void handle_uart_irq(void)
 
 void uart_init(void)
 {
-	/* Disable UART */
+    // まず UART を無効化
 	put32(UART_CR, 0);
 
-	/* Clear interrupts */
+    // 割込みをクリア
 	put32(UART_ICR, 0x7ff);
 
-	/* Set baud rate (dummy values for QEMU) */
+    // ボーレートの設定 (dummy values for QEMU)
 	put32(UART_IBRD, 1);
 	put32(UART_FBRD, 0);
 
