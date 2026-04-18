@@ -70,6 +70,67 @@
 #define UART_FR_TXFF (1 << 5) /* Transmit FIFO full */
 #define UART_FR_RXFE (1 << 4) /* Receive FIFO empty */
 
+// UARTLCR_H: Line control register
+//   https://developer.arm.com/documentation/ddi0183/f/programmer-s-model/register-descriptions/line-control-register--uartlcr-h
+//   [15:8] Reserved, do not modify, read as zero.
+//   [7] SPS: Stick parity select
+//     When bits 1, 2, and 7 of the UARTLCR_H register are set, the parity bit is transmitted and checked as a 0. When bits 1 and 7 are set, and bit 2 is 0, the parity bit is transmitted and checked as a 1. When this bit is cleared stick parity is disabled. Refer to Table 3.11 for a truth table showing the SPS, EPS and PEN bits.
+//   [6:5] WLEN: Word length
+//     The select bits indicate the number of data bits transmitted or received in a frame as follows:
+//     11 = 8 bits
+//     10 = 7 bits
+//     01 = 6 bits
+//     00 = 5 bits.
+//   [4] FEN: Enable FIFOs
+//      If this bit is set to 1, transmit and receive FIFO buffers are enabled (FIFO mode). When cleared to 0 the FIFOs are disabled (character mode) that is, the FIFOs become 1-byte-deep holding registers.
+//   [3] STP2: Two stop bits select
+//      If this bit is set to 1, two stop bits are transmitted at the end of the frame. The receive logic does not check for two stop bits being received.
+//   [2] EPS: Even parity select
+//     If this bit is set to 1, even parity generation and checking is performed during transmission and reception, which checks for an even number of 1s in data and parity bits. When cleared to 0 then odd parity is performed which checks for an odd number of 1s. This bit has no effect when parity is disabled by Parity Enable (bit 1) being cleared to 0. Refer to Table 3.11 for a truth table showing the SPS, EPS and PEN bits.
+//   [1] PEN: Parity enable
+//     If this bit is set to 1, parity checking and generation is enabled, else parity is disabled and no parity bit added to the data frame. Refer to Table 3.11 for a truth table showing the SPS, EPS and PEN bits.
+//   [0] BRK: Send break
+//     If this bit is set to 1, a low-level is continually output on the UARTTXD output, after completing transmission of the current character. For the proper execution of the break command, the software must set this bit for at least two complete frames.
+//     For normal use, this bit must be cleared to 0.
+#define UART_LCRH_WLEN_8BIT (3 << 5)
+#define UART_LCRH_FEN       (1 << 4)
+
+// UARTCR: Control register
+//   https://developer.arm.com/documentation/ddi0183/f/programmer-s-model/register-descriptions/control-register--uartcr
+//    [15] CTSEn: CTS hardware flow control enable
+//      If this bit is set to 1, CTS hardware flow control is enabled. Data is only transmitted when the nUARTCTS signal is asserted.
+//    [14] RTSEn: RTS hardware flow control enable
+//      If this bit is set to 1, RTS hardware flow control is enabled. Data is only requested when there is space in the receive FIFO for it to be received.
+//    [13] Out2
+//    This bit is the complement of the UART Out2 (nUARTOut2) modem status output. That is, when the bit is programmed to a 1, the output is 0. For DTE this can be used as Ring Indicator (RI).
+//    [12] Out1
+//    This bit is the complement of the UART Out1 (nUARTOut1) modem status output. That is, when the bit is programmed to a 1 the output is 0. For DTE this can be used as Data Carrier Detect (DCD).
+//    [11] RTS: Request to send
+//      This bit is the complement of the UART request to send (nUARTRTS) modem status output. That is, when the bit is programmed to a 1, the output is 0.
+//    [10] DTR: Data transmit ready
+//      This bit is the complement of the UART data transmit ready (nUARTDTR) modem status output. That is, when the bit is programmed to a 1, the output is 0.
+//    [9] RXE: Receive enable
+//      If this bit is set to 1, the receive section of the UART is enabled. Data reception occurs for either UART signals or SIR signals according to the setting of SIR Enable (bit 1). When the UART is disabled in the middle of reception, it completes the current character before stopping.
+//    [8] TXE: Transmit enable
+//      If this bit is set to 1, the transmit section of the UART is enabled. Data transmission occurs for either UART signals, or SIR signals according to the setting of SIR Enable (bit 1). When the UART is disabled in the middle of transmission, it completes the current character before stopping.
+//    [7] LBE: Loop back enable
+//      If this bit is set to 1 and the SIR Enable bit is set to 1 and the test register UARTTCR bit 2 (SIRTEST) is set to 1, then the nSIROUT path is inverted, and fed through to the SIRIN path. The SIRTEST bit in the test register must be set to 1 to override the normal half-duplex SIR operation. This must be the requirement for accessing the test registers during normal operation, and SIRTEST must be cleared to 0 when loopback testing is finished.This feature reduces the amount of external coupling required during system test.
+//      If this bit is set to 1, and the SIRTEST bit is set to 0, the UARTTXD path is fed through to the UARTRXD path.
+//      In either SIR mode or normal mode, when this bit is set, the modem outputs are also fed through to the modem inputs.
+//      This bit is cleared to 0 on reset, which disables the loopback mode.
+//    [6:3] Reserved, do not modify, read as zero.
+//    [2] SIRLP: IrDA SIR low power mode
+//      This bit selects the IrDA encoding mode. If this bit is cleared to 0, low-level bits are transmitted as an active high pulse with a width of 3/16th of the bit period. If this bit is set to 1, low-level bits are transmitted with a pulse width which is 3 times the period of the IrLPBaud16 input signal, regardless of the selected bit rate. Setting this bit uses less power, but might reduce transmission distances.
+//    [1] SIREN: SIR enable
+//      If this bit is set to 1, the IrDA SIR ENDEC is enabled. This bit has no effect if the UART is not enabled by bit 0 being set to 1.
+//      When the IrDA SIR ENDEC is enabled, data is transmitted and received on nSIROUT and SIRIN. UARTTXD remains in the marking state (set to 1). Signal transitions on UARTRXD or modem status inputs have no effect.
+//      When the IrDA SIR ENDEC is disabled, nSIROUT remains cleared to 0 (no light pulse generated), and signal transitions on SIRIN have no effect.
+//    [0] UARTEN: UART enable
+//      If this bit is set to 1, the UART is enabled. Data transmission and reception occurs for either UART signals or SIR signals according to the setting of SIR Enable (bit 1). When the UART is disabled in the middle of transmission or reception, it completes the current character before stopping.
+#define UART_CR_UARTEN (1 << 0)
+#define UART_CR_TXE    (1 << 8)
+#define UART_CR_RXE    (1 << 9)
+
 // UARTIMSC: Interrupt mask set/clear register
 //   https://developer.arm.com/documentation/ddi0183/f/programmer-s-model/register-descriptions/interrupt-mask-set-clear-register--uartimsc
 //   割込みマスクレジスタで、読むとマスク状態が返され、1 を書くとマスクされ、0 を書くとマスク解除される
