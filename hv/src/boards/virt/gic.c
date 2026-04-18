@@ -3,6 +3,7 @@
 #include "generic_timer.h"
 #include "irq.h"
 #include "mm.h"
+#include "console.h"
 #include <inttypes.h>
 
 // GIC では割込みは SGI, PPI, SPI, LPI に分かれている
@@ -69,7 +70,11 @@ void enable_local_interrupt_controller(unsigned long cpuid) {
 
 void enable_legacy_interrupt_controller(void) {
     // GIC Distributor を有効化
-    put32(P2V(GICD_CTLR), GICD_CTLR_ENABLE);    /* Enable Distributor */
+    put32(P2V(GICD_CTLR), GICD_CTLR_ENABLE);
+
+    // UART 割込みを有効化
+    // SPI 1 の割込み番号は IRQ_UART0(33) で、ISENABLER[1] に相当する
+    put32(P2V(GICD_ISENABLER + 4), (1 << (IRQ_UART0 - 32)));
 }
 
 // handle_irq はベクタから呼び出される
@@ -88,8 +93,8 @@ void handle_irq(void) {
         handle_generic_timer_irq();
     } else if (irq == IRQ_VIRT_TIMER) {
         handle_virtual_timer_irq();
-    } else if (irq >= IRQ_ID_SPI_START && irq < 1022) {
-        // その他の IRQ (UART など) は今は無視
+    } else if (irq == IRQ_UART0) {
+        handle_console_irq();
     }
 
     put32(P2V(GICC_EOIR), iar);

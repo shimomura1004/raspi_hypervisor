@@ -14,7 +14,12 @@ static void _uart_send(char c) {
 }
 
 void handle_console_irq(void) {
-    // todo: 実装する
+    // 受信キューが空ではない間繰り返す
+    while (!(get32(P2V(UART_FR)) & UART_FR_RXFE)) {
+        char c = get32(P2V(UART_DR)) & 0xFF;
+        console_handle_char(c);
+    }
+    put32(P2V(UART_ICR), UART_ICR_RXIC);
 }
 
 void console_init(void) {
@@ -31,10 +36,13 @@ void console_init(void) {
     put32(P2V(UART_FBRD), 0);
     
     /* 8 bits, FIFO enabled, 1 stop bit, no parity */
-    put32(P2V(UART_LCRH), (3 << 5) | (1 << 4));
+    put32(P2V(UART_LCRH), UART_LCRH_WLEN_8BIT | UART_LCRH_FEN);
+
+    /* Enable RX interrupt */
+    put32(P2V(UART_IMSC), UART_IMSC_RXIM);
     
     // UART の割込みを有効化
-    put32(P2V(UART_CR), (1 << 0) | (1 << 8) | (1 << 9));
+    put32(P2V(UART_CR), UART_CR_UARTEN | UART_CR_TXE | UART_CR_RXE);
 }
 
 void putc(void *p, char c) {
