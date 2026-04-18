@@ -28,4 +28,8 @@
 // QEMU VirtIO MMIO (Block device)
 #define VIRTIO_BLK_BASE         0x0a000000
 
+// IRQ Assignments for QEMU virt
+#define IRQ_HYP_PHYS_TIMER  26
+#define IRQ_VIRT_TIMER      27
+
 #endif /* _BOARDS_VIRT_H */

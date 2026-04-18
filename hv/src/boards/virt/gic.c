@@ -51,11 +51,6 @@
 
 #define GICC_CTLR_ENABLE (1 << 0)
 
-// tod: ボード固有のヘッダに移す
-// GICv2 における割り込み番号
-#define IRQ_HYP_PHYS_TIMER 26
-#define IRQ_VIRT_TIMER     27
-
 void enable_local_interrupt_controller(unsigned long cpuid) {
     // まず GIC の CPU interface を初期化
 
