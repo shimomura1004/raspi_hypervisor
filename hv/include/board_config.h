@@ -2,9 +2,9 @@
 #define _BOARD_CONFIG_H
 
 #if defined(BOARD_RASPI3)
-    #include "boards/raspi3.h"
+    #include "boards/raspi3/raspi3.h"
 #elif defined(BOARD_VIRT)
-    #include "boards/virt.h"
+    #include "boards/virt/virt.h"
 #else
     #error "Unknown or undefined BOARD. Please define BOARD_RASPI3 or BOARD_VIRT."
 #endif

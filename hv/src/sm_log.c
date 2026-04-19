@@ -1,7 +1,7 @@
 #include <stddef.h>
 #include "sm_log.h"
 #include "mm.h"
-#include "mini_uart.h"
+#include "console.h"
 #include "debug.h"
 
 // 共有メモリへのポインタ

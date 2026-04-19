@@ -8,7 +8,7 @@
 #include "spinlock.h"
 #include "irq.h"
 #include "cpu_core.h"
-#include "mini_uart.h"
+#include "console.h"
 
 // ログレベルの定義
 #define LOG_LEVEL_NONE  0

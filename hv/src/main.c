@@ -1,13 +1,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "printf.h"
 #include "utils.h"
 #include "generic_timer.h"
 #include "irq.h"
-#include "peripherals/irq.h"
 #include "vm.h"
-#include "sched.h"
 #include "console.h"
 #include "mm.h"
 #include "block.h"

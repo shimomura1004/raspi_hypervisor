@@ -2,7 +2,7 @@
 #define	_MM_H
 
 #include "board_config.h"
-#include "peripherals/base.h"
+
 
 #define PHYS_MEMORY_SIZE    RAM_SIZE
 

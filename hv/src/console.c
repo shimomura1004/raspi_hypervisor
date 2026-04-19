@@ -4,7 +4,9 @@
 #include "fifo.h"
 #include "utils.h"
 #include "debug.h"
+#if defined(BOARD_RASPI3)
 #include "systimer.h"
+#endif
 
 // このハイパーバイザのエスケープ文字
 #define ESCAPE_CHAR '?'

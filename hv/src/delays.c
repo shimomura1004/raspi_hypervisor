@@ -24,7 +24,9 @@
  */
 
 
+#if defined(BOARD_RASPI3)
 #include "peripherals/systimer.h"
+#endif
 #include "mm.h"
 #include "utils.h"
 
@@ -56,6 +58,7 @@ void wait_msec(unsigned int n) {
     } while (r < t);
 }
 
+#if defined(BOARD_RASPI3)
 /**
  * Get System Timer's counter
  */
@@ -85,3 +88,4 @@ void wait_msec_st(unsigned int n) {
             ;
     }
 }
+#endif

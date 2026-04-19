@@ -1,3 +1,6 @@
+#ifndef _BOARDS_RASPI3_SD_H
+#define _BOARDS_RASPI3_SD_H
+
 /*
  * Copyright (C) 2018 bzt (bztsrc@github)
  *
@@ -29,3 +32,5 @@
 
 int sd_init();
 int sd_readblock(unsigned int lba, unsigned char *buffer, unsigned int num);
+
+#endif /* _BOARDS_RASPI3_SD_H */

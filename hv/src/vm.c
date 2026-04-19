@@ -9,7 +9,7 @@
 #include "irq.h"
 #include "loader.h"
 #include "cpu_core.h"
-#include "mini_uart.h"
+#include "console.h"
 
 // 各スレッド用の領域の末尾に置かれた vcpu_struct へのポインタを返す
 struct pt_regs * vcpu_pt_regs(struct vcpu_struct *vcpu) {
