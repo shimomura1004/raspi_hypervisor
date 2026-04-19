@@ -4,9 +4,9 @@
 #include "peripherals/base.h"
 
 // GIC v2 Address Map for QEMU virt
-#define GIC_BASE                PBASE
-#define GIC_DIST_BASE           (GIC_BASE + 0x00000)
-#define GIC_CPU_BASE            (GIC_BASE + 0x10000)
+#define GIC_BASE        DEVICE_BASE
+#define GIC_DIST_BASE   (GIC_BASE + 0x00000)
+#define GIC_CPU_BASE    (GIC_BASE + 0x10000)
 
 /* GICv2 Registers */
 #define GICD_CTLR       (GIC_DIST_BASE + 0x000)

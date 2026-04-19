@@ -17,7 +17,7 @@
 #define UART_IMSC   (UART_BASE + 0x38)
 #define UART_ICR    (UART_BASE + 0x44)
 
-// UARTDR
+// UARTDR: Data register
 //   https://developer.arm.com/documentation/ddi0183/f/programmer-s-model/register-descriptions/data-register--uartdr
 //   [15:12] Reserved
 //   [11] OE
@@ -36,7 +36,7 @@
 //     Receive (read) data character.
 //     Transmit (write) data character.
 
-// UARTFR
+// UARTFR: Flag register
 //   https://developer.arm.com/documentation/ddi0183/f/programmer-s-model/register-descriptions/flag-register--uartfr
 //   [15:9] Reserved, do not modify, read as zero.
 //   [8] RI: Ring indicator
