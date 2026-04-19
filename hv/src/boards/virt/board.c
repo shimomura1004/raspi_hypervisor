@@ -6,9 +6,18 @@
 #include "fifo.h"
 #include "peripherals/pl011_uart.h"
 
-#define ADDR_IN_AUX(a)      (UART_BASE <= (a) && (a) <= UART_BASE + 0x1000)
+// todo: 0x1000 を定数化する
+#define ADDR_IN_AUX(a)      (UART_BASE <= (a) && (a) < UART_BASE + 0x1000)
+
+struct virt_board_state {
+    unsigned long uart_imsc;
+};
 
 static void virt_initialize(struct vm_struct2 *vm) {
+    struct virt_board_state *state = (struct virt_board_state *)allocate_page();
+    state->uart_imsc = 0;
+    vm->board_data = state;
+
     // todo: その他の初期化を行う
 
     // stage2 のデバイスのメモリマッピング(MMIO ページの準備)
@@ -22,6 +31,8 @@ static void virt_initialize(struct vm_struct2 *vm) {
 }
 
 static unsigned long handle_aux_read(struct vcpu_struct *vcpu, unsigned long addr) {
+    struct virt_board_state *state = (struct virt_board_state *)vcpu->vm->board_data;
+
     switch (addr) {
     case UART_FR:
         // todo: ちゃんと実装する
@@ -38,6 +49,8 @@ static unsigned long handle_aux_read(struct vcpu_struct *vcpu, unsigned long add
 }
 
 static void handle_aux_write(struct vcpu_struct *vcpu, unsigned long addr, unsigned long val) {
+    struct virt_board_state *state = (struct virt_board_state *)vcpu->vm->board_data;
+
     // todo: 他のレジスタへの書き込みも対応する
     switch (addr) {
     case UART_DR:
@@ -73,8 +86,10 @@ static void virt_mmio_write(struct vcpu_struct *vcpu, uint64_t addr, uint64_t va
 }
 
 static int virt_is_irq_asserted(struct vcpu_struct *vcpu) {
-    // todo: 実装する
+    struct virt_board_state *state = (struct virt_board_state *)vcpu->vm->board_data;
+    if (!state) {
     return 0;
+    }
 }    
 
 const struct board_ops virt_board_ops = {
