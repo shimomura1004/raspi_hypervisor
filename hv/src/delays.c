@@ -23,12 +23,7 @@
  *
  */
 
-
-#if defined(BOARD_RASPI3)
-#include "peripherals/systimer.h"
-#endif
-#include "mm.h"
-#include "utils.h"
+#include "delays.h"
 
 /**
  * Wait N CPU cycles (ARM CPU only)
@@ -44,6 +39,7 @@ void wait_cycles(unsigned int n) {
 // cntfrq_el0: Clock frequency. Indicates the system counter clock frequency in Hz.
 /**
  * Wait N microsec (ARM CPU only)
+ * Uses ARMv8 architecture system counter (cntpct_el0)
  */
 void wait_msec(unsigned int n) {
     register unsigned long f, t, r;
@@ -57,35 +53,3 @@ void wait_msec(unsigned int n) {
         asm volatile("mrs %0, cntpct_el0" : "=r"(r));
     } while (r < t);
 }
-
-#if defined(BOARD_RASPI3)
-/**
- * Get System Timer's counter
- */
-unsigned long get_system_timer() {
-    unsigned int h = -1, l;
-    // we must read MMIO area as two separate 32 bit reads
-    h = get32(P2V(TIMER_CHI));
-    l = get32(P2V(TIMER_CLO));
-    // we have to repeat it if high word changed during read
-    if (h != get32(P2V(TIMER_CHI))) {
-        h = get32(P2V(TIMER_CHI));
-        l = get32(P2V(TIMER_CLO));
-    }
-    // compose long int value
-    return ((unsigned long)h << 32) | l;
-}
-
-/**
- * Wait N microsec (with BCM System Timer)
- */
-void wait_msec_st(unsigned int n) {
-    unsigned long t = get_system_timer();
-    // we must check if it's non-zero, because qemu does not emulate
-    // system timer, and returning constant zero would mean infinite loop
-    if (t) {
-        while (get_system_timer() < t + n)
-            ;
-    }
-}
-#endif

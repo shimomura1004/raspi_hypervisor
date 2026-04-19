@@ -23,7 +23,12 @@
  *
  */
 
-void wait_cycles(unsigned int n);
-void wait_msec(unsigned int n);
+#ifndef _BOARDS_RASPI3_DELAYS_H
+#define _BOARDS_RASPI3_DELAYS_H
+
+#include "delays.h"
+
 unsigned long get_system_timer();
 void wait_msec_st(unsigned int n);
+
+#endif /* _BOARDS_RASPI3_DELAYS_H */
