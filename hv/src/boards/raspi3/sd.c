@@ -27,7 +27,7 @@
 #include "mm.h"
 #include "peripherals/gpio.h"
 #include "debug.h"
-#include "delays.h"
+#include "boards/raspi3/raspi3_delays.h"
 #include "sd.h"
 #include "spinlock.h"
 #include "utils.h"
