@@ -42,11 +42,6 @@ static void pop_disable_irq() {
     }
 }
 
-void init_lock(struct spinlock *lock, char *name) {
-    lock->locked = 0;
-    lock->name = name;
-    lock->cpuid = -1;
-}
 
 void acquire_lock(struct spinlock *lock) {
     // ロック中は割込みを禁止しておかないとデッドロックする可能性がある

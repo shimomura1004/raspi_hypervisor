@@ -95,6 +95,14 @@ $(BUILD_DIR)/psci_c.o: ../lib/src/psci.c
 	mkdir -p $(@D)
 	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
 
+$(BUILD_DIR)/lib_spinlock_c.o: ../lib/src/spinlock.c
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
+
+$(BUILD_DIR)/lib_spinlock_s.o: ../lib/src/spinlock.S
+	mkdir -p $(@D)
+	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
+
 # 共通のソースファイル
 C_FILES = $(wildcard $(SRC_DIR)/*.c)
 ASM_FILES = $(wildcard $(SRC_DIR)/*.S)
@@ -122,6 +130,8 @@ OBJ_FILES += $(BUILD_DIR)/common_utils_c.o
 OBJ_FILES += $(BUILD_DIR)/common_utils_s.o
 OBJ_FILES += $(BUILD_DIR)/smccc_s.o
 OBJ_FILES += $(BUILD_DIR)/psci_c.o
+OBJ_FILES += $(BUILD_DIR)/lib_spinlock_c.o
+OBJ_FILES += $(BUILD_DIR)/lib_spinlock_s.o
 
 DEP_FILES = $(OBJ_FILES:%.o=%.d)
 -include $(DEP_FILES)

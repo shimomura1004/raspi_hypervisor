@@ -75,11 +75,6 @@ static void pop_disable_irq() {
     }
 }
 
-void init_lock(struct spinlock *lock, char *name) {
-    lock->locked = 0;
-    lock->name = name;
-    lock->cpuid = -1;
-}
 
 void acquire_lock(struct spinlock *lock) {
     if (!lock) {
