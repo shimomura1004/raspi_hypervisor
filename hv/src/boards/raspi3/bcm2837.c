@@ -4,7 +4,7 @@
 #include "fifo.h"
 #include "systimer.h"
 #include "utils.h"
-#include "peripherals/mini_uart.h"
+#include "peripherals/mini_uart_regs.h"
 #include "peripherals/systimer.h"
 #include "peripherals/irq.h"
 #include "peripherals/mailbox.h"

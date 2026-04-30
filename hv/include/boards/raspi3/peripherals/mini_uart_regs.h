@@ -1,5 +1,5 @@
-#ifndef	_P_MINI_UART_H
-#define	_P_MINI_UART_H
+#ifndef	_P_MINI_UART_REGS_H
+#define	_P_MINI_UART_REGS_H
 
 #include "peripherals/base.h"
 
@@ -97,4 +97,4 @@
 //   [4]?
 //   [3:0]  reserved
 
-#endif  /*_P_MINI_UART_H */
+#endif  /*_P_MINI_UART_REGS_H */

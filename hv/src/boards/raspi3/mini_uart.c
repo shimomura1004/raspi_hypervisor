@@ -1,6 +1,6 @@
 #include "console.h"
 #include "mm.h"
-#include "peripherals/mini_uart.h"
+#include "peripherals/mini_uart_regs.h"
 #include "peripherals/gpio.h"
 #include "printf.h"
 #include "utils.h"
