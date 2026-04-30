@@ -44,33 +44,21 @@ $(BUILD_DIR)/%_c.o: $(SRC_DIR)/%.c
 $(BUILD_DIR)/%_s.o: $(SRC_DIR)/%.S
 	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
 
-$(BUILD_DIR)/printf_c.o: ../../lib/src/printf.c
+LIB_SRC_DIR = ../../lib/src
+# 使用するライブラリソースのリスト
+LIB_SOURCES = printf.c common_utils.c common_utils.S smccc.S psci.c spinlock.c spinlock.S
+
+$(BUILD_DIR)/lib/%_c.o: $(LIB_SRC_DIR)/%.c
 	mkdir -p $(@D)
 	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
 
-$(BUILD_DIR)/common_utils_c.o: ../../lib/src/common_utils.c
-	mkdir -p $(@D)
-	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
-
-$(BUILD_DIR)/common_utils_s.o: ../../lib/src/common_utils.S
+$(BUILD_DIR)/lib/%_s.o: $(LIB_SRC_DIR)/%.S
 	mkdir -p $(@D)
 	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
 
-$(BUILD_DIR)/smccc_s.o: ../../lib/src/smccc.S
-	mkdir -p $(@D)
-	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
-
-$(BUILD_DIR)/psci_c.o: ../../lib/src/psci.c
+$(BUILD_DIR)/lib/drivers/uart/%_c.o: $(LIB_SRC_DIR)/drivers/uart/%.c
 	mkdir -p $(@D)
 	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
-
-$(BUILD_DIR)/lib_spinlock_c.o: ../../lib/src/spinlock.c
-	mkdir -p $(@D)
-	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
-
-$(BUILD_DIR)/lib_spinlock_s.o: ../../lib/src/spinlock.S
-	mkdir -p $(@D)
-	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
 
 C_FILES = $(wildcard $(SRC_DIR)/*.c)
 ASM_FILES = $(wildcard $(SRC_DIR)/*.S)
@@ -87,22 +75,14 @@ $(BUILD_DIR)/boards/$(BOARD)/%_s.o: $(BOARD_SRC_DIR)/%.S
 	mkdir -p $(@D)
 	$(ARMGNU)-gcc $(ASMOPS) -MMD -c $< -o $@
 
-$(BUILD_DIR)/uart_c.o: ../../lib/src/drivers/uart/$(UART_DRV).c
-	mkdir -p $(@D)
-	$(ARMGNU)-gcc $(COPS) -MMD -c $< -o $@
 
 OBJ_FILES = $(C_FILES:$(SRC_DIR)/%.c=$(BUILD_DIR)/%_c.o)
 OBJ_FILES += $(ASM_FILES:$(SRC_DIR)/%.S=$(BUILD_DIR)/%_s.o)
 OBJ_FILES += $(BOARD_C_FILES:$(BOARD_SRC_DIR)/%.c=$(BUILD_DIR)/boards/$(BOARD)/%_c.o)
 OBJ_FILES += $(BOARD_ASM_FILES:$(BOARD_SRC_DIR)/%.S=$(BUILD_DIR)/boards/$(BOARD)/%_s.o)
-OBJ_FILES += $(BUILD_DIR)/printf_c.o
-OBJ_FILES += $(BUILD_DIR)/common_utils_c.o
-OBJ_FILES += $(BUILD_DIR)/common_utils_s.o
-OBJ_FILES += $(BUILD_DIR)/smccc_s.o
-OBJ_FILES += $(BUILD_DIR)/psci_c.o
-OBJ_FILES += $(BUILD_DIR)/lib_spinlock_c.o
-OBJ_FILES += $(BUILD_DIR)/lib_spinlock_s.o
-OBJ_FILES += $(BUILD_DIR)/uart_c.o
+OBJ_FILES += $(patsubst %.c,$(BUILD_DIR)/lib/%_c.o,$(filter %.c,$(LIB_SOURCES)))
+OBJ_FILES += $(patsubst %.S,$(BUILD_DIR)/lib/%_s.o,$(filter %.S,$(LIB_SOURCES)))
+OBJ_FILES += $(BUILD_DIR)/lib/drivers/uart/$(UART_DRV)_c.o
 
 DEP_FILES = $(OBJ_FILES:%.o=%.d)
 -include $(DEP_FILES)
