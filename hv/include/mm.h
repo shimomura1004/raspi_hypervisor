@@ -24,9 +24,10 @@
 #define LOW_MEMORY          (RAM_BASE + 8 * SECTION_SIZE)
 
 // 利用可能な物理メモリの終端(物理)
-// raspi3 では DRAM 末尾にデバイス領域(DEVICE_BASE~)が重なっているため、その手前までを RAM として扱う
-// virt ではそのようなことはないので普通に RAM の終端まで使う
-#define HIGH_MEMORY         ((DEVICE_BASE > RAM_BASE && DEVICE_BASE < RAM_BASE + RAM_SIZE) ? DEVICE_BASE : (RAM_BASE + RAM_SIZE))
+// 各ボードのヘッダ (raspi3.h, virt.h) で定義される HIGH_MEMORY を使用する
+#ifndef HIGH_MEMORY
+#error "HIGH_MEMORY must be defined in board header"
+#endif
 
 // low_memory~high_memory が自由に使えるメモリ
 // ページングの対象になるメモリのサイズ

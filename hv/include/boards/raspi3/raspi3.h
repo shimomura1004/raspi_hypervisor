@@ -11,6 +11,10 @@
 #define RAM_SIZE                0x40000000UL
 #define VA_START                0x0000000000000000UL
 
+// 利用可能な物理メモリの終端
+// raspi3 では DRAM 末尾にデバイス領域(DEVICE_BASE~)が重なっているため、その手前までを RAM として扱う
+#define HIGH_MEMORY             0x3F000000
+
 // BCM2837 Peripheral Base
 #define PERIPHERAL_BASE         0x3F000000
 #define DEVICE_BASE             PERIPHERAL_BASE

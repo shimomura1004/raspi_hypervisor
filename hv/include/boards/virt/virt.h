@@ -1,14 +1,20 @@
 #ifndef _BOARDS_VIRT_H
 #define _BOARDS_VIRT_H
 
-#include "peripherals/base.h"
-#include "peripherals/irq.h"
-
 // QEMU Virt Machine Specific Constants (物理アドレス)
 // qemu virt board のメモリマップは qemu のソースコードで定義されている
 // https://github.com/qemu/qemu/blob/master/hw/arm/virt.c
-
 #define VA_START                0x0000000040000000UL
+
+// 利用可能な物理メモリの終端
+// lib/include/boards/virt/peripherals/base.h で定義される RAM_BASE と RAM_SIZE が使用したいが
+// ただし base.h -> mm.h -> board_config.h -> virt.h の循環参照があるため
+// リテラルで定義するかインクルードの順序を工夫する必要がある
+// todo: いったんリテラルで定義
+#define HIGH_MEMORY             (0x40000000UL + 0x40000000UL)
+
+#include "peripherals/base.h"
+#include "peripherals/irq.h"
 
 // For abstraction compatibility
 // virt の MMIO デバイスは GIC が先頭
