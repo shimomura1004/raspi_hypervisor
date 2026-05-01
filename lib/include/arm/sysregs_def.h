@@ -239,7 +239,7 @@
 #define ESR_ELx_EC_DABT_LOW     (0x24)
 
 // VTCR_EL2, Virtualization Transition Control Register (EL2)
-// https://developer.arm.com/documentation/ddi0601/2024-09/AArch64-Registers/VTCR-EL2--Virtualization-Translation-Control-Register
+//   https://developer.arm.com/documentation/ddi0601/2024-09/AArch64-Registers/VTCR-EL2--Virtualization-Translation-Control-Register
 // NSA[30]: Non-secure stage 2 translation output address space for the Secure EL1&0 translation regime
 //   0b0: All stage 2 translation for the Non-secure IPA space of the Secure EL1&0 translation regime access the Secure PA space
 //   0b1: All stage 2 translation for the Non-secure IPA space of the Secure EL1&0 translation regime access the Non-secure PA space

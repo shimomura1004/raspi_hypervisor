@@ -1,5 +1,5 @@
 #include "arm/mmu.h"
-#include "arm/sysregs.h"
+#include "arm/sysregs_def.h"
 
 // sm/hv の間に二段階アドレス変換はないので、メモリ空間は手動で分離する必要がある
 // 普通はデバイスツリーなどのパラメータ情報を使ってお互いが干渉しないようにする
@@ -52,14 +52,13 @@ el3_entry:
 	adr	x0, vectors
 	msr	vbar_el3, x0
 
-	// #define SCR_VALUE (SCR_RESERVED | SCR_RW | SCR_NS)
 	// RW(register width) は hcr_el2 と同じく 1 にしておかないと 32 ビットになる様子
 	// NS(non-secure) は non-secure bit で、1 にすると
 	//   Indicates that Exception levels lower than EL3 are
 	//   in Non-secure state, so memory accesses
 	//   from those Exception levels cannot access Secure memory.
 	//   今回はそのまま Normal world に遷移したいので NS は 1 にする
-	ldr	x0, =SCR_VALUE
+	ldr	x0, =SCR_EL3_VALUE
 	msr	scr_el3, x0
 
 	// CPTR_EL3: Architectural Feature Trap Register (EL3)
@@ -70,8 +69,8 @@ el3_entry:
 	// SPSR_EL3 を設定して、eret で EL2h (EL2 + SP_ELx) に遷移するようにする
 	// M[4]=0 (AArch64)
 	// M[3:0]=1001 (EL2h)
-	// F, I, A ビットをマスク (1)
-	mov x0, #( (7 << 6) | (9 << 0) ) // SPSR_MASK_ALL | SPSR_EL2h
+	// F, I, A ビットをマスク
+	ldr	x0, =SPSR_EL3_VALUE
 	msr	spsr_el3, x0
 
 	// Core 0 以外はログ出力をスキップして HV へ遷移
