@@ -1,4 +1,4 @@
-#include "arm/sysregs.h"
+#include "arm/sysregs_def.h"
 #include "sync_exc.h"
 #include "entry.h"
 

@@ -2,7 +2,7 @@
 #include "mm.h"
 #include "sched.h"
 #include "vm.h"
-#include "arm/sysregs.h"
+#include "arm/sysregs_def.h"
 #include "hypercall.h"
 #include "smcall.h"
 #include "sm_log.h"

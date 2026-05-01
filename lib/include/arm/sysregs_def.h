@@ -3,8 +3,10 @@
 
 // todo: 定数にすべて EL を明記する
 // todo: EL ごとに設定ファイルを分ける
+// todo: _FOR_OS は別ファイルにする
 
 // SCTLR_EL2, System Control Register (EL2)
+//   https://developer.arm.com/documentation/111107/2025-12/AArch64-Registers/SCTLR-EL2--System-Control-Register--EL2-
 // EE[25]:
 //   0b0: little-endian
 //   0b1: big-endian
@@ -22,7 +24,6 @@
 #define SCTLR_EL2_D_CACHE_DISABLED      (0 << 2)
 #define SCTLR_EL2_MMU_DISABLED          (0 << 0)
 #define SCTLR_EL2_MMU_ENABLED           (1 << 0)
-
 #define SCTLR_EL2_VALUE_MMU_DISABLED \
         (SCTLR_EL2_EE | SCTLR_EL2_I_CACHE_DISABLED | SCTLR_EL2_D_CACHE_DISABLED | \
          SCTLR_EL2_MMU_DISABLED)
@@ -31,6 +32,7 @@
          SCTLR_EL2_MMU_ENABLED)
 
 // SCTLR_EL1, System Control Register (EL1)
+//   https://developer.arm.com/documentation/ddi0595/2020-12/AArch64-Registers/SCTLR-EL1--System-Control-Register--EL1-
 #define SCTLR_EL1_RESERVED              ((3 << 28) | (3 << 22) | (1 << 20) | (1 << 11))
 #define SCTLR_EL1_EE_LITTLE_ENDIAN      (0 << 25)
 #define SCTLR_EL1_EOE_LITTLE_ENDIAN     (0 << 24)
@@ -38,15 +40,9 @@
 #define SCTLR_EL1_D_CACHE_DISABLED      (0 << 2)
 #define SCTLR_EL1_MMU_DISABLED          (0 << 0)
 #define SCTLR_EL1_MMU_ENABLED           (1 << 0)
-
 #define SCTLR_EL1_VALUE_MMU_DISABLED \
         (SCTLR_EL1_RESERVED | SCTLR_EL1_EE_LITTLE_ENDIAN | SCTLR_EL1_I_CACHE_DISABLED | \
          SCTLR_EL1_D_CACHE_DISABLED | SCTLR_EL1_MMU_DISABLED)
-
-// todo: これはたぶん不要、raspios が el2 用の仮設定に使っていた？
-// // HCR_EL2, Hypervisor Configuration Register (EL2)
-// #define HCR_RW                          (1 << 31)
-// #define HCR_VALUE                       (HCR_RW)
 
 // HCR_EL2: Hypervisor Configuration Register (EL2)
 //   https://developer.arm.com/documentation/ddi0601/2024-12/AArch64-Registers/HCR-EL2--Hypervisor-Configuration-Register
@@ -147,44 +143,38 @@
 // VM[0] (virtualization enable)
 //   0b0: EL1/0 向けの stage2 アドレス変換を無効化
 //   0b1: EL1/0 向けの stage2 アドレス変換を有効化
-// #define HCR_TID5        (1 << 58)
-// #define HCR_ENSCXT      (0 << 53)
-// #define HCR_TID4        (1 << 49)
-// #define HCR_FIEN        (0 << 47)
-// #define HCR_TERR        (1 << 36)
-// #define HCR_TLOR        (1 << 35)
-#define HCR_E2H         (0 << 34)
-#define HCR_RW          (1 << 31)
-// #define HCR_TRVM        (0 << 30)
-// #define HCR_TDZ         (1 << 28)
-#define HCR_TGE         (0 << 27)
-// #define HCR_TVM         (1 << 26)
-#define HCR_TACR        (1 << 21)
-#define HCR_TSC         (1 << 19)
-#define HCR_TID3        (1 << 18)
-#define HCR_TID2        (1 << 17)
-#define HCR_TID1        (1 << 16)
-#define HCR_TWE         (1 << 14)
-#define HCR_TWI         (1 << 13)
+// #define HCR_EL2_TID5         (1 << 58)
+// #define HCR_EL2_ENSCXT       (0 << 53)
+// #define HCR_EL2_TID4         (1 << 49)
+// #define HCR_EL2_FIEN         (0 << 47)
+// #define HCR_EL2_TERR         (1 << 36)
+// #define HCR_EL2_TLOR         (1 << 35)
+#define HCR_EL2_E2H             (0 << 34)
+#define HCR_EL2_RW              (1 << 31)
+// #define HCR_EL2_TRVM         (0 << 30)
+// #define HCR_EL2_TDZ          (1 << 28)
+#define HCR_EL2_TGE             (0 << 27)
+// #define HCR_EL2_TVM          (1 << 26)
+#define HCR_EL2_TACR            (1 << 21)
+#define HCR_EL2_TSC             (1 << 19)
+#define HCR_EL2_TID3            (1 << 18)
+#define HCR_EL2_TID2            (1 << 17)
+#define HCR_EL2_TID1            (1 << 16)
+#define HCR_EL2_TWE             (1 << 14)
+#define HCR_EL2_TWI             (1 << 13)
 // Asynchronous external Aborts and SError interrupt routing
-#define HCR_AMO         (1 << 5)    // routing to EL2
+#define HCR_EL2_AMO             (1 << 5)    // routing to EL2
 // Physical IRQ routing
-#define HCR_IMO         (1 << 4)    // routing to EL2
+#define HCR_EL2_IMO             (1 << 4)    // routing to EL2
 // Physical FIQ routing
-#define HCR_FMO         (1 << 3)    // routing to EL2
-#define HCR_SWIO        (1 << 1)
-#define HCR_VM          (1 << 0)    // stage 2 translation enable
-#define HCR_VALUE \
-        (HCR_TACR | HCR_TID3 | HCR_TID2 | HCR_TID1 | \
-         HCR_TWE | HCR_TWI | HCR_E2H | HCR_RW | HCR_TGE | \
-         HCR_TSC | HCR_AMO | HCR_IMO | HCR_FMO | HCR_SWIO | HCR_VM)
-
-// todo: たぶん不要、raspios が el3 用の仮設定に使っていた？
-// // SCR_EL3, Secure Configuration Register (EL3)
-// #define SCR_RESERVED    (3 << 4)
-// #define SCR_RW          (1 << 10)
-// #define SCR_NS          (1 << 0)
-// #define SCR_VALUE       (SCR_RESERVED | SCR_RW | SCR_NS)
+#define HCR_EL2_FMO             (1 << 3)    // routing to EL2
+#define HCR_EL2_SWIO            (1 << 1)
+#define HCR_EL2_VM              (1 << 0)    // stage 2 translation enable
+#define HCR_EL2_VALUE \
+        (HCR_EL2_TACR | HCR_EL2_TID3 | HCR_EL2_TID2 | HCR_EL2_TID1 | \
+         HCR_EL2_TWE | HCR_EL2_TWI | HCR_EL2_E2H | HCR_EL2_RW | HCR_EL2_TGE | \
+         HCR_EL2_TSC | HCR_EL2_AMO | HCR_EL2_IMO | HCR_EL2_FMO | HCR_EL2_SWIO | HCR_EL2_VM)
+#define HCR_EL2_VALUE_FOR_OS    (HCR_EL2_RW)    // OS の単体起動用
 
 // SCR_EL3, Secure Configuration Register (EL3)
 //   https://developer.arm.com/documentation/ddi0601/2024-09/AArch32-Registers/SCR--Secure-Configuration-Register
@@ -194,17 +184,14 @@
 // HCE[8]: hypervior call instruction enable
 //   0b0: UNDEFINED at Non-secure EL1. UNPREDICTABLE at EL2.
 //   0b1: HVC instructions are enabled at Non-secure EL1 and EL2.
-#define SCR_RESERVED    (3 << 4)
-#define SCR_RW          (1 << 10)
-#define SCR_HCE         (1 << 8)    // enable HVC
-#define SCR_NS          (1 << 0)
-#define SCR_VALUE       (SCR_RESERVED | SCR_RW | SCR_HCE | SCR_NS)
-
-// todo: たぶん不要、raspios が el3 用の仮設定に使っていた？
-// // SPSR_EL3, Saved Program Status Register (EL3)
-// #define SPSR_MASK_ALL                   (7 << 6)
-// #define SPSR_EL1h                       (5 << 0)
-// #define SPSR_VALUE                      (SPSR_MASK_ALL | SPSR_EL1h)
+#define SCR_EL3_RESERVED        (3 << 4)
+#define SCR_EL3_RW              (1 << 10)
+#define SCR_EL3_HCE             (1 << 8)    // enable HVC
+#define SCR_EL3_NS              (1 << 0)
+#define SCR_EL3_VALUE \
+        (SCR_EL3_RESERVED | SCR_EL3_RW | SCR_EL3_HCE | SCR_EL3_NS)
+#define SCR_EL3_VALUE_FOR_OS \
+        (SCR_EL3_RESERVED | SCR_EL3_RW | SCR_EL3_NS)    // OS の単体起動用
 
 // SPSR_EL3, Saved Program Status Register (EL3)
 //   https://developer.arm.com/documentation/ddi0601/2024-12/AArch64-Registers/SPSR-EL3--Saved-Program-Status-Register--EL3-
@@ -232,20 +219,24 @@
 //   0b1001: EL2 with SP_EL2 (EL2h).
 //   0b1100: EL3 with SP_EL0 (EL3t).
 //   0b1101: EL3 with SP_EL3 (EL3h).
+#define SPSR_EL3_MASK_ALL       (7 << 6)    // MASK_ALL は A,I,F ビットをセットする
+#define SPSR_EL3_EL2h           (9 << 0)
+#define SPSR_EL3_EL1h           (5 << 0)
+#define SPSR_EL3_VALUE          (SPSR_EL3_MASK_ALL | SPSR_EL3_EL2h)
+#define SPSR_EL3_VALUE_FOR_OS   (SPSR_EL3_MASK_ALL | SPSR_EL3_EL1h)     // OS の単体起動用
 
-#define SPSR_MASK_ALL   (7 << 6)
-#define SPSR_EL2h       (9 << 0)
-#define SPSR_VALUE      (SPSR_MASK_ALL | SPSR_EL2h)
-
-// SPSR_EL1
-// https://developer.arm.com/documentation/102670/0301/AArch64-registers/AArch64-register-descriptions/AArch64-Special-purpose-register-description/SPSR-EL1--Saved-Program-Status-Register--EL1-
-//
+// SPSR_EL1, Saved Program Status Register (EL1)
+//   https://developer.arm.com/documentation/102670/0301/AArch64-registers/AArch64-register-descriptions/AArch64-Special-purpose-register-description/SPSR-EL1--Saved-Program-Status-Register--EL1-
 // SPSR_EL3 と概ね同じ(M[3:0] の値の範囲が異なる)
+// 現時点で個別の定義は不要
 
-// ESR_EL1, Exception Syndrome Register (EL1)
-#define ESR_ELx_EC_SHIFT                (26)
-#define ESR_ELx_EC_SVC64                (0x15)
-#define ESR_ELx_EC_DABT_LOW             (0x24)
+// ESR_ELx, Exception Syndrome Register (ELx)
+//   https://developer.arm.com/documentation/ddi0601/2023-06/AArch64-Registers/ESR-EL3--Exception-Syndrome-Register--EL3-
+//   https://developer.arm.com/documentation/ddi0595/2021-03/AArch64-Registers/ESR-EL2--Exception-Syndrome-Register--EL2-
+//   https://developer.arm.com/documentation/ddi0601/2023-06/AArch64-Registers/ESR-EL1--Exception-Syndrome-Register--EL1-
+#define ESR_ELx_EC_SHIFT        (26)
+#define ESR_ELx_EC_SVC64        (0x15)
+#define ESR_ELx_EC_DABT_LOW     (0x24)
 
 // VTCR_EL2, Virtualization Transition Control Register (EL2)
 // https://developer.arm.com/documentation/ddi0601/2024-09/AArch64-Registers/VTCR-EL2--Virtualization-Translation-Control-Register
@@ -289,19 +280,20 @@
 //   0b01 and VTCR_EL2.TG0 is 0b00 and VTCR_EL2.SL2 is 0b0, start at level1
 //   ...
 // T0SZ[5:0]: The size offset of the memory region addressed by VTTBR_EL2. The region size is 2^(64 - T0SZ)
-#define VTCR_NSA        (1 << 30)
-#define VTCR_NSW        (1 << 29)
-#define VTCR_VS         (0 << 19)   // 8bit VMID
-#define VTCR_PS         (2 << 16)   // 40bit, 1TB
-#define VTCR_TG0        (0 << 14)   // 4KB
-#define VTCR_SH0        (3 << 12)   // Inner shareable
-#define VTCR_ORGN0      (0 << 10)   // outer write-back ...
-#define VTCR_IRGN0      (0 << 8)    // inner write-back ...
-#define VTCR_SL0        (1 << 6)    // start at level1?
-#define VTCR_T0SZ       (64 - 38)   // 仮想アドレスのサイズは 2^38 = 256GB
-#define VTCR_RES1       ((1UL << 31) | (1UL << 2))
-#define VTCR_VALUE \
-    (VTCR_RES1 | VTCR_NSA | VTCR_NSW | VTCR_VS | VTCR_PS | VTCR_TG0 | \
-     VTCR_SH0 | VTCR_ORGN0 | VTCR_IRGN0 | VTCR_SL0 | VTCR_T0SZ)
+#define VTCR_EL2_NSA            (1 << 30)
+#define VTCR_EL2_NSW            (1 << 29)
+#define VTCR_EL2_VS             (0 << 19)   // 8bit VMID
+#define VTCR_EL2_PS             (2 << 16)   // 40bit, 1TB
+#define VTCR_EL2_TG0            (0 << 14)   // 4KB
+#define VTCR_EL2_SH0            (3 << 12)   // Inner shareable
+#define VTCR_EL2_ORGN0          (0 << 10)   // outer write-back ...
+#define VTCR_EL2_IRGN0          (0 << 8)    // inner write-back ...
+#define VTCR_EL2_SL0            (1 << 6)    // start at level1?
+#define VTCR_EL2_T0SZ           (64 - 38)   // 仮想アドレスのサイズは 2^38 = 256GB
+#define VTCR_EL2_RES1           ((1UL << 31) | (1UL << 2))
+#define VTCR_EL2_VALUE \
+        (VTCR_EL2_RES1 | VTCR_EL2_NSA | VTCR_EL2_NSW | VTCR_EL2_VS | \
+         VTCR_EL2_PS | VTCR_EL2_TG0 | VTCR_EL2_SH0 | VTCR_EL2_ORGN0 | \
+         VTCR_EL2_IRGN0 | VTCR_EL2_SL0 | VTCR_EL2_T0SZ)
 
 #endif

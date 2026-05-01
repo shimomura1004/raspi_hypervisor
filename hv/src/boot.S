@@ -44,28 +44,20 @@ check_el_state:
 // EL3 の実質的なスタート
 // 起動直後は EL3 になっているので、セキュアモニタがいない場合は必要な設定を行ったあと EL2 に切り替える
 el3_entry:
-	// #define SCR_VALUE (SCR_RESERVED | SCR_RW | SCR_NS)
 	// RW(register width) は hcr_el2 と同じく 1 にしておかないと 32 ビットになる様子
 	// NS(non-secure) は non-secure bit で、1 にすると
 	//   Indicates that Exception levels lower than EL3 are
 	//   in Non-secure state, so memory accesses
 	//   from those Exception levels cannot access Secure memory.
 	//   今回はそのまま Normal world に遷移したいので NS は 1 にする
-	ldr	x0, =SCR_VALUE
+	ldr	x0, =SCR_EL3_VALUE
 	msr	scr_el3, x0
 
-	// #define SPSR_MASK_ALL (7 << 6)
-	// #define SPSR_EL1h (5 << 0)
-	// #define SPSR_VALUE (SPSR_MASK_ALL | SPSR_EL1h)
-	// MASK_ALL は A,I,F ビットをセットする
-	// EL1h は M ビットに EL1h(0b0101) を指定する
-	//   EL1h は handler mode を表すらしい
-	//   handler mode はいわゆる特権モード
 	// EL3 から eret で復帰する(起動後の EL3 から EL1 へ遷移する)ときの
 	// 状態を調整している
 	// カーネルの処理に遷移するので特権が必要かつ、EL1 で動く必要がある
 	// よって EL1h をセットする
-	ldr	x0, =SPSR_VALUE
+	ldr	x0, =SPSR_EL3_VALUE
 	msr	spsr_el3, x0
 
 	// boot.S 内にある el2_entry のアドレスを elr_el3 に入れる
@@ -87,7 +79,7 @@ el2_entry:
 	msr	sctlr_el2, x0
 
 	// 二段階アドレス変換の有効化など
-	ldr	x0, =HCR_VALUE
+	ldr	x0, =HCR_EL2_VALUE
 	msr	hcr_el2, x0
 
 	isb
@@ -147,7 +139,7 @@ after_page_table_setup:
 
 	// VTCR(virtualization translation control register)
 	// Stage2 アドレス変換の制御を行うレジスタ
-	ldr	x0, =(VTCR_VALUE)
+	ldr	x0, =(VTCR_EL2_VALUE)
 	msr	vtcr_el2, x0
 
 	// MAIR の設定を行う(詳細は mmu.h)

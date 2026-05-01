@@ -7,6 +7,8 @@
 
 .extern initialized
 
+// todo: virt 環境で動かない
+
 // todo: 動作確認のため、ハイパーバイザ有無に関わらず同一ソースで起動できるようにしたい
 // qemu を -M raspi3b で起動すると EL2 から起動されるため、ネイティブとゲストのソースに差がでてしまう
 // 起動後に EL を見て処理を切り替えれば暫定対応できる
@@ -103,17 +105,14 @@ el3_entry:
 	ldr	x0, =SCTLR_EL2_VALUE_MMU_DISABLED
 	msr	sctlr_el2, x0
 
-	ldr	x0, =HCR_VALUE
+	ldr	x0, =HCR_EL2_VALUE_FOR_OS
 	msr	hcr_el2, x0
 
-	ldr	x0, =SCR_VALUE
+	ldr	x0, =SCR_EL3_VALUE_FOR_OS
 	msr	scr_el3, x0
 
 	// SPSR の M ビットを EL1h(0b101) に設定することで EL1 に直接遷移させる
-	//   #define SPSR_MASK_ALL	(7 << 6)
-	//   #define SPSR_EL1h		(5 << 0)
-	//   #define SPSR_VALUE		(SPSR_MASK_ALL | SPSR_EL1h)
-	ldr	x0, =SPSR_VALUE
+	ldr	x0, =SPSR_EL3_VALUE_FOR_OS
 	msr	spsr_el3, x0
 
 	adr	x0, el1_entry
