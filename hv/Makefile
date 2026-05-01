@@ -77,7 +77,7 @@ $(BUILD_DIR)/%_s.o: $(SRC_DIR)/%.S
 
 LIB_SRC_DIR = ../lib/src
 # 使用するライブラリソースのリスト
-LIB_SOURCES = printf.c common_utils.c common_utils.S smccc.S psci.c spinlock.c spinlock.S
+LIB_SOURCES = printf.c common_utils.c common_utils.S smccc.S psci.c spinlock.c spinlock.S arm/irq.S
 
 $(BUILD_DIR)/lib/%_c.o: $(LIB_SRC_DIR)/%.c
 	mkdir -p $(@D)
