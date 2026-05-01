@@ -37,7 +37,7 @@ void enable_interrupt_controller(unsigned long cpuid)
 	put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);
 
 	// SYSTEM TIMER IRQ 1 を有効化する
-	// put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_1);
+	// put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_1_BIT);
 
 	// UART を有効化する
 	put32(ENABLE_IRQS_1, (1 << 29));
@@ -49,7 +49,7 @@ void disable_interrupt_controller(unsigned long cpuid)
 	put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, 0);
 
 	// システムタイマーの割り込みを無効化する
-	// put32(DISABLE_IRQS_1, SYSTEM_TIMER_IRQ_1);
+	// put32(DISABLE_IRQS_1, SYSTEM_TIMER_IRQ_1_BIT);
 
 	// UART の割り込みを無効にする
 	put32(DISABLE_IRQS_1, (1 << 29));
@@ -82,9 +82,9 @@ void handle_irq(void)
 	}
 
 	// // システムタイマの割り込みを確認
-	// if (irq & SYSTEM_TIMER_IRQ_1) {
+	// if (irq & SYSTEM_TIMER_IRQ_1_BIT) {
 	// 	handle_timer_irq();
-	// 	irq &= ~SYSTEM_TIMER_IRQ_1;
+	// 	irq &= ~SYSTEM_TIMER_IRQ_1_BIT;
 	// }
 
 	if (irq) {

@@ -14,22 +14,15 @@
 #define DISABLE_IRQS_2          (PBASE+0x0000B220)
 #define DISABLE_BASIC_IRQS      (PBASE+0x0000B224)
 
-#define SYSTEM_TIMER_IRQ_0      (1 << 0)
-#define SYSTEM_TIMER_IRQ_1      (1 << 1)
-#define SYSTEM_TIMER_IRQ_2      (1 << 2)
-#define SYSTEM_TIMER_IRQ_3      (1 << 3)
+#define SYSTEM_TIMER_IRQ_0_BIT  (1 << 0)
+#define SYSTEM_TIMER_IRQ_1_BIT  (1 << 1)
+#define SYSTEM_TIMER_IRQ_2_BIT  (1 << 2)
+#define SYSTEM_TIMER_IRQ_3_BIT  (1 << 3)
 #define AUX_IRQ_BIT             (1 << 29)
 
 #define MBOX_IRQ_BIT            (1 << 1)
 #define PENDING_REGISTER_1_BIT  (1 << 8)
 #define PENDING_REGISTER_2_BIT  (1 << 9)
-
-// todo: あとで消す
-// 既存のコードとの互換性のためのエイリアス
-#define SYSTEM_TIMER_IRQ_0_BIT SYSTEM_TIMER_IRQ_0
-#define SYSTEM_TIMER_IRQ_1_BIT SYSTEM_TIMER_IRQ_1
-#define SYSTEM_TIMER_IRQ_2_BIT SYSTEM_TIMER_IRQ_2
-#define SYSTEM_TIMER_IRQ_3_BIT SYSTEM_TIMER_IRQ_3
 
 void clear_timer_irq(void);
 
