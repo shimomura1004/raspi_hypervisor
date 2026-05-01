@@ -1,5 +1,5 @@
 # Project overview
-- このプロジェクトは Raspberry Pi 3 用の実験的なハイパーバイザ実装です
+- このプロジェクトは QEMU virt および Raspberry Pi 3 用の実験的なハイパーバイザ実装です
 
 # Project structure
 - `lib/src/`: 共通のソース
@@ -20,6 +20,9 @@
     - ビルド: `./run_command.sh make`
     - セキュアモニタの実行: `./run_command.sh ./run_sm.sh`
     - ハイパーバイザの実行: `./run_command.sh ./run_hv.sh`
+- ビルドおよび実行には環境変数 BOARD の設定が必要です。設定可能な値は以下の2つです。
+    - raspi3
+    - virt
 - OS　やハイパーバイザやセキュアモニタを実行した場合、自動では終了しませんので、`timeout` コマンドをつけるか `Ctrl-a x` で終了させてください
     - ただし、`timeout` コマンドは mac 環境にはなく、docker 内にしかないので注意してください
     - つまり、`./run_command.sh timeout (command)` のように実行してください
