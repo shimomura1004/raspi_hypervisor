@@ -1,5 +1,5 @@
 #include "arm/mmu.h"
-#include "arm/sysregs.h"
+#include "arm/sysregs_def.h"
 #include "mm.h"
 #include "peripherals/base.h"
 
@@ -78,14 +78,10 @@ el3_entry:
 
 // ここから EL2 として実行される
 el2_entry:
-	// sysregs.h にて定義されている
-	// #define SCTLR_VALUE_MMU_DISABLED
-	//   (SCTLR_RESERVED | SCTLR_EE_LITTLE_ENDIAN |
-	//    SCTLR_I_CACHE_DISABLED | SCTLR_D_CACHE_DISABLED |
-	//    SCTLR_MMU_DISABLED)
+	// SCTLR_VALUE_MMU_DISABLED は sysregs.h にて定義されている
 	// MMU を無効にした状態の規定値を x0 レジスタにロードする
 	// 命令キャッシュ・データキャッシュも無効化される
-	ldr	x0, =SCTLR_VALUE_MMU_DISABLED
+	ldr	x0, =SCTLR_EL2_VALUE_MMU_DISABLED
 
 	// EL2 用に設定を登録
 	msr	sctlr_el2, x0
@@ -176,7 +172,7 @@ after_page_table_setup:
 	ldr	x2, =hypervisor_main
 
 	// MMU を有効にする準備
-	mov	x0, #SCTLR_MMU_ENABLED
+	mov	x0, #SCTLR_EL2_VALUE_MMU_ENABLED
 	// MMU を有効にする前にすべての命令を実行完了しておく
 	dsb ish
 	isb

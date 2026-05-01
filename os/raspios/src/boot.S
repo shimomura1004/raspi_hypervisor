@@ -100,7 +100,7 @@ el3_entry:
 	b.eq el1_entry
 
 	// EL3 から起動した場合(この OS がベアメタルで起動した場合)は最低限の設定だけして EL1 に切り替える
-	ldr	x0, =SCTLR_VALUE_MMU_DISABLED
+	ldr	x0, =SCTLR_EL2_VALUE_MMU_DISABLED
 	msr	sctlr_el2, x0
 
 	ldr	x0, =HCR_VALUE
@@ -130,7 +130,7 @@ el1_entry:
 
 page_table_setup:
 	// MMU のキャッシュの無効化
-	ldr	x0, =SCTLR_VALUE_MMU_DISABLED
+	ldr	x0, =SCTLR_EL1_VALUE_MMU_DISABLED
 	msr	sctlr_el1, x0
 
 	// BSS セクションをゼロクリア
@@ -168,7 +168,7 @@ after_page_table_setup:
 	// todo: objcopy はコード中のジャンプ先を修正しないため、kernel_main のアドレスがずれる
 	ldr	x2, =kernel_main
 
-	mov	x0, #SCTLR_MMU_ENABLED
+	mov	x0, #SCTLR_EL1_MMU_ENABLED
 
     dsb ish
     isb

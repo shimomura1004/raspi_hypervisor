@@ -15,7 +15,7 @@ proc_hang:
 	b 	proc_hang
 
 master:
-	ldr	x0, =SCTLR_VALUE_MMU_DISABLED
+	ldr	x0, =SCTLR_EL1_VALUE_MMU_DISABLED
 	msr	sctlr_el1, x0
   isb
 
