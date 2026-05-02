@@ -18,14 +18,14 @@
 // nG[11] not Global
 //   0b0: このエントリはグローバルなのですべてのプロセスで使う(TLB から簡単には消えない)
 //   0b1: このエントリは特定プロセス用(ASID に紐づけられ、ASID が切り替わると TLB から消えるかもしれない)
-#define MM_S1_nG_GLOBAL             (0b0 << 11)
-#define MM_S1_nG_NON_GLOBAL         (0b1 << 11)
+#define MM_S1_nG_GLOBAL             (0x0 << 11)
+#define MM_S1_nG_NON_GLOBAL         (0x1 << 11)
 
 // AF[10] Access flag
 //   0b0: アクセス拒否、アクセスすると例外が発生する
 //   0b1: アクセス許可
-#define MM_S1_AF_NO_ACCESS          (0b0 << 10)
-#define MM_S1_AF_ACCESS             (0b1 << 10)
+#define MM_S1_AF_NO_ACCESS          (0x0 << 10)
+#define MM_S1_AF_ACCESS             (0x1 << 10)
 
 // SH[9:8] Shareability field
 // キャッシュの制御に使われる
@@ -35,9 +35,9 @@
 //     他コアだけではなく GPU などの他 IP からもアクセスされる領域
 //   0b11: Inner Shareable
 //     他コアからアクセスされる領域、ハードウェアがキャッシュ一貫性を担保する
-#define MM_S1_SH_NON_SHAREABLE      (0b00 << 8)
-#define MM_S1_SH_OUTER_SHAREABLE    (0b10 << 8)
-#define MM_S1_SH_INNER_SHAREABLE    (0b11 << 8)
+#define MM_S1_SH_NON_SHAREABLE      (0x0 << 8)
+#define MM_S1_SH_OUTER_SHAREABLE    (0x2 << 8)
+#define MM_S1_SH_INNER_SHAREABLE    (0x3 << 8)
 
 // AP[7:6] Access Permissions
 //   0b00: EL1 Read/Write, EL0 No Access
@@ -45,16 +45,16 @@
 //   0b10: EL1 Read-Only, EL0 No Access
 //   0b11: EL1 Read-Only, EL0 Read-Only
 // ARMv7 だと EL を PL と呼ぶので注意
-#define MM_S1_AP_RW_EL1             (0b00 << 6)
-#define MM_S1_AP_RW_ALL             (0b01 << 6)
-#define MM_S1_AP_RO_EL1             (0b10 << 6)
-#define MM_S1_AP_RO_ALL             (0b11 << 6)
+#define MM_S1_AP_RW_EL1             (0x0 << 6)
+#define MM_S1_AP_RW_ALL             (0x1 << 6)
+#define MM_S1_AP_RO_EL1             (0x2 << 6)
+#define MM_S1_AP_RO_ALL             (0x3 << 6)
 
 // NS[5] Non-seccure
 //   0b0: secure
 //   0b1: non-secure
-#define MM_S1_NS_SECURE             (0b0 << 5)
-#define MM_S1_NS_NONSECURE          (0b1 << 5)
+#define MM_S1_NS_SECURE             (0x0 << 5)
+#define MM_S1_NS_NONSECURE          (0x1 << 5)
 
 // AttrIndx[4:2] Stage 1 memory attributes index
 //   MAIR_EL1 レジスタのどのパートを使うかを指定する
@@ -70,9 +70,9 @@
 //     0b11: アドレスが指すのはページ
 //     0b01: invalid
 //   仮にブロックを使わない場合、全エントリの下位2ビットはすべて 0x3 になる
-#define MM_TYPE_PAGE_TABLE          (0b11 << 0)
-#define MM_TYPE_PAGE                (0b11 << 0)
-#define MM_TYPE_BLOCK               (0b01 << 0)
+#define MM_TYPE_PAGE_TABLE          (0x3 << 0)
+#define MM_TYPE_PAGE                (0x3 << 0)
+#define MM_TYPE_BLOCK               (0x1 << 0)
 
 
 // Stage 2 のエントリの attribute の設定用定数
@@ -87,27 +87,27 @@
 //   Descriptor type[1:0] (Stage 1/2 共通)
 
 // RES0 (Stage 2 では nG はない)
-#define MM_S2_RES0                  (0b0 << 11)
+#define MM_S2_RES0                  (0x0 << 11)
 
 // AF[10] Access flag (Stage 1 と同じ)
-#define MM_S2_AF_NO_ACCESS          (0b0 << 10)
-#define MM_S2_AF_ACCESS             (0b1 << 10)
+#define MM_S2_AF_NO_ACCESS          (0x0 << 10)
+#define MM_S2_AF_ACCESS             (0x1 << 10)
 
 // SH[9:8] Shareability field (Stage 1 と同じ)
 // S1 と S2 の SH の設定を組み合わせて最終的なキャッシュの制御が決まる
-#define MM_S2_SH_NON_SHAREABLE       (0b00 << 8)
-#define MM_S2_SH_OUTER_SHAREABLE     (0b10 << 8)
-#define MM_S2_SH_INNER_SHAREABLE     (0b11 << 8)
+#define MM_S2_SH_NON_SHAREABLE       (0x0 << 8)
+#define MM_S2_SH_OUTER_SHAREABLE     (0x2 << 8)
+#define MM_S2_SH_INNER_SHAREABLE     (0x3 << 8)
 
 // HAP[7:6]: Stage 2 access permissions bits
 //   0b00: アクセス禁止
 //   0b01: 読み取りのみ許可され、Stage 1 のアクセス許可に関係なく書き込みは許可されない
 //   0b10: 書き込みのみ許可され、Stage 1 のアクセス許可に関係なく読み取りは許可されない
 //   0b11: 読み書きを許可、つまり Stage 1 のアクセス許可がそのまま適用される
-#define MM_S2_HAP_NONE              (0b00 << 6)
-#define MM_S2_HAP_RO                (0b01 << 6)
-#define MM_S2_HAP_WO                (0b10 << 6)
-#define MM_S2_HAP_RW                (0b11 << 6)
+#define MM_S2_HAP_NONE              (0x0 << 6)
+#define MM_S2_HAP_RO                (0x1 << 6)
+#define MM_S2_HAP_WO                (0x2 << 6)
+#define MM_S2_HAP_RW                (0x3 << 6)
 
 // MemAttr[5:2]: Stage 2 memory attributes
 // まず MemAttr[3:2] で Cacheability が決まる
@@ -127,11 +127,11 @@
 //     0b10: Inner Write-Through cacheable
 //     0b11: Inner Write-Back cacheable
 // 現状 inner が write-through で outer が write-back といった特殊な組み合わせは定義していない
-#define MM_S2_MEMATTR_STRONGLY_ORDERED   (0b0000 << 2)
-#define MM_S2_MEMATTR_DEVICE             (0b0001 << 2)
-#define MM_S2_MEMATTR_NORMAL_NC          (0b0101 << 2)
-#define MM_S2_MEMATTR_NORMAL_WT          (0b1010 << 2)
-#define MM_S2_MEMATTR_NORMAL_WB          (0b1111 << 2)
+#define MM_S2_MEMATTR_STRONGLY_ORDERED   (0x0 << 2)
+#define MM_S2_MEMATTR_DEVICE             (0x1 << 2)
+#define MM_S2_MEMATTR_NORMAL_NC          (0x5 << 2)
+#define MM_S2_MEMATTR_NORMAL_WT          (0xA << 2)
+#define MM_S2_MEMATTR_NORMAL_WB          (0xF << 2)
 
 // Descriptor type[1:0] は Stage 1 と同じなので定義なし
 

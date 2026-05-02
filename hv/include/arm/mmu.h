@@ -20,13 +20,13 @@
 //   NORMAL_CACHEABLE = 001 11111111
 
 // AttrIndex に入れる MAIR のインデックスの定義
-#define MT_IDX_DEVICE_nGnRnE        0b000
-#define MT_IDX_NORMAL_CACHEABLE     0b001
+#define MT_IDX_DEVICE_nGnRnE        0x0
+#define MT_IDX_NORMAL_CACHEABLE     0x1
 
 // 各メモリタイプ(MT)の設定値
-#define MT_ATTR_DEVICE_nGnRnE       0b00000000
-#define MT_ATTR_NORMAL_NC           0b01000100
-#define MT_ATTR_NORMAL_WB           0b11111111
+#define MT_ATTR_DEVICE_nGnRnE       0x00
+#define MT_ATTR_NORMAL_NC           0x44
+#define MT_ATTR_NORMAL_WB           0xFF
 
 // MAIR_EL1 レジスタに設定する値
 // デバッグのため、いったんキャッシュを無効(MT_ATTR_NORMAL_NC)にしている
