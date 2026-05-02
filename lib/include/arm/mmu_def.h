@@ -136,15 +136,40 @@
 // Descriptor type[1:0] は Stage 1 と同じなので定義なし
 
 
-// todo: TCR にも EL1/EL2 がある
-// // TCR Definitions
-// #define TCR_T0SZ(x)             ((x) & 0x3f)
-// #define TCR_T1SZ(x)             (((x) & 0x3f) << 16)
-// #define TCR_TG0_4K              (0 << 14)
-// #define TCR_TG0_64K             (1 << 14)
-// #define TCR_TG0_16K             (2 << 14)
-// #define TCR_TG1_16K             (1 << 30)
-// #define TCR_TG1_4K              (2 << 30)
-// #define TCR_TG1_64K             (3 << 30)
+// TCR_EL1: Translation Control Register
+//   EL0/1 向けの Stage 1 のアドレス変換を制御するためのレジスタ
+//   https://developer.arm.com/documentation/111179/2025-09_ASL1/AArch64-Registers/TCR-EL1--Translation-Control-Register--EL1-
+//   以下の定数定義は TCR_EL1, TCR_EL2, VTCR_EL2 で共通
+//
+// TxSZ: ARMv8 がサポートする64ビットアドレスのうち、無視するビット数を指定する
+//   たとえば T0SZ に 16 を指定すると 64 - 16 = 48 ビットのアドレス 256TB だけが有効になる
+//   25 を指定すると 64 - 25 = 39 ビットのアドレス 512GB だけが有効になる
+//   48ビットの場合はテーブルは4段になるが39ビットの場合はテーブルは3段になり探索が高速化される
+//
+// T1SZ[21:16]: TTBR1_EL1 で変換されるアドレスのサイズを指定する
+// T0SZ[5:0]:   TTBR0_EL1 で変換されるアドレスのサイズを指定する
+//
+// HV/OS 側で数値を指定する想定だが、TxSZ に入れる値を 0-63 に制限しビットシフトするマクロを提供する
+#define TCR_T0SZ(x)             ((x) & 0x3f)
+#define TCR_T1SZ(x)             (((x) & 0x3f) << 16)
+
+// TGx: Translation Granule size
+//   ARMv8 では 3種類のページサイズがサポートされており、それらの中から選択する
+//   4KB が最も一般的
+//   TG0 と TG1 でインデックスが異なるので注意
+// TG1[31:30]: TTBR1_EL1 で変換されるアドレスのページサイズを指定する
+//   0b01: 16KB
+//   0b10: 4KB
+//   0b11: 64KB
+// TG0[15:14]: TTBR0_EL1 で変換されるアドレスのページサイズを指定する
+//   0b00: 4KB
+//   0b01: 64KB
+//   0b10: 16KB
+#define TCR_TG1_16K             (0x1 << 30)
+#define TCR_TG1_4K              (0x2 << 30)
+#define TCR_TG1_64K             (0x3 << 30)
+#define TCR_TG0_4K              (0x0 << 14)
+#define TCR_TG0_64K             (0x1 << 14)
+#define TCR_TG0_16K             (0x2 << 14)
 
 #endif /* _LIB_ARM_MMU_DEF_H */

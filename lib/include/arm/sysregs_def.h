@@ -238,6 +238,7 @@
 #define ESR_ELx_EC_SVC64        (0x15)
 #define ESR_ELx_EC_DABT_LOW     (0x24)
 
+// todo: これは定数定義ではなく HV の設定値を保持しているので、ここではなく HV 側のヘッダで定義するべきでは
 // VTCR_EL2, Virtualization Transition Control Register (EL2)
 //   https://developer.arm.com/documentation/ddi0601/2024-09/AArch64-Registers/VTCR-EL2--Virtualization-Translation-Control-Register
 // NSA[30]: Non-secure stage 2 translation output address space for the Secure EL1&0 translation regime
