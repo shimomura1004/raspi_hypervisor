@@ -1,55 +1,42 @@
 #ifndef _MMU_H
 #define _MMU_H
 
-// Stage 1 のエントリの attribute の説明
-// Attribute fields in stage 1 Long-descriptor Block and Page descriptors
-// https://developer.arm.com/documentation/ddi0406/c/System-Level-Architecture/Virtual-Memory-System-Architecture--VMSA-/Long-descriptor-translation-table-format/Memory-attributes-in-the-Long-descriptor-translation-table-format-descriptors?lang=en
+#include "arm/mmu_def.h"
+
+// MAIR_EL1
+//   MAIR_EL1 レジスタは8個のパートに分かれており、ページの属性を入れておくことができる
+//   システム全体でメモリの属性は8パターンしかないということ
+//   各ページは変換テーブルのエントリで MAIR のどのパートを使うかを
+//   ページテーブルのエントリの下位12ビット内の AttrIndex[4:2] で指定する
 //
-// nG[11] (not global) : TLB でどう扱われるかを表す
-// AF[10] (Access flag)
-// SH[9:8] (Shareability field)
-// AP[7:6] (Access Permissions)
-// NS[5] (Non-seccure) : このアドレスが secure か non-secure かを表す
-// AttrIndx[4:2] : Stage 1 memory attributes index
+// raspvisor では以下の2パターンを準備している
+//   0b000: DEVICE_nGnRnE       デバイスメモリ
+//   0b001: NORMAL_CACHEABLE    通常のメモリで、キャッシュも可能
+//
+// Memory region attributes:
+//   n = AttrIndx[2:0]
+//                      n   MAIR
+//   DEVICE_nGnRnE    = 000 00000000
+//   NORMAL_CACHEABLE = 001 11111111
 
-#define MM_TYPE_PAGE_TABLE		0x3
-#define MM_TYPE_PAGE 			0x3
-#define MM_TYPE_BLOCK			0x1
+#define MT_DEVICE_nGnRnE            0b000
+#define MT_NORMAL_CACHEABLE         0b001
 
-#define MM_ACCESS			    (0x1 << 10)
-#define MM_nG                   (0x0 << 11)
-#define MM_SH                   (0x3 << 8)
+#define MAIR_ATTR_DEVICE_nGnRnE     0b00000000
+#define MAIR_ATTR_NORMAL_NC         0b01000100
+#define MAIR_ATTR_NORMAL_WB         0b11111111
+
+#define MT_DEVICE_nGnRnE_FLAGS      MAIR_ATTR_DEVICE_nGnRnE
+// todo: デバッグのため、いったんキャッシュを無効にする
+// #define MT_NORMAL_CACHEABLE_FLAGS   MAIR_ATTR_NORMAL_WB
+#define MT_NORMAL_CACHEABLE_FLAGS   MAIR_ATTR_NORMAL_NC
 
 // MAIR_EL1 レジスタに設定する値
-// MAIR_EL1 レジスタは8個のパートに分かれており、ページの属性を入れておく
-// 各ページは変換テーブルのエントリで MAIR のどのパートを使うかを指定する
-// つまりシステム全体でメモリの属性は8パターンしかない
-// raspvisor では以下の2パターンを準備している
-//   DEVICE_nGnRnE       デバイスメモリ
-//   NORMAL_CACHEABLE    通常のメモリで、キャッシュも可能
-// https://developer.arm.com/documentation/ddi0601/2024-09/AArch64-Registers/MAIR-EL1--Memory-Attribute-Indirection-Register--EL1-
-/*
- * Memory region attributes:
- *
- *   n = AttrIndx[2:0]
- *			n	MAIR
- *   DEVICE_nGnRnE      000 00000000
- *   NORMAL_CACJEABLE   001 11111111
- */
-#define MT_DEVICE_nGnRnE            0x0
-#define MT_NORMAL_CACHEABLE         0x1
-
-#define MT_DEVICE_nGnRnE_FLAGS      0x00
-// todo: いったんキャッシュを無効にする
-// #define MT_NORMAL_CACHEABLE_FLAGS   0xff
-#define MT_NORMAL_CACHEABLE_FLAGS   0x44
-
 #define MAIR_VALUE \
-    (MT_DEVICE_nGnRnE_FLAGS << (8 * MT_DEVICE_nGnRnE)) | \
-    (MT_NORMAL_CACHEABLE_FLAGS << (8 * MT_NORMAL_CACHEABLE))
+        ((MT_DEVICE_nGnRnE_FLAGS << (8 * MT_DEVICE_nGnRnE)) | \
+         (MT_NORMAL_CACHEABLE_FLAGS << (8 * MT_NORMAL_CACHEABLE)))
 
-// 以下2つのページ属性用のフラグは boot.S で EL2 の
-// ページテーブル設定に使っているので、Stage 2 のエントリ用のはず
+// 以下2つのページ属性用のフラグは Stage 1 のエントリ用
 #define MMU_FLAGS \
     (MM_TYPE_BLOCK | (MT_NORMAL_CACHEABLE << 2) | MM_nG | MM_ACCESS)
 #define MMU_DEVICE_FLAGS \
@@ -87,10 +74,6 @@
 // todo: いったんキャッシュを無効にする
 //#define MM_STAGE2_MEMATTR   (0xf << 2)  // Write-back cacheable
 #define MM_STAGE2_MEMATTR   (0x5 << 2)  // Write-back cacheable
-
-// todo:
-// MMU_STAGE2_PAGE_FLAGS/MMU_STAGE2_MMIO_FLAGS は
-// VM のページテーブル設定に使っているので、Stage 1 のエントリ用のはず
 
 // 通常のメモリのエントリ
 #define MMU_STAGE2_PAGE_FLAGS \

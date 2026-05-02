@@ -1,4 +1,3 @@
-#include "arm/mmu.h"
 #include "arm/sysregs_def.h"
 
 // sm/hv の間に二段階アドレス変換はないので、メモリ空間は手動で分離する必要がある

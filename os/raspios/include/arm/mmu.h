@@ -1,11 +1,10 @@
 #ifndef _MMU_H
 #define _MMU_H
 
-#define MM_TYPE_PAGE_TABLE		0x3
-#define MM_TYPE_PAGE 			0x3
-#define MM_TYPE_BLOCK			0x1
-#define MM_ACCESS			(0x1 << 10)
-#define MM_ACCESS_PERMISSION		(0x01 << 6) 
+#include "arm/mmu_def.h"
+
+// todo: これも共通のはずだが名前が統一されていない
+#define MM_ACCESS_PERMISSION  (0x01 << 6) 
 
 /*
  * Memory region attributes:
@@ -29,6 +28,8 @@
 #define TCR_T1SZ			((64 - 48) << 16)
 #define TCR_TG0_4K			(0 << 14)
 #define TCR_TG1_4K			(2 << 30)
+
+// todo: value だけ残るのが正しい
 #define TCR_VALUE			(TCR_T0SZ | TCR_T1SZ | TCR_TG0_4K | TCR_TG1_4K)
 
 #endif
