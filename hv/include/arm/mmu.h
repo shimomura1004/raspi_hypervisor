@@ -51,10 +51,7 @@
         (MM_TYPE_PAGE | MM_S2_AF_ACCESS | MM_S2_SH_INNER_SHAREABLE | \
          MM_S2_HAP_NONE | MM_S2_MEMATTR_STRONGLY_ORDERED)
 
-
-// todo: mmu_def.h で定義された値を使う
-#define TCR_T0SZ			(64 - 48)
-#define TCR_TG0_4K			(0 << 14)
-#define TCR_VALUE			(TCR_T0SZ | TCR_TG0_4K)
+// TCR_EL2 に設定する値(48 ビットアドレスかつページサイズは 4KB)
+#define TCR_VALUE                   (TCR_T0SZ(64 - 48) | TCR_TG0_4K)
 
 #endif
