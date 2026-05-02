@@ -40,32 +40,19 @@
 #define MMU_DEVICE_FLAGS \
     (MM_TYPE_BLOCK | (MT_IDX_DEVICE_nGnRnE << 2) | MM_S1_nG_NON_GLOBAL | MM_S1_AF_ACCESS)
 
-// todo: mmu_def.h で定義された値を使う
-
-#define MM_STAGE2_ACCESS    (1 << 10)
-#define MM_STAGE2_SH        (3 << 8)    // inner shareable
-#define MM_STAGE2_AP        (3 << 6)    // read/write
-// todo: いったんキャッシュを無効にする
-//#define MM_STAGE2_MEMATTR   (0xf << 2)  // Write-back cacheable
-#define MM_STAGE2_MEMATTR   (0x5 << 2)  // Write-back cacheable
-
 // 通常のメモリのエントリ
+// デバッグのため、いったんキャッシュを無効(MM_S2_MEMATTR_NORMAL_NC)にしている
 #define MMU_STAGE2_PAGE_FLAGS \
-    (MM_TYPE_PAGE | MM_STAGE2_ACCESS | MM_STAGE2_SH | \
-     MM_STAGE2_AP | MM_STAGE2_MEMATTR)
-
-#define MM_STAGE2_AP_NONE           (0 << 6)    // No access permitted
-#define MM_STAGE2_DEVICE_MEMATTR    (0x0 << 2)  // Strongly-ordered memory
+        (MM_TYPE_PAGE | MM_S2_AF_ACCESS | MM_S2_SH_INNER_SHAREABLE | \
+         MM_S2_HAP_RW | MM_S2_MEMATTR_NORMAL_NC)
 
 // デバイスの MMIO 用のエントリ
-// MM_STAGE2_AP -> MM_STAGE2_AP_NONE に変更
-//   (read/write) -> (no access)
-// MM_STAGE2_MEMATTR -> MM_STAGE2_DEVICE_MEMATTR に変更
-//   (inner write-back cacheable) -> (strongly-ordered)
 #define MMU_STAGE2_MMIO_FLAGS \
-    (MM_TYPE_PAGE | MM_STAGE2_ACCESS | MM_STAGE2_SH | \
-     MM_STAGE2_AP_NONE | MM_STAGE2_DEVICE_MEMATTR)
+        (MM_TYPE_PAGE | MM_S2_AF_ACCESS | MM_S2_SH_INNER_SHAREABLE | \
+         MM_S2_HAP_NONE | MM_S2_MEMATTR_STRONGLY_ORDERED)
 
+
+// todo: mmu_def.h で定義された値を使う
 #define TCR_T0SZ			(64 - 48)
 #define TCR_TG0_4K			(0 << 14)
 #define TCR_VALUE			(TCR_T0SZ | TCR_TG0_4K)
