@@ -1,10 +1,6 @@
 #ifndef _LIB_ARM_MMU_DEF_H
 #define _LIB_ARM_MMU_DEF_H
 
-// todo: ここでは arm 仕様に基づく定数だけ定義するようにする
-//       たとえば nG[11] など、設定できる値の片方しか定義がないのは問題
-//       ここでは全ての値を定義しておいて、hv/os などでそれを選んで使うようにする
-
 // ARMv8-A MMU Descriptor Definitions (Long Descriptor Format)
 // Stage 1 のエントリの attribute の設定用定数
 //   Attribute fields in stage 1 Long-descriptor Block and Page descriptors
@@ -17,7 +13,7 @@
 //   AP[7:6]
 //   NS[5]
 //   AttrIndx[4:2]
-//   Descriptor type[1:0]
+//   Descriptor type[1:0] (Stage 1/2 共通)
 
 // nG[11] not Global
 //   0b0: このエントリはグローバルなのですべてのプロセスで使う(TLB から簡単には消えない)
@@ -63,7 +59,7 @@
 // AttrIndx[4:2] Stage 1 memory attributes index
 //   MAIR_EL1 レジスタのどのパートを使うかを指定する
 //   https://developer.arm.com/documentation/ddi0601/2024-09/AArch64-Registers/MAIR-EL1--Memory-Attribute-Indirection-Register--EL1-
-//
+//   定数定義はなし
 
 // Descriptor type[1:0]
 //   レベル0,1,2(PGD, PUD, PMD) の変換の場合
@@ -74,41 +70,70 @@
 //     0b11: アドレスが指すのはページ
 //     0b01: invalid
 //   仮にブロックを使わない場合、全エントリの下位2ビットはすべて 0x3 になる
-#define MM_TYPE_PAGE_TABLE      (0b11 << 0)
-#define MM_TYPE_PAGE            (0b11 << 0)
-#define MM_TYPE_BLOCK           (0b01 << 0)
-#define MM_TYPE_INVALID         (0b01 << 0)
+#define MM_TYPE_PAGE_TABLE          (0b11 << 0)
+#define MM_TYPE_PAGE                (0b11 << 0)
+#define MM_TYPE_BLOCK               (0b01 << 0)
 
 
-
-
-// Stage 2 のエントリの attribute の説明
+// Stage 2 のエントリの attribute の設定用定数
 //   Attribute fields in stage 2 Long-descriptor Block and Page descriptors
 //   https://developer.arm.com/documentation/ddi0406/c/System-Level-Architecture/Virtual-Memory-System-Architecture--VMSA-/Long-descriptor-translation-table-format/Memory-attributes-in-the-Long-descriptor-translation-table-format-descriptors?lang=en
-//   HAP と MemAttr は Stage 1 とは意味が異なる
-//
-// HAP[7:6]: Stage 2 access permissions bits
-//   0b00: No access permitted
-//   0b01: Read-only. Writes to the region are not permitted, regardless of the stage 1 permissons.
-//   0b10: Write-only. Reads from the region are not permitted, regardless of the stage 1 permissions.
-//   0b11: Read/write. The stage 1 permissons determine the access permissions for the region.
-// MemAttr[5:2]: Stage 2 memory attributes
-//   0b00xx: Strongly-ordered or Device, determined by MemAtr[1:0]
-//     0b0000: Region is Strongly-ordered memory
-//     0b0001: Region is Device memory
-//     0b0010: unpredictable
-//     0b0011: unpredictable
-//   0b--xx: Normal
-//     0b--00: unpredictable
-//     0b--01: Inner Non-cacheable
-//     0b--10: Inner Write-Through Cacheable
-//     0b--11: Inner Write-Back Cacheable
+// ビットアサインは以下
+//   RES0[11]
+//   AF[10]
+//   SH[9:8]
+//   HAP[7:6]
+//   MemAttr[5:2]
+//   Descriptor type[1:0] (Stage 1/2 共通)
+
+// RES0 (Stage 2 では nG はない)
+#define MM_S2_RES0                  (0b0 << 11)
+
+// AF[10] Access flag (Stage 1 と同じ)
+#define MM_S2_AF_NO_ACCESS          (0b0 << 10)
+#define MM_S2_AF_ACCESS             (0b1 << 10)
+
+// SH[9:8] Shareability field (Stage 1 と同じ)
+// S1 と S2 の SH の設定を組み合わせて最終的なキャッシュの制御が決まる
+#define MM_S2_SH_NON_SHAREABLE       (0b00 << 8)
+#define MM_S2_SH_OUTER_SHAREABLE     (0b10 << 8)
+#define MM_S2_SH_INNER_SHAREABLE     (0b11 << 8)
 
 // HAP[7:6]: Stage 2 access permissions bits
-#define MM_S2_HAP_NONE          (0x0 << 6)
-#define MM_S2_HAP_RO            (0x1 << 6)
-#define MM_S2_HAP_WO            (0x2 << 6)
-#define MM_S2_HAP_RW            (0x3 << 6)
+//   0b00: アクセス禁止
+//   0b01: 読み取りのみ許可され、Stage 1 のアクセス許可に関係なく書き込みは許可されない
+//   0b10: 書き込みのみ許可され、Stage 1 のアクセス許可に関係なく読み取りは許可されない
+//   0b11: 読み書きを許可、つまり Stage 1 のアクセス許可がそのまま適用される
+#define MM_S2_HAP_NONE              (0b00 << 6)
+#define MM_S2_HAP_RO                (0b01 << 6)
+#define MM_S2_HAP_WO                (0b10 << 6)
+#define MM_S2_HAP_RW                (0b11 << 6)
+
+// MemAttr[5:2]: Stage 2 memory attributes
+// まず MemAttr[3:2] で Cacheability が決まる
+//   0b00: Strongly-ordered or device memory で Cacheability は適用外
+//   0b01: Normal memory で Outer non-cacheable
+//   0b10: Normal memory で Outer Write-Through cacheable
+//   0b11: Normal memory で Outer Write-Back cacheable
+// MemAttr[1:0] の意味は MemAttr[3:2] で変わる
+//   MemAttr[3:2] が 0b00 のとき
+//     0b00: Strongly-ordered memory
+//     0b01: Device memory
+//     0b10: unpredictable
+//     0b11: unpredictable
+//   MemAttr[3:2] が 0b00 以外のとき
+//     0b00: unpredictable
+//     0b01: Inner non-cacheable
+//     0b10: Inner Write-Through cacheable
+//     0b11: Inner Write-Back cacheable
+// 現状 inner が write-through で outer が write-back といった特殊な組み合わせは定義していない
+#define MM_S2_MEMATTR_STRONGLY_ORDERED   (0b0000 << 2)
+#define MM_S2_MEMATTR_DEVICE             (0b0001 << 2)
+#define MM_S2_MEMATTR_NORMAL_NC          (0b0101 << 2)
+#define MM_S2_MEMATTR_NORMAL_WT          (0b1010 << 2)
+#define MM_S2_MEMATTR_NORMAL_WB          (0b1111 << 2)
+
+// Descriptor type[1:0] は Stage 1 と同じなので定義なし
 
 
 // todo: TCR にも EL1/EL2 がある
