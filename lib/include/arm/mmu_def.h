@@ -4,7 +4,6 @@
 // todo: ここでは arm 仕様に基づく定数だけ定義するようにする
 //       たとえば nG[11] など、設定できる値の片方しか定義がないのは問題
 //       ここでは全ての値を定義しておいて、hv/os などでそれを選んで使うようにする
-// todo: el1, el2 でファイルを分ける？
 
 // ARMv8-A MMU Descriptor Definitions (Long Descriptor Format)
 // Stage 1 のエントリの attribute の設定用定数
@@ -23,12 +22,14 @@
 // nG[11] not Global
 //   0b0: このエントリはグローバルなのですべてのプロセスで使う(TLB から簡単には消えない)
 //   0b1: このエントリは特定プロセス用(ASID に紐づけられ、ASID が切り替わると TLB から消えるかもしれない)
-#define MM_nG                   (0b1 << 11)
+#define MM_S1_nG_GLOBAL             (0b0 << 11)
+#define MM_S1_nG_NON_GLOBAL         (0b1 << 11)
 
 // AF[10] Access flag
 //   0b0: アクセス拒否、アクセスすると例外が発生する
 //   0b1: アクセス許可
-#define MM_ACCESS               (0b1 << 10)
+#define MM_S1_AF_NO_ACCESS          (0b0 << 10)
+#define MM_S1_AF_ACCESS             (0b1 << 10)
 
 // SH[9:8] Shareability field
 // キャッシュの制御に使われる
@@ -38,9 +39,9 @@
 //     他コアだけではなく GPU などの他 IP からもアクセスされる領域
 //   0b11: Inner Shareable
 //     他コアからアクセスされる領域、ハードウェアがキャッシュ一貫性を担保する
-#define MM_SH_NON_SHAREABLE     (0b00 << 8)
-#define MM_SH_OUTER_SHAREABLE   (0b10 << 8)
-#define MM_SH_INNER_SHAREABLE   (0b11 << 8)
+#define MM_S1_SH_NON_SHAREABLE      (0b00 << 8)
+#define MM_S1_SH_OUTER_SHAREABLE    (0b10 << 8)
+#define MM_S1_SH_INNER_SHAREABLE    (0b11 << 8)
 
 // AP[7:6] Access Permissions
 //   0b00: EL1 Read/Write, EL0 No Access
@@ -48,15 +49,16 @@
 //   0b10: EL1 Read-Only, EL0 No Access
 //   0b11: EL1 Read-Only, EL0 Read-Only
 // ARMv7 だと EL を PL と呼ぶので注意
-#define MM_AP_RW_EL1            (0b00 << 6)
-#define MM_AP_RW_ALL            (0b01 << 6)
-#define MM_AP_RO_EL1            (0b10 << 6)
-#define MM_AP_RO_ALL            (0b11 << 6)
+#define MM_S1_AP_RW_EL1             (0b00 << 6)
+#define MM_S1_AP_RW_ALL             (0b01 << 6)
+#define MM_S1_AP_RO_EL1             (0b10 << 6)
+#define MM_S1_AP_RO_ALL             (0b11 << 6)
 
 // NS[5] Non-seccure
 //   0b0: secure
 //   0b1: non-secure
-#define MM_NS                   (0b1 << 5)
+#define MM_S1_NS_SECURE             (0b0 << 5)
+#define MM_S1_NS_NONSECURE          (0b1 << 5)
 
 // AttrIndx[4:2] Stage 1 memory attributes index
 //   MAIR_EL1 レジスタのどのパートを使うかを指定する

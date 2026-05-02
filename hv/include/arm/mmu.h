@@ -38,9 +38,9 @@
 
 // 以下2つのページ属性用のフラグは Stage 1 のエントリ用
 #define MMU_FLAGS \
-    (MM_TYPE_BLOCK | (MT_NORMAL_CACHEABLE << 2) | MM_nG | MM_ACCESS)
+    (MM_TYPE_BLOCK | (MT_NORMAL_CACHEABLE << 2) | MM_S1_nG_NON_GLOBAL | MM_S1_AF_ACCESS)
 #define MMU_DEVICE_FLAGS \
-    (MM_TYPE_BLOCK | (MT_DEVICE_nGnRnE << 2) | MM_nG | MM_ACCESS)
+    (MM_TYPE_BLOCK | (MT_DEVICE_nGnRnE << 2) | MM_S1_nG_NON_GLOBAL | MM_S1_AF_ACCESS)
 
 // Stage 2 のエントリの attribute の説明
 // Attribute fields in stage 2 Long-descriptor Block and Page descriptors
