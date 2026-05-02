@@ -19,28 +19,26 @@
 //   DEVICE_nGnRnE    = 000 00000000
 //   NORMAL_CACHEABLE = 001 11111111
 
-#define MT_DEVICE_nGnRnE            0b000
-#define MT_NORMAL_CACHEABLE         0b001
+// AttrIndex に入れる MAIR のインデックスの定義
+#define MT_IDX_DEVICE_nGnRnE        0b000
+#define MT_IDX_NORMAL_CACHEABLE     0b001
 
-#define MAIR_ATTR_DEVICE_nGnRnE     0b00000000
-#define MAIR_ATTR_NORMAL_NC         0b01000100
-#define MAIR_ATTR_NORMAL_WB         0b11111111
-
-#define MT_DEVICE_nGnRnE_FLAGS      MAIR_ATTR_DEVICE_nGnRnE
-// todo: デバッグのため、いったんキャッシュを無効にする
-// #define MT_NORMAL_CACHEABLE_FLAGS   MAIR_ATTR_NORMAL_WB
-#define MT_NORMAL_CACHEABLE_FLAGS   MAIR_ATTR_NORMAL_NC
+// 各メモリタイプ(MT)の設定値
+#define MT_ATTR_DEVICE_nGnRnE       0b00000000
+#define MT_ATTR_NORMAL_NC           0b01000100
+#define MT_ATTR_NORMAL_WB           0b11111111
 
 // MAIR_EL1 レジスタに設定する値
+// デバッグのため、いったんキャッシュを無効(MT_ATTR_NORMAL_NC)にしている
 #define MAIR_VALUE \
-        ((MT_DEVICE_nGnRnE_FLAGS << (8 * MT_DEVICE_nGnRnE)) | \
-         (MT_NORMAL_CACHEABLE_FLAGS << (8 * MT_NORMAL_CACHEABLE)))
+        ((MT_ATTR_DEVICE_nGnRnE << (8 * MT_IDX_DEVICE_nGnRnE)) | \
+         (MT_ATTR_NORMAL_NC     << (8 * MT_IDX_NORMAL_CACHEABLE)))
 
 // 以下2つのページ属性用のフラグは Stage 1 のエントリ用
 #define MMU_FLAGS \
-    (MM_TYPE_BLOCK | (MT_NORMAL_CACHEABLE << 2) | MM_S1_nG_NON_GLOBAL | MM_S1_AF_ACCESS)
+    (MM_TYPE_BLOCK | (MT_IDX_NORMAL_CACHEABLE << 2) | MM_S1_nG_NON_GLOBAL | MM_S1_AF_ACCESS)
 #define MMU_DEVICE_FLAGS \
-    (MM_TYPE_BLOCK | (MT_DEVICE_nGnRnE << 2) | MM_S1_nG_NON_GLOBAL | MM_S1_AF_ACCESS)
+    (MM_TYPE_BLOCK | (MT_IDX_DEVICE_nGnRnE << 2) | MM_S1_nG_NON_GLOBAL | MM_S1_AF_ACCESS)
 
 // todo: mmu_def.h で定義された値を使う
 
