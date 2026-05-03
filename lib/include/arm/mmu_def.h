@@ -182,4 +182,85 @@
 #define TCR_TG0_64K             (_UL(0x1) << 14)
 #define TCR_TG0_16K             (_UL(0x2) << 14)
 
+
+// VTCR_EL2: Virtualization Translation Control Register (EL2)
+//   https://developer.arm.com/documentation/ddi0601/2024-09/AArch64-Registers/VTCR-EL2--Virtualization-Translation-Control-Register
+// VTCR には必ず 1 をセットしないといけないビットがある
+#define VTCR_EL2_RES1           ((_UL(0x1) << 31) | (_UL(0x1) << 2))
+
+// NSA[30]: Non-secure stage 2 translation output address space for the Secure EL1&0 translation regime
+//   0b0: All stage 2 translation for the Non-secure IPA space of the Secure EL1&0 translation regime access the Secure PA space
+//   0b1: All stage 2 translation for the Non-secure IPA space of the Secure EL1&0 translation regime access the Non-secure PA space
+#define VTCR_EL2_NSA            (_UL(0x1) << 30)
+
+// NSW[29]: Non-secure stage 2 translation table address space for the Secure EL1&0 translation regime
+//   0b0: All stage 2 translation table walks for the Non-secure IPA space of the Secure EL1&0 translation regime are to the Secure PA space.
+//   0b1: All stage 2 translation table walks for the Non-secure IPA space of the Secure EL1&0 translation regime are to the Non-secure PA space.
+#define VTCR_EL2_NSW            (_UL(0x1) << 29)
+
+// VS[19]: VMID Size
+//   0b0: 8-bit VMID
+//   0b1: 16-bit VMID
+#define VTCR_EL2_VS_8BIT        (_UL(0x0) << 19)
+#define VTCR_EL2_VS_16BIT       (_UL(0x1) << 19)
+
+// PS[18:16]: Physical Address Size for stage 2
+//   0b000: 32 bits, 4GB.
+//   0b001: 36 bits, 64GB.
+//   0b010: 40 bits, 1TB.
+//   0b011: 42 bits, 4TB.
+//   0b100: 44 bits, 16TB.
+//   0b101: 48 bits, 256TB.
+//   0b110: 52 bits, 4PB.
+//   0b111: 56 bits, 64PB. ただし FEAT_D128 が定義されているときのみ
+#define VTCR_EL2_PS_32BIT       (_UL(0x0) << 16) // 4GB
+#define VTCR_EL2_PS_36BIT       (_UL(0x1) << 16) // 64GB
+#define VTCR_EL2_PS_40BIT       (_UL(0x2) << 16) // 1TB
+#define VTCR_EL2_PS_42BIT       (_UL(0x3) << 16) // 4TB
+#define VTCR_EL2_PS_44BIT       (_UL(0x4) << 16) // 16TB
+#define VTCR_EL2_PS_48BIT       (_UL(0x5) << 16) // 256TB
+#define VTCR_EL2_PS_52BIT       (_UL(0x6) << 16) // 4PB
+
+// TG0[15:14]: Granule size for the VTTBR_EL2
+//   0b00: 4KB.
+//   0b01: 64KB.
+//   0b10: 16KB.
+#define VTCR_EL2_TG0_4K         (_UL(0x0) << 14)
+#define VTCR_EL2_TG0_64K        (_UL(0x1) << 14)
+#define VTCR_EL2_TG0_16K        (_UL(0x2) << 14)
+
+// SH0[13:12]: Shareability attribute for stage 2 table walks
+//   0b00: Non-shareable.
+//   0b10: Outer Shareable.
+//   0b11: Inner Shareable.
+#define VTCR_EL2_SH0_NON        (_UL(0x0) << 12)
+#define VTCR_EL2_SH0_OUTER      (_UL(0x2) << 12)
+#define VTCR_EL2_SH0_INNER      (_UL(0x3) << 12)
+
+// ORGN0[11:10], IRGN0[9:8]: Cacheability attributes for stage 2 table walks
+//   0b00: Normal memory, Outer Non-cacheable.
+//   0b01: Normal memory, Outer Write-Back Read-Allocate Write-Allocate Cacheable.
+//   0b10: Normal memory, Outer Write-Through Read-Allocate No Write-Allocate Cacheable.
+//   0b11: Normal memory, Outer Write-Back Read-Allocate No Write-Allocate Cacheable.
+#define VTCR_EL2_ORGN0_NC       (_UL(0x0) << 10)
+#define VTCR_EL2_ORGN0_WB_WA    (_UL(0x1) << 10)
+#define VTCR_EL2_ORGN0_WT       (_UL(0x2) << 10)
+#define VTCR_EL2_ORGN0_WB_nWA   (_UL(0x3) << 10)
+#define VTCR_EL2_IRGN0_NC       (_UL(0x0) << 8)
+#define VTCR_EL2_IRGN0_WB_WA    (_UL(0x1) << 8)
+#define VTCR_EL2_IRGN0_WT       (_UL(0x2) << 8)
+#define VTCR_EL2_IRGN0_WB_nWA   (_UL(0x3) << 8)
+
+// SL0[7:6]: Starting level of the stage 2 translation lookup
+// Meaning depends on TG0. For TG0=4KB:
+//   0b01 and VTCR_EL2.TG0 is 0b00 and VTCR_EL2.SL2 is 0b0, start at level1
+//   ...
+#define VTCR_EL2_SL0_L2         (_UL(0x0) << 6)
+#define VTCR_EL2_SL0_L1         (_UL(0x1) << 6)
+#define VTCR_EL2_SL0_L0         (_UL(0x2) << 6)
+
+// T0SZ[5:0]: TCR_T0SZ と同じ
+//   サイズは 2^(64 - T0SZ) で計算される
+#define VTCR_T0SZ(x)        ((_UL(x)) & _UL(0x3f))
+
 #endif /* _LIB_ARM_MMU_DEF_H */

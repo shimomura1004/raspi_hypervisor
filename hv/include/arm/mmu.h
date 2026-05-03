@@ -54,4 +54,11 @@
 // TCR_EL2 に設定する値(48 ビットアドレスかつページサイズは 4KB)
 #define TCR_VALUE                   (TCR_T0SZ(64 - 48) | TCR_TG0_4K)
 
+// VTCR_EL2 に設定する値
+#define VTCR_EL2_VALUE \
+        (VTCR_EL2_RES1 | VTCR_EL2_NSA | VTCR_EL2_NSW | \
+         VTCR_EL2_VS_8BIT | VTCR_EL2_PS_40BIT | VTCR_EL2_TG0_4K | \
+         VTCR_EL2_SH0_INNER | VTCR_EL2_ORGN0_NC | VTCR_EL2_IRGN0_NC | \
+         VTCR_EL2_SL0_L1 | VTCR_T0SZ(64 - 38))
+
 #endif
