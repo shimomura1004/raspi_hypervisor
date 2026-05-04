@@ -211,6 +211,7 @@ __create_page_tables:
 	// この PMD は先ほど作成したもので、メモリ空間を正しくマップしている
 	str x3, [x2, x1, lsl #3]
 
+    // todo: create_block_map などのマクロは hv と同じなのでライブラリにする？
 	// PMD の中身(各エントリ)を作成
 	// 1回目の create_block_map ではまずメインメモリをマップする
 	// この時点でも x0 には PMD のアドレスが入っている

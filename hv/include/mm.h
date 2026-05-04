@@ -9,10 +9,12 @@
 #define P2V(pa)             ((pa) - RAM_BASE + VA_START)
 #define V2P(va)             ((va) + RAM_BASE - VA_START)
 
+// todo: PHYS_MEMORY_SIZE はボードごとの定義にするべきでは？あとこれは DRAM ではなくメモリ全体の大きさでは？
 // DRAM のサイズ
 // ボードごとに RAM_SIZE が定義されている
 #define PHYS_MEMORY_SIZE    RAM_SIZE
 
+// todo: LOW_MEMORY や HIGH_MEMORY はボードごとの共通定義なので lib に移す
 // 利用可能な物理メモリの開始アドレス(物理)
 // ハイパーバイザ自身がロードされる領域と各コアのスタックを避けるため RAM_BASE から8セクション(16MB)分ずらす
 #define LOW_MEMORY          (RAM_BASE + 8 * SECTION_SIZE)

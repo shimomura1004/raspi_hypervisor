@@ -7,6 +7,7 @@
 
 #include "arm/mm.h"
 
+// todo: これもボード固有のもの
 #define LOW_MEMORY          (RAM_BASE + 2 * SECTION_SIZE)
 #if defined(BOARD_VIRT)
 #define HIGH_MEMORY         (RAM_BASE + DEVICE_BASE)

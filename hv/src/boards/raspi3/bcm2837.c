@@ -130,9 +130,12 @@ static void bcm2837_initialize(struct vm_struct2 *vm) {
 
     vm->board_data = state;
 
+    // todo: これは本物の raspi3 の物理アドレスでいいの？
+    // todo: ここは PHYS_MEMORY_SIZE の意味次第
     // 二段階アドレス変換は VM で1つだけ必要で、vCPU ごとに設定する必要はない
     // stage2 のデバイスのメモリマッピング(MMIO ページの準備)
     unsigned long begin = DEVICE_BASE;
+    // todo: 現状、ローカルペリフェラルはマップされていない(アクセスすると HV でトラップされる)
     unsigned long end = PHYS_MEMORY_SIZE - SECTION_SIZE;
     for (; begin < end; begin += PAGE_SIZE) {
         set_vm_page_notaccessable(vm, begin);
