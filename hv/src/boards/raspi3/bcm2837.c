@@ -130,14 +130,17 @@ static void bcm2837_initialize(struct vm_struct2 *vm) {
 
     vm->board_data = state;
 
+    // Stage 2 のデバイスのメモリマッピングを行いアクセス不可(HV でトラップ)にする
     // 二段階アドレス変換は VM で1つだけ必要で、vCPU ごとに設定する必要はない
-    // stage2 のデバイスのメモリマッピング(MMIO ページの準備)
-    // todo: 現状、ローカルペリフェラルはマップされていない(アクセスすると HV でトラップされる)
-    // todo: これは本物の raspi3 の物理アドレスでいいの？
-    unsigned long begin = DEVICE_BASE;
-    unsigned long end = DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE;
-    for (; begin < end; begin += PAGE_SIZE) {
-        set_vm_page_notaccessable(vm, begin);
+
+    // BCM2837 の主要なペリフェラル領域 (0x3F000000 - 0x3FFFFFFF)
+    for (unsigned long addr = DEVICE_BASE; addr < DEVICE_BASE + DEVICE_SIZE; addr += PAGE_SIZE) {
+        set_vm_page_notaccessable(vm, addr);
+    }
+
+    // ARM Local Peripherals (0x40000000 - 0x401FFFFF)
+    for (unsigned long addr = LOCAL_PERIPHERAL_BASE; addr < LOCAL_PERIPHERAL_BASE + LOCAL_PERIPHERAL_SIZE; addr += PAGE_SIZE) {
+        set_vm_page_notaccessable(vm, addr);
     }
 }
 
