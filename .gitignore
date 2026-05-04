@@ -13,3 +13,4 @@ tmp/
 .vscode/
 !/.vscode/launch.json
 __pycache__/
+qemu.log

@@ -15,15 +15,18 @@
 BOARD=${BOARD:-raspi3}
 KERNEL_ELF=./hv/build/kernel8.elf
 
+# デバッグ用ログオプション (例外発生時にログを出す場合はこれらを有効にする)
+# QEMU_DEBUG_OPTS="-d int,guest_errors,unimp -D qemu.log"
+
 echo "Run Hypervisor on $BOARD"
 if [ "$BOARD" = "virt" ]; then
     DISPLAY=:0 qemu-system-aarch64 -m 1024 -M virt,gic-version=2,virtualization=on -cpu cortex-a53 -smp 4 \
         -kernel $KERNEL_ELF \
         -nographic -serial mon:stdio -net none \
         -drive file=./hv/build/fs.img,if=none,format=raw,id=hd0 \
-        -device virtio-blk-device,drive=hd0 -s $*
+        -device virtio-blk-device,drive=hd0 -s $QEMU_DEBUG_OPTS $*
 else
     DISPLAY=:0 qemu-system-aarch64 -m 1024 -M raspi3b \
         -kernel $KERNEL_ELF \
-        -nographic -serial null -serial mon:stdio -drive format=raw,file=./hv/build/fs.img -s $*
+        -nographic -serial null -serial mon:stdio -drive format=raw,file=./hv/build/fs.img -s $QEMU_DEBUG_OPTS $*
 fi
