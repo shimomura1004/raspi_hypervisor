@@ -18,6 +18,7 @@
 // BCM2837 Peripheral Base
 #define PERIPHERAL_BASE         0x3F000000
 #define DEVICE_BASE             PERIPHERAL_BASE
+#define DEVICE_SIZE             0x01000000
 
 // ARM Local Peripheral Base (QA7)
 #define LOCAL_PERIPHERAL_BASE   0x40000000

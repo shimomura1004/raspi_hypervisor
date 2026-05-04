@@ -362,30 +362,37 @@ __create_page_tables:
 
 #if defined(BOARD_RASPI3)
 	// ---- 物理アドレス 0x0000_0000-0x3fff_ffff を仮想アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
-	// DRAM 領域のマッピング(リニアマッピング)
-	mov x1, #RAM_BASE   // RAM の物理アドレス
-	mov x2, #VA_START   // 仮想アドレスの開始位置 (今のところ raspi3/virt のどちらも RAM_BASE = VA_START)
-	// これは、RAM の末尾にデバイスの領域が重なっている raspi3 を前提にしたコードになっている
-	// todo: DEVICE_BASE を足しているが、これは VA_START が 0 であることを前提にしておりわかりにくい
-	ldr	x3, =(VA_START + DEVICE_BASE - SECTION_SIZE)
-
-	// create_block_map, tbl, phys, start, end, flags, tmp1
-	// tbl = x0 = pg_dir
-	// phys = x1 = RAM_BASE
-	// start = x2 = VA_START
-	// end = x3 = VA_START + DEVICE_BASE - SECTION_SIZE
-	// flags = MMU_FLAGS
 	// 1GB のうち 0x3f000000 以降はデバイス用の領域なので2回目の create_block_map 呼び出しで対応
+
+	// DRAM 領域(0x0000_0000-0x3eff_ffff)のマッピング(リニアマッピング)
+	// create_block_map, tbl, phys, start, end, flags, tmp1
+	// tbl   = x0 = pg_dir
+	// phys  = x1 = RAM_BASE (物理アドレス)
+	// start = x2 = VA_START (仮想アドレス)
+	// end   = x3 = VA_START + DEVICE_BASE + RAM_SIZE - SECTION_SIZE (仮想アドレス)
+	// flags      = MMU_FLAGS
+    //
 	// end(x3) が SECTION_SIZE 分小さくなっているのは、
-	//   start=end となったアドレスまでマップしてからループを抜けるようになっているため
-	//   つまり1ブロック分小さくしておかないとオーバーランする
+	// start=end となったアドレスまでマップしてからループを抜けるようになっているため
+	// つまり1ブロック分小さくしておかないとオーバーランする
+    //
+    //  VA_START を単純に加算して仮想アドレスとしているのでリニアマッピングが前提になっている
+    //  todo: ↑P2V マクロを使うべき
+	mov x1, #RAM_BASE
+	mov x2, #VA_START
+	ldr	x3, =(VA_START + DEVICE_BASE + RAM_SIZE - SECTION_SIZE)
 	create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
 
-	// デバイス領域のマッピング(リニアマッピング)
+	// デバイス領域(0x3f000000-0x3fffffff)のマッピング(リニアマッピング)
+	// create_block_map, tbl, phys, start, end, flags, tmp1
+	// tbl   = x0 = pg_dir
+	// phys  = x1 = DEVICE_BASE (物理アドレス)
+	// start = x2 = VA_START + DEVICE_BASE (仮想アドレス)
+	// end   = x3 = VA_START + DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE (仮想アドレス)
+	// flags      = MMU_DEVICE_FLAGS
 	mov x1, #DEVICE_BASE
 	ldr x2, =(VA_START + DEVICE_BASE)
-	// todo: DEVICE_BASE を足しているが、これは VA_START が 0 であることを前提にしておりわかりにくい
-	ldr	x3, =(VA_START + PHYS_MEMORY_SIZE - SECTION_SIZE)
+	ldr	x3, =(VA_START + DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE)
 	create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
 	// ---- 物理アドレス 0x0000_0000-0x3fff_ffff を仮想アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
 
@@ -395,6 +402,7 @@ __create_page_tables:
 	// ---- 物理アドレス 0x4000_0000-0x7fff_ffff を仮想アドレス 0x4000_0000-0x7fff_ffff にマッピング ----
     // ローカルペリフェラル領域のマッピング(リニアマッピング)
 	// ローカルペリフェラル領域は 2MB 分で十分
+    // todo: ↑ローカルペリフェラル領域のサイズを raspi3.h で定義する
     mov x1, #LOCAL_PERIPHERAL_BASE
     ldr x2, =(VA_START + LOCAL_PERIPHERAL_BASE)
     ldr x3, =(VA_START + LOCAL_PERIPHERAL_BASE + 0x00200000 - SECTION_SIZE)
