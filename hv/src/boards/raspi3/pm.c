@@ -3,6 +3,7 @@
 #include "debug.h"
 #include "utils.h"
 #include "boards/raspi3/pm.h"
+#include "peripherals/mailbox_regs.h"
 #include "peripherals/mailbox.h"
 #include "cpu_core.h"
 

@@ -4,6 +4,7 @@
 #include "generic_timer.h"
 #include "entry.h"
 #include "peripherals/irq.h"
+#include "peripherals/mailbox_regs.h"
 #include "peripherals/mailbox.h"
 #include "arm/sysregs_def.h"
 #include "sched.h"
