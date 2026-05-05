@@ -6,6 +6,7 @@
 #include "fork.h"
 #include "peripherals/mini_uart_regs.h"
 #include "peripherals/gpio_regs.h"
+#include "mm.h"
 
 // todo: PSCI でシャットダウンする
 
@@ -56,7 +57,7 @@ void kernel_main()
 
 	if (cpuid == 0) {
 		// システムで一度だけ実施する初期化処理
-		uart_init(AUX_BASE, GPIO_BASE);
+		uart_init(PHYS_TO_VIRT(AUX_BASE), PHYS_TO_VIRT(GPIO_BASE));
 		init_printf(NULL, putc);
 
 		init_sched();

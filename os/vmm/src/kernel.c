@@ -8,6 +8,8 @@
 //       使っているのは loader_args の定義だけ？
 #include "../../../hv/include/loader.h"
 #include "hypercall_type.h"
+#include "mm.h"
+#include "peripherals/mini_uart_regs.h"
 
 #define BUFFER_LENGTH 128
 #define ARG_MAX 8
@@ -169,7 +171,7 @@ void execute_command(char *buf) {
 
 void kernel_main(void)
 {
-	uart_init(AUX_BASE, GPIO_BASE);
+	uart_init(PHYS_TO_VIRT(AUX_BASE), PHYS_TO_VIRT(GPIO_BASE));
 	init_printf(0, putc);
 	
 	irq_vector_init();
