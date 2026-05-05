@@ -1,7 +1,7 @@
 #ifndef _DRIVERS_UART_H
 #define _DRIVERS_UART_H
 
-void uart_init(void);
+void uart_init(unsigned long uart_base_virt_addr, unsigned long gpio_base_virt_addr);
 void uart_send(char c);
 char uart_recv(void);
 void handle_uart_irq(void);

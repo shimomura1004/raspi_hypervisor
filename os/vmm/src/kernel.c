@@ -1,6 +1,8 @@
 #include "printf.h"
 #include "utils.h"
 #include "drivers/uart.h"
+#include "peripherals/mini_uart_regs.h"
+#include "peripherals/gpio.h"
 #include "irq.h"
 // todo: hv と vmm で共通なので lib に移動する
 //       使っているのは loader_args の定義だけ？
@@ -167,7 +169,7 @@ void execute_command(char *buf) {
 
 void kernel_main(void)
 {
-	uart_init();
+	uart_init(AUX_BASE, GPIO_BASE);
 	init_printf(0, putc);
 	
 	irq_vector_init();
