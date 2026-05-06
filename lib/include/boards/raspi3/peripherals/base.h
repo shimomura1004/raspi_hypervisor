@@ -16,6 +16,7 @@
 #define LOCAL_PERIPHERAL_BASE   0x40000000
 #define LOCAL_PERIPHERAL_SIZE   0x00200000
 
+// todo: これは仮想アドレスなので OS 固有の設定
 // Peripheral base address
 #define PBASE                   (VA_START + DEVICE_BASE)
 
