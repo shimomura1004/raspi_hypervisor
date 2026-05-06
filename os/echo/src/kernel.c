@@ -1,12 +1,21 @@
 #include "printf.h"
 #include "utils.h"
-#include "mini_uart.h"
+#include "mm.h"
+#include "drivers/uart.h"
+#include "peripherals/mini_uart_regs.h"
+#include "peripherals/gpio_regs.h"
+#include "irq.h"
 #include "hypercall_type.h"
 
 void kernel_main(void)
 {
-	uart_init();
+	uart_init(AUX_BASE, GPIO_BASE);
 	init_printf(0, putc);
+
+    irq_vector_init();
+	enable_interrupt_controller();
+	enable_irq();
+
 	int el = get_el();
 	printf("Exception level: %d \r\n", el);
 	printf("Press '!' to trigger exception\r\n");

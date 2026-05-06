@@ -1,6 +1,8 @@
 #ifndef _MM_H
 #define _MM_H
 
+#include "board_config.h"
+
 // ソフトウェア実装依存のメモリレイアウト定義
 #define PAGE_SHIFT          12
 #define TABLE_SHIFT         9
@@ -16,6 +18,8 @@
 #define PUD_SHIFT           (PAGE_SHIFT + 2 * TABLE_SHIFT)
 #define PMD_SHIFT           (PAGE_SHIFT +     TABLE_SHIFT)
 
-#define LOW_MEMORY      (2 * SECTION_SIZE)
+#define PBASE               (DEVICE_BASE)
+
+#define LOW_MEMORY          (2 * SECTION_SIZE)
 
 #endif  /*_MM_H */
