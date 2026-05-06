@@ -368,8 +368,8 @@ __create_page_tables:
 	// create_block_map, tbl, phys, start, end, flags, tmp1
 	// tbl   = x0 = pg_dir
 	// phys  = x1 = RAM_BASE (物理アドレス)
-	// start = x2 = VA_START (仮想アドレス)
-	// end   = x3 = VA_START + DEVICE_BASE + RAM_SIZE - SECTION_SIZE (仮想アドレス)
+	// start = x2 = VA_START + RAM_BASE (仮想アドレス)
+	// end   = x3 = VA_START + RAM_BASE + RAM_SIZE - SECTION_SIZE (仮想アドレス)
 	// flags      = MMU_FLAGS
     //
 	// end(x3) が SECTION_SIZE 分小さくなっているのは、
@@ -379,8 +379,8 @@ __create_page_tables:
     //  VA_START を単純に加算して仮想アドレスとしているのでリニアマッピングが前提になっている
     //  todo: ↑P2V マクロを使うべき
 	mov x1, #RAM_BASE
-	mov x2, #VA_START
-	ldr	x3, =(VA_START + DEVICE_BASE + RAM_SIZE - SECTION_SIZE)
+	ldr x2, =(VA_START + RAM_BASE)
+	ldr	x3, =(VA_START + RAM_BASE + RAM_SIZE - SECTION_SIZE)
 	create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
 
 	// デバイス領域(0x3f000000-0x3fffffff)のマッピング(リニアマッピング)
@@ -405,7 +405,7 @@ __create_page_tables:
     // todo: ↑ローカルペリフェラル領域のサイズを raspi3.h で定義する
     mov x1, #LOCAL_PERIPHERAL_BASE
     ldr x2, =(VA_START + LOCAL_PERIPHERAL_BASE)
-    ldr x3, =(VA_START + LOCAL_PERIPHERAL_BASE + 0x00200000 - SECTION_SIZE)
+    ldr x3, =(VA_START + LOCAL_PERIPHERAL_BASE + LOCAL_PERIPHERAL_SIZE - SECTION_SIZE)
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
 	// ---- 物理アドレス 0x4000_0000-0x7fff_ffff を仮想アドレス 0x4000_0000-0x7fff_ffff にマッピング ----
 #elif defined(BOARD_VIRT)

@@ -7,8 +7,13 @@
 //   videocore からみたアドレスもある(バスアドレス)
 // https://www.reddit.com/r/osdev/comments/uc98tz/raspberry_pi_3_base_peripheral_address/#:~:text=Physical%20addresses%20range%20from%200x3F000000,address%20range%20starting%20at%200x7E000000.
 
-#define RAM_BASE                0x00000000UL
-#define RAM_SIZE                0x40000000UL
+// BCM2837 ではペリフェラルが2つのブロックに分かれて配置されている
+//   0x3F000000 - 0x3FFFFFFF : General Purpose I/O
+//   0x40000000 - 0x401FFFFF : Local Peripherals
+
+// todo: これらが物理アドレスであることを名前で明示する
+#define RAM_BASE                0x00000000
+#define RAM_SIZE                0x3F000000
 #define VA_START                0x0000000000000000UL
 
 // 利用可能な物理メモリの終端
@@ -22,6 +27,7 @@
 
 // ARM Local Peripheral Base (QA7)
 #define LOCAL_PERIPHERAL_BASE   0x40000000
+#define LOCAL_PERIPHERAL_SIZE   0x00200000
 
 // Use Mini UART for Raspberry Pi 3
 #define UART_TYPE_MINI          1
