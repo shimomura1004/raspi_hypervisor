@@ -19,6 +19,9 @@
 #define PUD_SHIFT           (PAGE_SHIFT + 2 * TABLE_SHIFT)
 #define PMD_SHIFT           (PAGE_SHIFT +     TABLE_SHIFT)
 
+#define VA_START            0x0000000000000000
+#define PBASE               (VA_START + DEVICE_BASE)
+
 // 現状ではすべてオフセットマッピングされることを想定している
 // 別のマッピングが必要であればこのマクロを修正する
 #define P2V(pa)             ((pa) - RAM_BASE + VA_START)
@@ -29,7 +32,6 @@
 // ボードごとに RAM_SIZE が定義されている
 #define PHYS_MEMORY_SIZE    RAM_SIZE
 
-// todo: LOW_MEMORY や HIGH_MEMORY はボードごとの共通定義なので lib に移す
 // 利用可能な物理メモリの開始アドレス(物理)
 // ハイパーバイザ自身がロードされる領域と各コアのスタックを避けるため RAM_BASE から8セクション(16MB)分ずらす
 #define LOW_MEMORY          (RAM_BASE + 8 * SECTION_SIZE)

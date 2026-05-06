@@ -2,11 +2,10 @@
 #include <stdint.h>
 
 #include "utils.h"
-#include "generic_timer.h"
-#include "fork.h"
+#include "mm.h"
+#include "drivers/uart.h"
 #include "peripherals/mini_uart_regs.h"
 #include "peripherals/gpio_regs.h"
-#include "mm.h"
 
 // todo: PSCI でシャットダウンする
 
@@ -14,12 +13,11 @@
 //   smccc には、vm 作成などの機能は定義されていないので、vendor specific な機能として定義する必要がある
 //   (0x84000000 - 0x8400FFFF)
 
-// todo: raspi3/virt のどちらの場合でも mini_uart が使われている。hv にならって console.h を作る。
-//       それか、lib の中に board/raspi3 or board/virt を作ってそこに入れる？
-#include "drivers/uart.h"
 #include "sys.h"
 #include "user.h"
 #include "spinlock.h"
+#include "fork.h"
+#include "generic_timer.h"
 
 struct spinlock console_lock;
 #include "debug.h"

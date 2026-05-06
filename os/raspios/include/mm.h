@@ -1,7 +1,7 @@
 #ifndef _MM_H
 #define _MM_H
 
-#include "peripherals/base.h"
+#include "board_config.h"
 
 // ソフトウェア実装依存のメモリレイアウト定義
 #define PAGE_SHIFT          12
@@ -18,12 +18,9 @@
 #define PUD_SHIFT           (PAGE_SHIFT + 2 * TABLE_SHIFT)
 #define PMD_SHIFT           (PAGE_SHIFT +     TABLE_SHIFT)
 
-// todo: これもボード固有のもの
 #define LOW_MEMORY          (RAM_BASE + 2 * SECTION_SIZE)
-#if defined(BOARD_VIRT)
-#define HIGH_MEMORY         (RAM_BASE + DEVICE_BASE)
-#else
-#define HIGH_MEMORY         (RAM_BASE + RAM_SIZE)
+#ifndef HIGH_MEMORY
+#error "HIGH_MEMORY must be defined in board header"
 #endif
 
 #define PAGING_MEMORY       (HIGH_MEMORY - LOW_MEMORY)
@@ -32,6 +29,7 @@
 #define PG_DIR_SIZE         (3 * PAGE_SIZE)
 
 #define VA_START            (0xffff000000000000)
+#define PBASE               (VA_START + DEVICE_BASE)
 
 #define STACK_SIZE          (0x400000)
 

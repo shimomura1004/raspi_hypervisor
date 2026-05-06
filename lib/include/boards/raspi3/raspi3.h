@@ -14,7 +14,6 @@
 // todo: これらが物理アドレスであることを名前で明示する
 #define RAM_BASE                0x00000000
 #define RAM_SIZE                0x3F000000
-#define VA_START                0x0000000000000000UL
 
 // 利用可能な物理メモリの終端
 // raspi3 では DRAM 末尾にデバイス領域(DEVICE_BASE~)が重なっているため、その手前までを RAM として扱う
