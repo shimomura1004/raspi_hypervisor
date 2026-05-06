@@ -1,5 +1,5 @@
 #include "boards/raspi3/raspi3_delays.h"
-#include "peripherals/systimer.h"
+#include "peripherals/systimer_regs.h"
 #include "mm.h"
 #include "utils.h"
 

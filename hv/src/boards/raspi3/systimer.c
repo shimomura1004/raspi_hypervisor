@@ -2,7 +2,7 @@
 #include "mm.h"
 #include "sched.h"
 #include "printf.h"
-#include "peripherals/systimer.h"
+#include "peripherals/systimer_regs.h"
 #include "peripherals/mailbox.h"
 #include "mini_uart.h"
 

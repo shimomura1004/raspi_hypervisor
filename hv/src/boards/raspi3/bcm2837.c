@@ -2,13 +2,13 @@
 #include "board.h"
 #include "mm.h"
 #include "fifo.h"
-#include "systimer.h"
 #include "utils.h"
 #include "peripherals/mini_uart_regs.h"
-#include "peripherals/systimer.h"
+#include "peripherals/systimer_regs.h"
 #include "peripherals/irq.h"
 #include "peripherals/mailbox.h"
 #include "mini_uart.h"
+#include "systimer.h"
 
 // BCM2837 SoC を表現するデータ構造と関数群
 // ハイパーバイザでは BCM2837 をエミュレートする
