@@ -1,7 +1,7 @@
 #include "console.h"
 #include "mm.h"
 #include "peripherals/mini_uart_regs.h"
-#include "peripherals/gpio.h"
+#include "peripherals/gpio_regs.h"
 #include "printf.h"
 #include "utils.h"
 #include "sched.h"

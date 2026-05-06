@@ -25,7 +25,7 @@
 
 #include "peripherals/base.h"
 #include "mm.h"
-#include "peripherals/gpio.h"
+#include "peripherals/gpio_regs.h"
 #include "debug.h"
 #include "boards/raspi3/raspi3_delays.h"
 #include "sd.h"

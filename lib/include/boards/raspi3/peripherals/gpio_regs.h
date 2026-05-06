@@ -1,9 +1,7 @@
-#ifndef	_P_GPIO_H
-#define	_P_GPIO_H
+#ifndef	_P_GPIO_REGS_H
+#define	_P_GPIO_REGS_H
 
 #include "peripherals/base.h"
-
-// todo: gpio_regs.h にリネーム
 
 #define GPFSEL0_OFFSET    (0x00)
 #define GPFSEL1_OFFSET    (0x04)
@@ -44,4 +42,4 @@
 #define GPPUDCLK0  (GPIO_BASE + GPPUDCLK0_OFFSET)
 #define GPPUDCLK1  (GPIO_BASE + GPPUDCLK1_OFFSET)
 
-#endif  /*_P_GPIO_H */
+#endif  /*_P_GPIO_REGS_H */

@@ -5,7 +5,7 @@
 #include "generic_timer.h"
 #include "fork.h"
 #include "peripherals/mini_uart_regs.h"
-#include "peripherals/gpio.h"
+#include "peripherals/gpio_regs.h"
 
 // todo: PSCI でシャットダウンする
 

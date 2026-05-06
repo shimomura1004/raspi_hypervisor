@@ -2,7 +2,7 @@
 #include "utils.h"
 #include "drivers/uart.h"
 #include "peripherals/mini_uart_regs.h"
-#include "peripherals/gpio.h"
+#include "peripherals/gpio_regs.h"
 #include "irq.h"
 // todo: hv と vmm で共通なので lib に移動する
 //       使っているのは loader_args の定義だけ？
