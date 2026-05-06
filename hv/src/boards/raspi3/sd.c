@@ -23,7 +23,7 @@
  *
  */
 
-#include "peripherals/base.h"
+#include "board_config.h"
 #include "mm.h"
 #include "peripherals/gpio_regs.h"
 #include "debug.h"

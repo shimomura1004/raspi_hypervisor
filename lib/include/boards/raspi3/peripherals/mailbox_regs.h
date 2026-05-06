@@ -1,7 +1,7 @@
 #ifndef _P_MAILBOX_REGS_H
 #define _P_MAILBOX_REGS_H
 
-#include "board_config.h"
+#include "boards/raspi3/raspi3.h"
 
 // Local Peripherals
 // (Defined in board_config.h / boards/raspi3.h)

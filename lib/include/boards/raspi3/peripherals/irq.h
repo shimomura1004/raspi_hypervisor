@@ -1,7 +1,7 @@
 #ifndef	_P_IRQ_H
 #define	_P_IRQ_H
 
-#include "peripherals/base.h"
+#include "boards/raspi3/raspi3.h"
 #include "mm.h"
 
 #define IRQ_BASIC_PENDING       (PBASE+0x0000B200)

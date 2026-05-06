@@ -1,7 +1,7 @@
 #ifndef	_P_MINI_UART_REGS_H
 #define	_P_MINI_UART_REGS_H
 
-#include "peripherals/base.h"
+#include "boards/raspi3/raspi3.h"
 
 // BCM2837-ARM-Peripherals.-.Revised.-.V2-1.pdf
 

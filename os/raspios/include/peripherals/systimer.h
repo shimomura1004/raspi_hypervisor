@@ -1,7 +1,7 @@
 #ifndef	_P_SYSTIMER_H
 #define	_P_SYSTIMER_H
 
-#include "peripherals/base.h"
+#include "board_config.h"
 
 #define TIMER_CS        (PBASE+0x00003000)
 #define TIMER_CLO       (PBASE+0x00003004)

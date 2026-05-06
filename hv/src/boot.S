@@ -1,7 +1,7 @@
 #include "arm/mmu.h"
 #include "arm/sysregs_def.h"
 #include "mm.h"
-#include "peripherals/base.h"
+#include "board_config.h"
 
 .section ".text.boot"
 

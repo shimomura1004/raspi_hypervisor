@@ -1,7 +1,7 @@
 #ifndef	_P_GPIO_REGS_H
 #define	_P_GPIO_REGS_H
 
-#include "peripherals/base.h"
+#include "boards/raspi3/raspi3.h"
 
 #define GPFSEL0_OFFSET    (0x00)
 #define GPFSEL1_OFFSET    (0x04)
