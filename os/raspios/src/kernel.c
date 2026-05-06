@@ -57,7 +57,10 @@ void kernel_main()
 
 	if (cpuid == 0) {
 		// システムで一度だけ実施する初期化処理
-		uart_init(PHYS_TO_VIRT(AUX_BASE), PHYS_TO_VIRT(GPIO_BASE));
+        // todo: 今は AUX_BASE/GPIO_BASE は仮想アドレスになっているので、PHYS_TO_VIRT は不要
+        //       ただし本来は物理アドレスを渡すべきなので、将来的には PHYS_TO_VIRT を使うようにする
+		// uart_init(PHYS_TO_VIRT(AUX_BASE), PHYS_TO_VIRT(GPIO_BASE));
+        uart_init(AUX_BASE, GPIO_BASE);
 		init_printf(NULL, putc);
 
 		init_sched();
