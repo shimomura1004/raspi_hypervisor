@@ -3,9 +3,20 @@
 
 #include "peripherals/base.h"
 
-#define VA_START            (0xffff000000000000)
+// ソフトウェア実装依存のメモリレイアウト定義
+#define PAGE_SHIFT          12
+#define TABLE_SHIFT         9
+#define SECTION_SHIFT       (PAGE_SHIFT + TABLE_SHIFT)
 
-#include "arm/mm.h"
+#define PAGE_SIZE           (1 << PAGE_SHIFT)
+#define SECTION_SIZE        (1 << SECTION_SHIFT)
+#define PAGE_MASK           (~(PAGE_SIZE-1))
+
+#define PTRS_PER_TABLE      (1 << TABLE_SHIFT)
+
+#define PGD_SHIFT           (PAGE_SHIFT + 3 * TABLE_SHIFT)
+#define PUD_SHIFT           (PAGE_SHIFT + 2 * TABLE_SHIFT)
+#define PMD_SHIFT           (PAGE_SHIFT +     TABLE_SHIFT)
 
 // todo: これもボード固有のもの
 #define LOW_MEMORY          (RAM_BASE + 2 * SECTION_SIZE)
@@ -19,6 +30,8 @@
 #define PAGING_PAGES        (PAGING_MEMORY/PAGE_SIZE)
 
 #define PG_DIR_SIZE         (3 * PAGE_SIZE)
+
+#define VA_START            (0xffff000000000000)
 
 #define STACK_SIZE          (0x400000)
 

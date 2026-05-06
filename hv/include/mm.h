@@ -2,7 +2,22 @@
 #define	_MM_H
 
 #include "board_config.h"
-#include "arm/mm.h"
+
+// ソフトウェア実装依存のメモリレイアウト定義
+//   他のサブプロジェクトとはたまたま共通なだけ
+#define PAGE_SHIFT          12
+#define TABLE_SHIFT         9
+#define SECTION_SHIFT       (PAGE_SHIFT + TABLE_SHIFT)
+
+#define PAGE_SIZE           (1 << PAGE_SHIFT)
+#define SECTION_SIZE        (1 << SECTION_SHIFT)
+#define PAGE_MASK           (~(PAGE_SIZE-1))
+
+#define PTRS_PER_TABLE      (1 << TABLE_SHIFT)
+
+#define PGD_SHIFT           (PAGE_SHIFT + 3 * TABLE_SHIFT)
+#define PUD_SHIFT           (PAGE_SHIFT + 2 * TABLE_SHIFT)
+#define PMD_SHIFT           (PAGE_SHIFT +     TABLE_SHIFT)
 
 // 現状ではすべてオフセットマッピングされることを想定している
 // 別のマッピングが必要であればこのマクロを修正する
