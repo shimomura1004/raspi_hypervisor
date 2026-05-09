@@ -170,7 +170,6 @@ void execute_command(char *buf) {
 
 void kernel_main(void)
 {
-    // uart_init(PHYS_TO_VIRT(AUX_BASE), PHYS_TO_VIRT(GPIO_BASE));
     uart_init(AUX_BASE, GPIO_BASE);
     init_printf(0, putc);
         
