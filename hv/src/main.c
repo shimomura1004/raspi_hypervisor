@@ -41,7 +41,7 @@ static void initialize_pcpu(unsigned long cpuid) {
 
 	// 割込みコントローラの有効化
 	disable_irq();
-	enable_local_interrupt_controller(cpuid);
+	enable_interrupt_controller(cpuid);
 }
 
 // 全コア共通で一度だけ実施する初期化処理

@@ -42,7 +42,7 @@ static const unsigned int mbox_rd_clrs[] = {
 };
 
 // 各コア個別の割込み設定 (Generic Timer, Mailbox など)
-void enable_local_interrupt_controller(unsigned long cpuid)
+void enable_interrupt_controller(unsigned long cpuid)
 {
 	// Generic Timer (nCNTPNSIRQ) 割込みの有効化
 	put32(P2V(timer_controls[cpuid]), TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);

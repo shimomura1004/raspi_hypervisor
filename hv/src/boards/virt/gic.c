@@ -6,7 +6,7 @@
 #include "mm.h"
 #include "console.h"
 
-void enable_local_interrupt_controller(unsigned long cpuid) {
+void enable_interrupt_controller(unsigned long cpuid) {
     // まず GIC の CPU interface を初期化
 
     // 全ての割込みを許可(0xff より小さい割込みをすべて許可)
