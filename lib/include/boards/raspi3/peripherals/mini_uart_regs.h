@@ -1,5 +1,5 @@
-#ifndef	_P_MINI_UART_REGS_H
-#define	_P_MINI_UART_REGS_H
+#ifndef _P_MINI_UART_REGS_H
+#define _P_MINI_UART_REGS_H
 
 // BCM2837-ARM-Peripherals.-.Revised.-.V2-1.pdf
 

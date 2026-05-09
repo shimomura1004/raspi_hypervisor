@@ -1,5 +1,5 @@
-#ifndef	_P_TIMER_REGS_H
-#define	_P_TIMER_REGS_H
+#ifndef _P_TIMER_REGS_H
+#define _P_TIMER_REGS_H
 
 // システムタイマは4個あるが 0 と 2 は GPU で使われる
 

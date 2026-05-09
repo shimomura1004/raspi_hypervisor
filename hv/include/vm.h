@@ -6,13 +6,13 @@
 /*
  * PSR(Program Status Register) bits
  */
-#define PSR_MODE_EL0t 0x00000000	// 0b0000: EL0
-#define PSR_MODE_EL1t 0x00000004	// 0b0100: EL1 with SP_EL0 (EL1t)
-#define PSR_MODE_EL1h 0x00000005	// 0b0101: EL1 with SP_EL1 (EL1h)
-#define PSR_MODE_EL2t 0x00000008	// 0b1000: EL2 with SP_EL0 (EL2t)
-#define PSR_MODE_EL2h 0x00000009	// 0b1001: EL2 with SP_EL2 (EL2h)
-#define PSR_MODE_EL3t 0x0000000c	// 0b1100: EL3 with SP_EL0 (EL3t)
-#define PSR_MODE_EL3h 0x0000000d	// 0b1101: EL3 with SP_EL3 (EL3h)
+#define PSR_MODE_EL0t 0x00000000    // 0b0000: EL0
+#define PSR_MODE_EL1t 0x00000004    // 0b0100: EL1 with SP_EL0 (EL1t)
+#define PSR_MODE_EL1h 0x00000005    // 0b0101: EL1 with SP_EL1 (EL1h)
+#define PSR_MODE_EL2t 0x00000008    // 0b1000: EL2 with SP_EL0 (EL2t)
+#define PSR_MODE_EL2h 0x00000009    // 0b1001: EL2 with SP_EL2 (EL2h)
+#define PSR_MODE_EL3t 0x0000000c    // 0b1100: EL3 with SP_EL0 (EL3t)
+#define PSR_MODE_EL3h 0x0000000d    // 0b1101: EL3 with SP_EL3 (EL3h)
 
 struct vm_struct2;
 // 第二、第三引数はどちらも出力引数
@@ -45,10 +45,10 @@ void increment_current_pc(int);
 // - Speculation control bits
 
 struct pt_regs {
-	unsigned long regs[31];
-	unsigned long sp;
-	unsigned long pc;
-	unsigned long pstate;
+    unsigned long regs[31];
+    unsigned long sp;
+    unsigned long pc;
+    unsigned long pstate;
 };
 
 #endif

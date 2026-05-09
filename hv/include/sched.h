@@ -1,7 +1,7 @@
 #ifndef _SCHED_H
 #define _SCHED_H
 
-#define THREAD_CPU_CONTEXT			0	// offset of cpu_context in vm_struct
+#define THREAD_CPU_CONTEXT  0   // offset of cpu_context in vm_struct
 
 #ifndef __ASSEMBLER__
 
@@ -167,7 +167,7 @@ struct vm_struct2 {
     struct vm_stat stat;                // この VM の統計データ
     struct vm_console console;          // この VM のコンソール
     struct spinlock lock;               // この VM の構造体の情報を変更するときに取るロック
-    struct loader_args loader_args;	    // この VM をロードするローダの引数
+    struct loader_args loader_args;     // この VM をロードするローダの引数
 };
 
 // todo: これを vcpu_struct にして CPU の管理をする構造体にする
@@ -176,7 +176,7 @@ struct vm_struct2 {
 struct vcpu_struct {
     // cpu_context はアセンブラで位置指定でアクセスされるので、構造体の先頭に置く
     // THREAD_CPU_CONTEXT がアセンブラでのオフセット
-    struct cpu_context cpu_context;	    // CPU 状態(汎用レジスタ)
+    struct cpu_context cpu_context;     // CPU 状態(汎用レジスタ)
     struct cpu_sysregs cpu_sysregs;     // CPU 状態(システムレジスタ)
     long state;                         // VM の状態(VCPU_RUNNING, ..., VCPU_ZOMBIE)
     // todo: sysregs に vmpidr があるから、不要かもしれない

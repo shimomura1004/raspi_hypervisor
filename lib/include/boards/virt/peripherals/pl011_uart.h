@@ -1,5 +1,5 @@
-#ifndef	_P_PL011_UART_H
-#define	_P_PL011_UART_H
+#ifndef _P_PL011_UART_H
+#define _P_PL011_UART_H
 
 #include "peripherals/base.h"
 

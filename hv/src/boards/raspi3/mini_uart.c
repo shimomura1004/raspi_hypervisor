@@ -43,10 +43,10 @@ static void _uart_send(char c) {
 //         }
 //     }
 
-// 	char c = get32(P2V(AUX_MU_IO_REG)) & 0xFF;
-// 	if (c == '\r') {
-// 		return '\n';
-// 	}
+//  char c = get32(P2V(AUX_MU_IO_REG)) & 0xFF;
+//  if (c == '\r') {
+//      return '\n';
+//  }
 //     return c;
 // }
 

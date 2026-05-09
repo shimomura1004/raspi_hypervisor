@@ -32,82 +32,82 @@ volatile unsigned long initialized = 0;
 // ホストの handle_mem_abort で処理される(処理の実体は bcm2837.c:handle_systimer_write にある)
 
 void kernel_process(){
-	INFO("Kernel process started. EL %d", get_el());
-	unsigned long begin = (unsigned long)&user_begin;
-	unsigned long end = (unsigned long)&user_end;
-	unsigned long process = (unsigned long)&user_process;
-	// ブートローダもしくは QEMU がカーネルの一部として
-	// ユーザ空間用のコード(user_process)をメモリにロードしている
-	// それをユーザ空間にコピーしている
-	// PC は user_process の先頭にセット
-	int err = move_to_user_mode(begin, end - begin, process - begin);
-	if (err < 0){
-		PANIC("Error while moving process to user mode");
-	} 
+    INFO("Kernel process started. EL %d", get_el());
+    unsigned long begin = (unsigned long)&user_begin;
+    unsigned long end = (unsigned long)&user_end;
+    unsigned long process = (unsigned long)&user_process;
+    // ブートローダもしくは QEMU がカーネルの一部として
+    // ユーザ空間用のコード(user_process)をメモリにロードしている
+    // それをユーザ空間にコピーしている
+    // PC は user_process の先頭にセット
+    int err = move_to_user_mode(begin, end - begin, process - begin);
+    if (err < 0){
+        PANIC("Error while moving process to user mode");
+    } 
 }
 
 // todo: ユーザ空間に対してタイマ関数を追加したい
 void kernel_main()
 {
-	unsigned long cpuid = get_cpuid();
-	// 初期タスク(アイドルタスク)の cpuid が -1 になっているので、現在の CPU ID を設定する
-	currents[cpuid]->cpuid = cpuid;
+    unsigned long cpuid = get_cpuid();
+    // 初期タスク(アイドルタスク)の cpuid が -1 になっているので、現在の CPU ID を設定する
+    currents[cpuid]->cpuid = cpuid;
 
-	if (cpuid == 0) {
-		// システムで一度だけ実施する初期化処理
+    if (cpuid == 0) {
+        // システムで一度だけ実施する初期化処理
         // todo: 今は AUX_BASE/GPIO_BASE は仮想アドレスになっているので、PHYS_TO_VIRT は不要
         //       ただし本来は物理アドレスを渡すべきなので、将来的には PHYS_TO_VIRT を使うようにする
-		// uart_init(PHYS_TO_VIRT(AUX_BASE), PHYS_TO_VIRT(GPIO_BASE));
+        // uart_init(PHYS_TO_VIRT(AUX_BASE), PHYS_TO_VIRT(GPIO_BASE));
         uart_init(AUX_BASE, GPIO_BASE);
-		init_printf(NULL, putc);
+        init_printf(NULL, putc);
 
-		init_sched();
+        init_sched();
 
-		INFO("raspios initialization complete (BOARD: %s)", BOARD_NAME);
+        INFO("raspios initialization complete (BOARD: %s)", BOARD_NAME);
 
 #ifdef BOARD_VIRT
-		for (int i = 1; i < 4; i++) {
-			// virt ボードではセカンダリ CPU は PSCI を使って起動する必要がある
-			// エントリポイントは _start の物理アドレス (0x40100000)
-			int res = psci_cpu_on_hvc(i, 0x40100000, 0);
-			if (res != 0) {
-				WARN("Failed to start CPU %d via PSCI: %d", i, res);
-			}
-		}
+        for (int i = 1; i < 4; i++) {
+            // virt ボードではセカンダリ CPU は PSCI を使って起動する必要がある
+            // エントリポイントは _start の物理アドレス (0x40100000)
+            int res = psci_cpu_on_hvc(i, 0x40100000, 0);
+            if (res != 0) {
+                WARN("Failed to start CPU %d via PSCI: %d", i, res);
+            }
+        }
 #endif
-	}
+    }
 
-	// 各コアで実施する初期化処理
-	irq_vector_init();
-	timer_init();
+    // 各コアで実施する初期化処理
+    irq_vector_init();
+    timer_init();
 
-	disable_irq();
-	enable_interrupt_controller(cpuid);
-	enable_irq();
+    disable_irq();
+    enable_interrupt_controller(cpuid);
+    enable_irq();
 
-	INFO("CPU %d started", cpuid);
+    INFO("CPU %d started", cpuid);
 
-	if (cpuid == 0) {
-		int res = copy_process(PF_KTHREAD, (unsigned long)&kernel_process, 0);
-		if (res < 0) {
-			WARN("error while starting kernel process");
-			return;
-		}
-		initialized = 1;
-	}
+    if (cpuid == 0) {
+        int res = copy_process(PF_KTHREAD, (unsigned long)&kernel_process, 0);
+        if (res < 0) {
+            WARN("error while starting kernel process");
+            return;
+        }
+        initialized = 1;
+    }
 
-	if (cpuid >= 4) {
-		disable_interrupt_controller(cpuid);
-		while (1) {
-			INFO("CPU %d sleeps", cpuid);
-			asm volatile("wfi");
-		}
-	}
+    if (cpuid >= 4) {
+        disable_interrupt_controller(cpuid);
+        while (1) {
+            INFO("CPU %d sleeps", cpuid);
+            asm volatile("wfi");
+        }
+    }
 
-	while (1){
-		schedule();
-		// ここ(idle プロセス)に返ってきたということはやることがないということなので
-		// なんらかの割込みが発生するまでは CPU を休止させる
-		asm volatile("wfi");
-	}
+    while (1){
+        schedule();
+        // ここ(idle プロセス)に返ってきたということはやることがないということなので
+        // なんらかの割込みが発生するまでは CPU を休止させる
+        asm volatile("wfi");
+    }
 }

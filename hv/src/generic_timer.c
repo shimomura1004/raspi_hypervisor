@@ -80,74 +80,74 @@ const static unsigned int interval_ms = 50;
 
 void generic_timer_init() {
     // 周波数は可変かもしれないので毎回読む
-	unsigned long frequency;
+    unsigned long frequency;
     // 周波数の読み取り
-	asm volatile("mrs %0, cntfrq_el0" : "=r"(frequency));
+    asm volatile("mrs %0, cntfrq_el0" : "=r"(frequency));
     // interval で指定したミリ秒数に何 tick 必要か計算する
-	unsigned long ticks = (frequency * interval_ms) / 1000;
+    unsigned long ticks = (frequency * interval_ms) / 1000;
     // タイマの初期値セット(ここで指定した tick 数後に最初のタイマ割込みが発生する)
-	asm volatile("msr cnthp_tval_el2, %0" : : "r"(ticks));
+    asm volatile("msr cnthp_tval_el2, %0" : : "r"(ticks));
     // タイマの有効化
-	asm volatile("msr cnthp_ctl_el2, %0" : : "r"(1));
+    asm volatile("msr cnthp_ctl_el2, %0" : : "r"(1));
 
-	// Generic Timer の仮想化の設定
-	// EL1 から CNTPCT_EL0(physical counter) へのアクセスを禁止ラップ
-	unsigned long cnthctl;
-	asm volatile("mrs %0, cnthctl_el2" : "=r"(cnthctl));
+    // Generic Timer の仮想化の設定
+    // EL1 から CNTPCT_EL0(physical counter) へのアクセスを禁止ラップ
+    unsigned long cnthctl;
+    asm volatile("mrs %0, cnthctl_el2" : "=r"(cnthctl));
     // EL1PCTEN ビットのみ 0 にクリア
-	cnthctl &= ~1; // EL1PCTEN
-	asm volatile("msr cnthctl_el2, %0" : : "r"(cnthctl));
+    cnthctl &= ~1; // EL1PCTEN
+    asm volatile("msr cnthctl_el2, %0" : : "r"(cnthctl));
 
-	// Virtual Timer のオフセットを 0 に設定 (ゲスト向け仮想時間は物理時間と常に同じ)
+    // Virtual Timer のオフセットを 0 に設定 (ゲスト向け仮想時間は物理時間と常に同じ)
     // todo: ゲストごとにオフセットを変える場合は VM の復帰ごとに設定し直す必要がある
-	asm volatile("msr cntvoff_el2, %0" : : "r"(0));
+    asm volatile("msr cntvoff_el2, %0" : : "r"(0));
 }
 
 // ハイパーバイザ用の Generic Timer の割込みハンドラ
 void handle_generic_timer_irq() {
-	unsigned long frequency;
-	asm volatile("mrs %0, cntfrq_el0" : "=r"(frequency));
-	unsigned long ticks = (frequency * interval_ms) / 1000;
+    unsigned long frequency;
+    asm volatile("mrs %0, cntfrq_el0" : "=r"(frequency));
+    unsigned long ticks = (frequency * interval_ms) / 1000;
 
     // 次のタイマ割込みが発生するよう値を再セット
-	asm volatile("msr cnthp_tval_el2, %0" : : "r"(ticks));
+    asm volatile("msr cnthp_tval_el2, %0" : : "r"(ticks));
 
     // この pCPU 上で動く vCPU を切り替える
     timer_tick();
 }
 
 void handle_virtual_timer_irq() {
-	// 仮想タイマ割込みが発生したら、この割込みが発生し続けないようにマスクする
-	// その後、このハンドラが終了し VM に復帰するときに set_cpu_virtual_interrupt で仮想割込みが設定される
-	disable_virtual_timer_irq();
+    // 仮想タイマ割込みが発生したら、この割込みが発生し続けないようにマスクする
+    // その後、このハンドラが終了し VM に復帰するときに set_cpu_virtual_interrupt で仮想割込みが設定される
+    disable_virtual_timer_irq();
 
-	// CNTV_CVAL_EL0 は CPU 固有のレジスタであり退避・復帰の対象になっている
-	// よって、カウンタ値が CNTV_CVAL_EL0 を超えて仮想タイマ割込みが発生した場合は
-	// それは今実行中のゲスト OS が設定したタイマに対する割込みであると判断できる
-	
-	// HCR_EL2 は全 VM で共通なので、VM の切り替え時に退避・復帰する必要はないが、
-	// VI は復帰時の状態によっては変化するかもしれないので再評価する必要がある
-	// たとえば復帰時には物理タイマが進んでいて仮想タイマ割込みが発生しているかもしれない、など
+    // CNTV_CVAL_EL0 は CPU 固有のレジスタであり退避・復帰の対象になっている
+    // よって、カウンタ値が CNTV_CVAL_EL0 を超えて仮想タイマ割込みが発生した場合は
+    // それは今実行中のゲスト OS が設定したタイマに対する割込みであると判断できる
+        
+    // HCR_EL2 は全 VM で共通なので、VM の切り替え時に退避・復帰する必要はないが、
+    // VI は復帰時の状態によっては変化するかもしれないので再評価する必要がある
+    // たとえば復帰時には物理タイマが進んでいて仮想タイマ割込みが発生しているかもしれない、など
 }
 
  // VM に入る直前に呼ぶことで、タイマの状態と割込みの状態を同期させる
 int sync_virtual_timer_irq() {
-	unsigned long cntv_ctl;
-	asm volatile("mrs %0, cntv_ctl_el0" : "=r"(cntv_ctl));
+    unsigned long cntv_ctl;
+    asm volatile("mrs %0, cntv_ctl_el0" : "=r"(cntv_ctl));
 
-	int pending = 0;
+    int pending = 0;
 
-	if (cntv_ctl & CNTP_CTL_EL0_ISTATUS_MET) { // 仮想タイマが比較値を超えている場合
-		// 割込み条件が満たされている場合
-		// 物理割込みをマスクし、仮想割込みありと判定
-		disable_virtual_timer_irq();
-		pending = 1;
-	} else {
-		// 割込み条件が満たされていない場合
-		// 物理割込みをアンマスクし、仮想割込みなしと判定
-		enable_virtual_timer_irq();
-		pending = 0;
-	}
+    if (cntv_ctl & CNTP_CTL_EL0_ISTATUS_MET) { // 仮想タイマが比較値を超えている場合
+        // 割込み条件が満たされている場合
+        // 物理割込みをマスクし、仮想割込みありと判定
+        disable_virtual_timer_irq();
+        pending = 1;
+    } else {
+        // 割込み条件が満たされていない場合
+        // 物理割込みをアンマスクし、仮想割込みなしと判定
+        enable_virtual_timer_irq();
+        pending = 0;
+    }
 
-	return pending;
+    return pending;
 }

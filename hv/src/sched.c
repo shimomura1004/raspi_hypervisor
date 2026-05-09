@@ -22,156 +22,156 @@ struct vm_struct2 *vms2[NUMBER_OF_VMS] = {};
 int current_number_of_vms = 1;
 
 void set_cpu_virtual_interrupt(struct vcpu_struct *vcpu) {
-	int pending = 0;
+    int pending = 0;
 
-	// もしこれから実行する VM 用のエミュレートされたボードで割込みが発生していたら、仮想割込みを設定する
-	if (HAVE_FUNC(vcpu->vm->board_ops, is_irq_asserted) && vcpu->vm->board_ops->is_irq_asserted(vcpu)) {
-		pending = 1;
-	}
-	
-	// もしこれから実行する VM に仮想タイマ割込みが発生していたら、仮想割込みを設定する
-	if (sync_virtual_timer_irq()) {
-		pending = 1;
-	}
+    // もしこれから実行する VM 用のエミュレートされたボードで割込みが発生していたら、仮想割込みを設定する
+    if (HAVE_FUNC(vcpu->vm->board_ops, is_irq_asserted) && vcpu->vm->board_ops->is_irq_asserted(vcpu)) {
+        pending = 1;
+    }
+        
+    // もしこれから実行する VM に仮想タイマ割込みが発生していたら、仮想割込みを設定する
+    if (sync_virtual_timer_irq()) {
+        pending = 1;
+    }
 
-	if (pending) {
-		assert_virq();
-	}
-	else {
-		clear_virq();
-	}
+    if (pending) {
+        assert_virq();
+    }
+    else {
+        clear_virq();
+    }
 
-	// fiq も同様
-	if (HAVE_FUNC(vcpu->vm->board_ops, is_fiq_asserted) && vcpu->vm->board_ops->is_fiq_asserted(vcpu)) {
-		assert_vfiq();
-	}
-	else {
-		clear_vfiq();
-	}
+    // fiq も同様
+    if (HAVE_FUNC(vcpu->vm->board_ops, is_fiq_asserted) && vcpu->vm->board_ops->is_fiq_asserted(vcpu)) {
+        assert_vfiq();
+    }
+    else {
+        clear_vfiq();
+    }
 
-	// todo: vserror は？
+    // todo: vserror は？
 }
 
 // タイマが発火すると呼ばれ、VM 切り替えを行う
 void timer_tick() {
-	DEBUG("TICK");
-	yield();
+    DEBUG("TICK");
+    yield();
 }
 
 // 異常状態に陥った vCPU が所属する VM を停止させる
 // todo: 異常状態に陥った vCPU だけを停止させるほうがいいかもしれない
 void exit_vm(){
-	struct vcpu_struct *current = current_pcpu()->current_vcpu;
+    struct vcpu_struct *current = current_pcpu()->current_vcpu;
 
-	// PANIC が exit_vm を呼ぶ前に vCPU の存在を確認しているが、念のため再確認
-	if (!current) {
-		PANIC("exit_vm called without current vcpu");
-	}
+    // PANIC が exit_vm を呼ぶ前に vCPU の存在を確認しているが、念のため再確認
+    if (!current) {
+        PANIC("exit_vm called without current vcpu");
+    }
 
-	struct vm_struct2 *vm_to_exit = current->vm;
+    struct vm_struct2 *vm_to_exit = current->vm;
 
-	for (int i = 0; i < current_number_of_vcpus; i++) {
-		if (vcpus[i] && vcpus[i]->vm == vm_to_exit) {
-			vcpus[i]->state = VCPU_ZOMBIE;
-		}
-	}
+    for (int i = 0; i < current_number_of_vcpus; i++) {
+        if (vcpus[i] && vcpus[i]->vm == vm_to_exit) {
+            vcpus[i]->state = VCPU_ZOMBIE;
+        }
+    }
 
-	yield();
+    yield();
 }
 
 void set_cpu_sysregs(struct vcpu_struct *vcpu) {
-	set_stage2_pgd(vcpu->vm->mm.first_table, vcpu->vm->vmid);
-	restore_sysregs(&vcpu->cpu_sysregs);
+    set_stage2_pgd(vcpu->vm->mm.first_table, vcpu->vm->vmid);
+    restore_sysregs(&vcpu->cpu_sysregs);
 }
 
 // ハイパーバイザでの処理を終えて VM に処理を戻すときに kernel_exit から呼ばれる
 void vm_entering_work() {
-	struct vcpu_struct *vcpu = current_pcpu()->current_vcpu;
+    struct vcpu_struct *vcpu = current_pcpu()->current_vcpu;
 
-	if (!vcpu) {
-		// todo: ハイパーバイザ(EL2)が動いているときに割込みが発生し、そのあと復帰すると起こる
-		WARN("vCPU is NULL while entering to VM");
-		return;
-	}
+    if (!vcpu) {
+        // todo: ハイパーバイザ(EL2)が動いているときに割込みが発生し、そのあと復帰すると起こる
+        WARN("vCPU is NULL while entering to VM");
+        return;
+    }
 
-	if (HAVE_FUNC(vcpu->vm->board_ops, entering_vm)) {
-		vcpu->vm->board_ops->entering_vm(vcpu);
-	}
+    if (HAVE_FUNC(vcpu->vm->board_ops, entering_vm)) {
+        vcpu->vm->board_ops->entering_vm(vcpu);
+    }
 
-	// VM 処理に復帰するとき、コンソールがこの VM に紐づいていたら
-	// キューに入っていた値を全部出力する
-	if (is_uart_forwarded_vm(vcpu->vm)) {
-		flush_vm_console(vcpu->vm);
-	}
+    // VM 処理に復帰するとき、コンソールがこの VM に紐づいていたら
+    // キューに入っていた値を全部出力する
+    if (is_uart_forwarded_vm(vcpu->vm)) {
+        flush_vm_console(vcpu->vm);
+    }
 
-	// todo: entering_vm, flush, set_cpu_sysregs, set_cpu_virtual_interrupt の正しい呼び出し順がわからない
-	// 控えておいたレジスタの値を戻す
-	set_cpu_sysregs(vcpu);
+    // todo: entering_vm, flush, set_cpu_sysregs, set_cpu_virtual_interrupt の正しい呼び出し順がわからない
+    // 控えておいたレジスタの値を戻す
+    set_cpu_sysregs(vcpu);
 
-	// 今実行を再開しようとしている VM に対し仮想割込みを設定する
-	//   ハイパーバイザ環境では VM に対し割込みを発生させる必要があるので
-	//   VM が実行開始するタイミングで仮想割込みを生成しないといけない
-	set_cpu_virtual_interrupt(vcpu);
+    // 今実行を再開しようとしている VM に対し仮想割込みを設定する
+    //   ハイパーバイザ環境では VM に対し割込みを発生させる必要があるので
+    //   VM が実行開始するタイミングで仮想割込みを生成しないといけない
+    set_cpu_virtual_interrupt(vcpu);
 }
 
 // VM での処理を抜けてハイパーバイザに処理に入るときに kernel_entry から呼ばれる
 void vm_leaving_work() {
-	struct vcpu_struct *vcpu = current_pcpu()->current_vcpu;
+    struct vcpu_struct *vcpu = current_pcpu()->current_vcpu;
 
     if (!vcpu) {
-		// todo: ハイパーバイザ(EL2)が動いているときに割込みが発生すると起こる
-		WARN("vCPU is NULL while leaving from VM");
+        // todo: ハイパーバイザ(EL2)が動いているときに割込みが発生すると起こる
+        WARN("vCPU is NULL while leaving from VM");
         return;
     }
 
-	// ハイパーバイザ実行中にゲストのタイマ割込みが発生しないようにマスクする
-	disable_virtual_timer_irq();
+    // ハイパーバイザ実行中にゲストのタイマ割込みが発生しないようにマスクする
+    disable_virtual_timer_irq();
 
-	// 今のレジスタの値を控える
-	save_sysregs(&vcpu->cpu_sysregs);
+    // 今のレジスタの値を控える
+    save_sysregs(&vcpu->cpu_sysregs);
 
-	if (HAVE_FUNC(vcpu->vm->board_ops, leaving_vm)) {
-		vcpu->vm->board_ops->leaving_vm(vcpu);
-	}
+    if (HAVE_FUNC(vcpu->vm->board_ops, leaving_vm)) {
+        vcpu->vm->board_ops->leaving_vm(vcpu);
+    }
 
-	if (is_uart_forwarded_vm(vcpu->vm)) {
-		flush_vm_console(vcpu->vm);
-	}
+    if (is_uart_forwarded_vm(vcpu->vm)) {
+        flush_vm_console(vcpu->vm);
+    }
 }
 
 static const char *vm_state_str[] = {
-	"RUNNING",
-	"RUNNABLE",
-	"SLEEPING",
-	"ZOMBIE",
+    "RUNNING",
+    "RUNNABLE",
+    "SLEEPING",
+    "ZOMBIE",
 };
 
 // vCPU を実行している pCPU のインデックス(id)を返す
 static int find_pcpu_which_runs(struct vcpu_struct *vcpu) {
-	for (int i = 0; i < NUMBER_OF_PCPUS; i++) {
-		if (pcpu_of(i)->current_vcpu == vcpu) {
-			return i;
-		}
-	}
-	return -1;
+    for (int i = 0; i < NUMBER_OF_PCPUS; i++) {
+        if (pcpu_of(i)->current_vcpu == vcpu) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 // `start_index` 以降の vCPU で、`vm` を実行している vCPU のインデックス(id)を返す
 static int find_vcpu_which_runs(struct vm_struct2 *vm, int start_index) {
-	for (; start_index < current_number_of_vcpus; start_index++) {
-		if (vcpus[start_index]->vm == vm) {
-			return start_index;
-		}
-	}
-	return -1;
+    for (; start_index < current_number_of_vcpus; start_index++) {
+        if (vcpus[start_index]->vm == vm) {
+            return start_index;
+        }
+    }
+    return -1;
 }
 
 // todo: 各種 stat は vCPU ごとに計測したほうがいいかもしれない
 static void show_vcpu_list(struct vm_struct2 *vm) {
-	// todo: vcpu の index ではなく vm 内の cpuid を表示するべき
-	for (int vcpu_idx = 0; (vcpu_idx = find_vcpu_which_runs(vm, vcpu_idx)) >= 0; vcpu_idx++) {
-		struct vcpu_struct *vcpu = vcpus[vcpu_idx];
-		int pcpu_idx = find_pcpu_which_runs(vcpu);
+    // todo: vcpu の index ではなく vm 内の cpuid を表示するべき
+    for (int vcpu_idx = 0; (vcpu_idx = find_vcpu_which_runs(vm, vcpu_idx)) >= 0; vcpu_idx++) {
+        struct vcpu_struct *vcpu = vcpus[vcpu_idx];
+        int pcpu_idx = find_pcpu_which_runs(vcpu);
         if (pcpu_idx >= 0) {
             printf("%c %4s %12s %4d %4d 0x%08x %8s\n",
                 /* %c   */ ' ',
@@ -198,40 +198,40 @@ static void show_vcpu_list(struct vm_struct2 *vm) {
 void show_vm_list() {
     acquire_lock(&console_lock);
     printf("%c %4s %12s %4s %4s %10s %8s %7s %7s %7s %7s %7s %7s\n",
-		   /* %c   */ ' ',
-		   /* %4s  */ "VMID",
-		   /* %12s */ "Name",
-		   /* %4s  */ "vCPU",
+           /* %c   */ ' ',
+           /* %4s  */ "VMID",
+           /* %12s */ "Name",
+           /* %4s  */ "vCPU",
            /* %4s  */ "pCPU",
-		   /* %10s */ "Saved-PC",
-		   /* %8s  */ "State",
-		   /* %7s  */ "Pages",
-		   /* %7s  */ "WFX",
-		   /* %7s  */ "HVC",
-		   /* %7s  */ "SysRegs",
-		   /* %7s  */ "PF",
-		   /* %7s  */ "MMIO");
-	for (int i = 0; i < current_number_of_vms; i++) {
+           /* %10s */ "Saved-PC",
+           /* %8s  */ "State",
+           /* %7s  */ "Pages",
+           /* %7s  */ "WFX",
+           /* %7s  */ "HVC",
+           /* %7s  */ "SysRegs",
+           /* %7s  */ "PF",
+           /* %7s  */ "MMIO");
+    for (int i = 0; i < current_number_of_vms; i++) {
         struct vm_struct2 *vm = vms2[i];
-		if (!vm) {
-			continue;
-		}
+        if (!vm) {
+            continue;
+        }
         printf("%c %4d %12s %4s %4s %10s %8s %7d %7d %7d %7d %7d %7d\n",
                /* %c   */ is_uart_forwarded_vm(vm) ? '*' : ' ',
-			   /* %4d  */ vm->vmid,
-			   // todo: vm->name を使いたい
-			   /* %12s */ vm->name ? vm->loader_args.filename : "",
-			   /* %4s  */ "",
-			   /* %4s  */ "",
-			   /* %10s */ "",
-			   /* %8s  */ "",
-			   /* %7d  */ vm->mm.vm_pages_count,
+               /* %4d  */ vm->vmid,
+               // todo: vm->name を使いたい
+               /* %12s */ vm->name ? vm->loader_args.filename : "",
+               /* %4s  */ "",
+               /* %4s  */ "",
+               /* %10s */ "",
+               /* %8s  */ "",
+               /* %7d  */ vm->mm.vm_pages_count,
                /* %7d  */ vm->stat.wfx_trap_count,
-			   /* %7d  */ vm->stat.hvc_trap_count,
+               /* %7d  */ vm->stat.hvc_trap_count,
                /* %7d  */ vm->stat.sysregs_trap_count,
-			   /* %7d  */ vm->stat.pf_trap_count,
+               /* %7d  */ vm->stat.pf_trap_count,
                /* %7d  */ vm->stat.mmio_trap_count);
-		show_vcpu_list(vm);
+        show_vcpu_list(vm);
     }
     release_lock(&console_lock);
 }
@@ -239,35 +239,35 @@ void show_vm_list() {
 // EL2 から EL1 に遷移し、VM を復帰させる
 // vCPU から vCPU の遷移ではなく、必ず scheduler から vCPU への遷移
 static void schedule(struct vcpu_struct *vcpu) {
-	struct pcpu_struct *pcpu = current_pcpu();
+    struct pcpu_struct *pcpu = current_pcpu();
 
     // vCPU を実行するので、ステータスを更新
-	vcpu->state = VCPU_RUNNING;     // この vCPU は今実行中
-	pcpu->current_vcpu = vcpu;      // この pCPU はこの vCPU を実行中
+    vcpu->state = VCPU_RUNNING;     // この vCPU は今実行中
+    pcpu->current_vcpu = vcpu;      // この pCPU はこの vCPU を実行中
 
-	DEBUG("Schedule from hv: vcpu=%d(0x%lx), lock=%d, pcpu=%d", vcpu->vcpu_id, vcpu, vcpu->lock.locked, pcpu->id);
-	// vcpu を実行する(しばらくここには帰ってこない)
-	cpu_switch_to(&pcpu->scheduler_context, vcpu);
+    DEBUG("Schedule from hv: vcpu=%d(0x%lx), lock=%d, pcpu=%d", vcpu->vcpu_id, vcpu, vcpu->lock.locked, pcpu->id);
+    // vcpu を実行する(しばらくここには帰ってこない)
+    cpu_switch_to(&pcpu->scheduler_context, vcpu);
     // ここに帰ってきたということは、おそらく yield されて scheduler に戻ってきた
-	DEBUG("Return to hv: vcpu=%d(0x%lx), lock=%d, pcpu=%d", vcpu->vcpu_id, vcpu, vcpu->lock.locked, pcpu->id);
+    DEBUG("Return to hv: vcpu=%d(0x%lx), lock=%d, pcpu=%d", vcpu->vcpu_id, vcpu, vcpu->lock.locked, pcpu->id);
 
-	// todo: 復帰後に vcpu の状態を更新するのは危険、既に他の pcpu で実行されているかもしれない
+    // todo: 復帰後に vcpu の状態を更新するのは危険、既に他の pcpu で実行されているかもしれない
 
-	// 復帰後に vcpu が別の pcpu で実行されるかもしれないので、pcpu を再取得する
-	pcpu = current_pcpu();
+    // 復帰後に vcpu が別の pcpu で実行されるかもしれないので、pcpu を再取得する
+    pcpu = current_pcpu();
 
-	// vCPU を停止するので、ステータスを更新
-	vcpu->state = (vcpu->state == VCPU_ZOMBIE) ?    // この vCPU は、実行可能か、終了済み
+    // vCPU を停止するので、ステータスを更新
+    vcpu->state = (vcpu->state == VCPU_ZOMBIE) ?    // この vCPU は、実行可能か、終了済み
                     VCPU_ZOMBIE : VCPU_RUNNABLE;
-	pcpu->current_vcpu = NULL;                      // この pCPU は vCPU を実行していない
+    pcpu->current_vcpu = NULL;                      // この pCPU は vCPU を実行していない
 }
 
 // todo: タイマで yield を呼び出すと、次回復帰時にそこから再開してしまうのでは
 //       特に問題ない？
 // VM が CPU 時間を手放しハイパーバイザに切り替える
 void yield() {
-	struct pcpu_struct *pcpu = current_pcpu();
-	struct vcpu_struct *vcpu = pcpu->current_vcpu;
+    struct pcpu_struct *pcpu = current_pcpu();
+    struct vcpu_struct *vcpu = pcpu->current_vcpu;
 
     // ハイパーバイザ実行中に yield される可能性はある
     if (!vcpu) {
@@ -276,37 +276,37 @@ void yield() {
         return;
     }
 
-	// ロックを取ってから idle_vm に切り替える
-	acquire_lock(&vcpu->lock);
+    // ロックを取ってから idle_vm に切り替える
+    acquire_lock(&vcpu->lock);
 
     // vCPU を停止するので、ステータスを更新
-	// 割込みの有効・無効状態は CPU の状態ではなくこのスレッドの状態なので、退避・復帰させる必要がある
-	if (vcpu->state != VCPU_ZOMBIE) {
-		// 外部から強制終了される場合、vCPU の状態が ZOMBIE になっている
-		// その場合は RUNNABLE に戻さない
-		vcpu->state = VCPU_RUNNABLE;
-	}
+    // 割込みの有効・無効状態は CPU の状態ではなくこのスレッドの状態なので、退避・復帰させる必要がある
+    if (vcpu->state != VCPU_ZOMBIE) {
+        // 外部から強制終了される場合、vCPU の状態が ZOMBIE になっている
+        // その場合は RUNNABLE に戻さない
+        vcpu->state = VCPU_RUNNABLE;
+    }
     pcpu->current_vcpu = NULL;      // この pCPU は vCPU を実行していない
     // int interrupt_enable = vcpu->interrupt_enable;
 
-	DEBUG("Yield to hv: vcpu=%d(0x%lx), lock=%d, pcpu=%d", vcpu->vcpu_id, vcpu, vcpu->lock.locked, pcpu->id);
+    DEBUG("Yield to hv: vcpu=%d(0x%lx), lock=%d, pcpu=%d", vcpu->vcpu_id, vcpu, vcpu->lock.locked, pcpu->id);
 
-	// スケジューラに復帰する(しばらくここには帰ってこない)
-	cpu_switch_to(vcpu, &pcpu->scheduler_context);
+    // スケジューラに復帰する(しばらくここには帰ってこない)
+    cpu_switch_to(vcpu, &pcpu->scheduler_context);
     // ここに帰ってきたということは、おそらく schedule されて vCPU に戻ってきた
 
-	DEBUG("Return from hv to yield: vcpu=%d(0x%lx), lock=%d, pcpu=%d", vcpu->vcpu_id, vcpu, vcpu->lock.locked, pcpu->id);
+    DEBUG("Return from hv to yield: vcpu=%d(0x%lx), lock=%d, pcpu=%d", vcpu->vcpu_id, vcpu, vcpu->lock.locked, pcpu->id);
 
-	// 復帰後に vcpu が別の pcpu で実行されるかもしれないので、pcpu を再取得する
-	pcpu = current_pcpu();
+    // 復帰後に vcpu が別の pcpu で実行されるかもしれないので、pcpu を再取得する
+    pcpu = current_pcpu();
 
     // vCPU を実行するので、ステータスを更新
-	vcpu->state = VCPU_RUNNING;                 // この vCPU は今実行中
-	pcpu->current_vcpu = vcpu;                  // この pCPU はこの vCPU を実行中
+    vcpu->state = VCPU_RUNNING;                 // この vCPU は今実行中
+    pcpu->current_vcpu = vcpu;                  // この pCPU はこの vCPU を実行中
     // vcpu->interrupt_enable = interrupt_enable;  // 割込みの有効・無効状態を復帰させる
 
-	// また戻ってきたらロックを解放する
-	release_lock(&vcpu->lock);
+    // また戻ってきたらロックを解放する
+    release_lock(&vcpu->lock);
 }
 
 // todo: vCPU を特定の pCPU でしか実行できないようにする(cpu affinity を実装する)
@@ -317,109 +317,109 @@ void yield() {
 // todo: 割込みを無効にしないといけないタイミングがありそう
 // todo: hypervisor 実行中に割込みは処理してもいいが、コンテキストスイッチはしてはいけない
 void scheduler(unsigned long cpuid) {
-	struct vcpu_struct *vcpu;
-	int found;
+    struct vcpu_struct *vcpu;
+    int found;
 
-	// todo: 割込みを有効にした直後に、既に発生していた割込みが発生する
-	//       その結果 vm_exit が実行されるが、まだ vm を実行していないので warn となっている
-	//       先に idle vcpu に切り替えてから割込みを有効にするという方法を取る？
-	// この CPU コアの割込みを有効化
-	enable_irq();
+    // todo: 割込みを有効にした直後に、既に発生していた割込みが発生する
+    //       その結果 vm_exit が実行されるが、まだ vm を実行していないので warn となっている
+    //       先に idle vcpu に切り替えてから割込みを有効にするという方法を取る？
+    // この CPU コアの割込みを有効化
+    enable_irq();
 
     // todo: 割込みをどうするか考える、ただしタスクスイッチは禁止しないといけない
-	//       scheduler 実行中は割込み禁止でいいのでは
-	while (1) {
-		found = 0;
+    //       scheduler 実行中は割込み禁止でいいのでは
+    while (1) {
+        found = 0;
 
-		// 単純なラウンドロビンで vCPU に CPU 時間を割り当てる
-		// 先頭の vCPU は idle vCPU なので飛ばす
-		for (int i = NUMBER_OF_PCPUS; i < NUMBER_OF_VCPUS; i++) {
-			vcpu = vcpus[i];
+        // 単純なラウンドロビンで vCPU に CPU 時間を割り当てる
+        // 先頭の vCPU は idle vCPU なので飛ばす
+        for (int i = NUMBER_OF_PCPUS; i < NUMBER_OF_VCPUS; i++) {
+            vcpu = vcpus[i];
 
-			// vCPU が無効な場合はスキップ
-			if (!vcpu) {
-				continue;
-			}
+            // vCPU が無効な場合はスキップ
+            if (!vcpu) {
+                continue;
+            }
 
-			acquire_lock(&vcpu->lock);
+            acquire_lock(&vcpu->lock);
 
-			// RUNNABLE 状態の vCPU を探す
-			if (vcpu && vcpu->state == VCPU_RUNNABLE) {
-				found = 1;
-				schedule(vcpu);
-			}
+            // RUNNABLE 状態の vCPU を探す
+            if (vcpu && vcpu->state == VCPU_RUNNABLE) {
+                found = 1;
+                schedule(vcpu);
+            }
 
-			release_lock(&vcpu->lock);
-		}
+            release_lock(&vcpu->lock);
+        }
 
-		// 全 vCPU を走査しても実行できる vCPU がひとつも見つからなかったら IDLE vCPU を実行
-		if (!found) {
-			vcpu = vcpus[cpuid];
-			acquire_lock(&vcpu->lock);
-			schedule(vcpu);
-			release_lock(&vcpu->lock);
-		}
-	}
+        // 全 vCPU を走査しても実行できる vCPU がひとつも見つからなかったら IDLE vCPU を実行
+        if (!found) {
+            vcpu = vcpus[cpuid];
+            acquire_lock(&vcpu->lock);
+            schedule(vcpu);
+            release_lock(&vcpu->lock);
+        }
+    }
 }
 
 // 他に実行可能な vCPU があるかどうかを判定する
 int should_schedule_other_vcpu(struct vcpu_struct *current) {
-	for (int i = NUMBER_OF_PCPUS; i < NUMBER_OF_VCPUS; i++) {
-		struct vcpu_struct *vcpu = vcpus[i];
-		if (vcpu && vcpu != current && vcpu->state == VCPU_RUNNABLE) {
-			return 1;
-		}
-	}
-	return 0;
+    for (int i = NUMBER_OF_PCPUS; i < NUMBER_OF_VCPUS; i++) {
+        struct vcpu_struct *vcpu = vcpus[i];
+        if (vcpu && vcpu != current && vcpu->state == VCPU_RUNNABLE) {
+            return 1;
+        }
+    }
+    return 0;
 }
 
 void sleep(void *chan, struct spinlock *lk) {
-	// vCPU の状態を SLEEPING にして、他のプロセスから wakeup されるのを待つ
+    // vCPU の状態を SLEEPING にして、他のプロセスから wakeup されるのを待つ
 
-	struct pcpu_struct *pcpu = current_pcpu();
-	struct vcpu_struct *vcpu = pcpu->current_vcpu;
+    struct pcpu_struct *pcpu = current_pcpu();
+    struct vcpu_struct *vcpu = pcpu->current_vcpu;
 
-	// vCPU の状態を変えるのでロックを取る必要がある
-	acquire_lock(&vcpu->lock);
+    // vCPU の状態を変えるのでロックを取る必要がある
+    acquire_lock(&vcpu->lock);
 
-	// vCPU を変更する権利を得たのでスリープ状態にする
-	// デッドロックを避けるため、寝る前に呼び出した vCPU が持っていたロックを解放する
-	release_lock(lk);
+    // vCPU を変更する権利を得たのでスリープ状態にする
+    // デッドロックを避けるため、寝る前に呼び出した vCPU が持っていたロックを解放する
+    release_lock(lk);
 
-	vcpu->chan = chan;
-	vcpu->state = VCPU_SLEEPING;
+    vcpu->chan = chan;
+    vcpu->state = VCPU_SLEEPING;
 
-	// yield() は内部で vcpu->lock を取得しようとするため、ここでは呼べない
-	// 代わりに yield() と同等のコンテキストスイッチ処理を直接行う
-	pcpu->current_vcpu = NULL;
-	cpu_switch_to(vcpu, &pcpu->scheduler_context);
+    // yield() は内部で vcpu->lock を取得しようとするため、ここでは呼べない
+    // 代わりに yield() と同等のコンテキストスイッチ処理を直接行う
+    pcpu->current_vcpu = NULL;
+    cpu_switch_to(vcpu, &pcpu->scheduler_context);
 
-	// 復帰後に vcpu が別の pcpu で実行されるかもしれないので、pcpu を再取得する
-	pcpu = current_pcpu();
-	vcpu->state = VCPU_RUNNING;
-	pcpu->current_vcpu = vcpu;
+    // 復帰後に vcpu が別の pcpu で実行されるかもしれないので、pcpu を再取得する
+    pcpu = current_pcpu();
+    vcpu->state = VCPU_RUNNING;
+    pcpu->current_vcpu = vcpu;
 
-	vcpu->chan = 0;
+    vcpu->chan = 0;
 
-	release_lock(&vcpu->lock);
-	acquire_lock(lk);
+    release_lock(&vcpu->lock);
+    acquire_lock(lk);
 }
 
 void wakeup(void *chan) {
-	// 全 vCPU を走査し、chan に紐づいて SLEEP している vCPU を RUNNABLE 状態にする
+    // 全 vCPU を走査し、chan に紐づいて SLEEP している vCPU を RUNNABLE 状態にする
 
-	for (int i = NUMBER_OF_PCPUS; i < NUMBER_OF_VCPUS; i++) {
-		struct vcpu_struct *vcpu = vcpus[i];
-		if (!vcpu) {
-			continue;
-		}
+    for (int i = NUMBER_OF_PCPUS; i < NUMBER_OF_VCPUS; i++) {
+        struct vcpu_struct *vcpu = vcpus[i];
+        if (!vcpu) {
+            continue;
+        }
 
-		acquire_lock(&vcpu->lock);
+        acquire_lock(&vcpu->lock);
 
-		if (vcpu->state == VCPU_SLEEPING && vcpu->chan == chan) {
-			vcpu->state = VCPU_RUNNABLE;
-		}
+        if (vcpu->state == VCPU_SLEEPING && vcpu->chan == chan) {
+            vcpu->state = VCPU_RUNNABLE;
+        }
 
-		release_lock(&vcpu->lock);
-	}
+        release_lock(&vcpu->lock);
+    }
 }

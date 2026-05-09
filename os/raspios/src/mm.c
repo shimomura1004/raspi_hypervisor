@@ -6,115 +6,115 @@
 static unsigned short mem_map [ PAGING_PAGES ] = {0,};
 
 unsigned long allocate_kernel_page() {
-	unsigned long page = get_free_page();
-	if (page == 0) {
-		return 0;
-	}
-	return PHYS_TO_VIRT(page);
+    unsigned long page = get_free_page();
+    if (page == 0) {
+        return 0;
+    }
+    return PHYS_TO_VIRT(page);
 }
 
 // 指定されたアドレスはユーザ空間から見た場合の仮想アドレス
 // 戻り値のアドレスはカーネル空間から見た場合の仮想アドレス
 unsigned long allocate_user_page(struct task_struct *task, unsigned long va) {
-	unsigned long page = get_free_page();
-	if (page == 0) {
-		return 0;
-	}
-	map_page(task, va, page);
-	return PHYS_TO_VIRT(page);
+    unsigned long page = get_free_page();
+    if (page == 0) {
+        return 0;
+    }
+    map_page(task, va, page);
+    return PHYS_TO_VIRT(page);
 }
 
 unsigned long get_free_page()
 {
-	for (int i = 0; i < PAGING_PAGES; i++){
-		if (mem_map[i] == 0){
-			mem_map[i] = 1;
-			unsigned long page = LOW_MEMORY + i*PAGE_SIZE;
-			memzero((void*)PHYS_TO_VIRT(page), PAGE_SIZE);
-			return page;
-		}
-	}
-	return 0;
+    for (int i = 0; i < PAGING_PAGES; i++){
+        if (mem_map[i] == 0){
+            mem_map[i] = 1;
+            unsigned long page = LOW_MEMORY + i*PAGE_SIZE;
+            memzero((void*)PHYS_TO_VIRT(page), PAGE_SIZE);
+            return page;
+        }
+    }
+    return 0;
 }
 
 void free_page(unsigned long p){
-	mem_map[(p - LOW_MEMORY) / PAGE_SIZE] = 0;
+    mem_map[(p - LOW_MEMORY) / PAGE_SIZE] = 0;
 }
 
 void map_table_entry(unsigned long *pte, unsigned long va, unsigned long pa) {
-	unsigned long index = va >> PAGE_SHIFT;
-	index = index & (PTRS_PER_TABLE - 1);
-	unsigned long entry = pa | MMU_PTE_FLAGS; 
-	pte[index] = entry;
+    unsigned long index = va >> PAGE_SHIFT;
+    index = index & (PTRS_PER_TABLE - 1);
+    unsigned long entry = pa | MMU_PTE_FLAGS; 
+    pte[index] = entry;
 }
 
 unsigned long map_table(unsigned long *table, unsigned long shift, unsigned long va, int* new_table) {
-	unsigned long index = va >> shift;
-	index = index & (PTRS_PER_TABLE - 1);
-	if (!table[index]){
-		*new_table = 1;
-		unsigned long next_level_table = get_free_page();
-		unsigned long entry = next_level_table | MM_TYPE_PAGE_TABLE;
-		table[index] = entry;
-		return next_level_table;
-	} else {
-		*new_table = 0;
-	}
-	return table[index] & PAGE_MASK;
+    unsigned long index = va >> shift;
+    index = index & (PTRS_PER_TABLE - 1);
+    if (!table[index]){
+        *new_table = 1;
+        unsigned long next_level_table = get_free_page();
+        unsigned long entry = next_level_table | MM_TYPE_PAGE_TABLE;
+        table[index] = entry;
+        return next_level_table;
+    } else {
+        *new_table = 0;
+    }
+    return table[index] & PAGE_MASK;
 }
 
 void map_page(struct task_struct *task, unsigned long va, unsigned long page){
-	unsigned long pgd;
-	if (!task->mm.pgd) {
-		task->mm.pgd = get_free_page();
-		task->mm.kernel_pages[++task->mm.kernel_pages_count] = task->mm.pgd;
-	}
-	pgd = task->mm.pgd;
-	int new_table;
-	unsigned long pud = map_table((unsigned long *)PHYS_TO_VIRT(pgd), PGD_SHIFT, va, &new_table);
-	if (new_table) {
-		task->mm.kernel_pages[++task->mm.kernel_pages_count] = pud;
-	}
-	unsigned long pmd = map_table((unsigned long *)PHYS_TO_VIRT(pud) , PUD_SHIFT, va, &new_table);
-	if (new_table) {
-		task->mm.kernel_pages[++task->mm.kernel_pages_count] = pmd;
-	}
-	unsigned long pte = map_table((unsigned long *)PHYS_TO_VIRT(pmd), PMD_SHIFT, va, &new_table);
-	if (new_table) {
-		task->mm.kernel_pages[++task->mm.kernel_pages_count] = pte;
-	}
-	map_table_entry((unsigned long *)PHYS_TO_VIRT(pte), va, page);
-	struct user_page p = {page, va};
-	task->mm.user_pages[task->mm.user_pages_count++] = p;
+    unsigned long pgd;
+    if (!task->mm.pgd) {
+        task->mm.pgd = get_free_page();
+        task->mm.kernel_pages[++task->mm.kernel_pages_count] = task->mm.pgd;
+    }
+    pgd = task->mm.pgd;
+    int new_table;
+    unsigned long pud = map_table((unsigned long *)PHYS_TO_VIRT(pgd), PGD_SHIFT, va, &new_table);
+    if (new_table) {
+        task->mm.kernel_pages[++task->mm.kernel_pages_count] = pud;
+    }
+    unsigned long pmd = map_table((unsigned long *)PHYS_TO_VIRT(pud) , PUD_SHIFT, va, &new_table);
+    if (new_table) {
+        task->mm.kernel_pages[++task->mm.kernel_pages_count] = pmd;
+    }
+    unsigned long pte = map_table((unsigned long *)PHYS_TO_VIRT(pmd), PMD_SHIFT, va, &new_table);
+    if (new_table) {
+        task->mm.kernel_pages[++task->mm.kernel_pages_count] = pte;
+    }
+    map_table_entry((unsigned long *)PHYS_TO_VIRT(pte), va, page);
+    struct user_page p = {page, va};
+    task->mm.user_pages[task->mm.user_pages_count++] = p;
 }
 
 int copy_virt_memory(struct task_struct *dst) {
-	struct task_struct* src = currents[get_cpuid()];
-	for (int i = 0; i < src->mm.user_pages_count; i++) {
-		unsigned long kernel_va = allocate_user_page(dst, src->mm.user_pages[i].virt_addr);
-		if( kernel_va == 0) {
-			return -1;
-		}
-		memcpy((void*)kernel_va, (void*)src->mm.user_pages[i].virt_addr, PAGE_SIZE);
-	}
-	return 0;
+    struct task_struct* src = currents[get_cpuid()];
+    for (int i = 0; i < src->mm.user_pages_count; i++) {
+        unsigned long kernel_va = allocate_user_page(dst, src->mm.user_pages[i].virt_addr);
+        if( kernel_va == 0) {
+            return -1;
+        }
+        memcpy((void*)kernel_va, (void*)src->mm.user_pages[i].virt_addr, PAGE_SIZE);
+    }
+    return 0;
 }
 
 static int ind = 1;
 
 int do_mem_abort(unsigned long addr, unsigned long esr) {
-	unsigned long dfs = (esr & 0b111111);
-	if ((dfs & 0b111100) == 0b100) {
-		unsigned long page = get_free_page();
-		if (page == 0) {
-			return -1;
-		}
-		map_page(currents[get_cpuid()], addr & PAGE_MASK, page);
-		ind++;
-		if (ind > 2){
-			return -1;
-		}
-		return 0;
-	}
-	return -1;
+    unsigned long dfs = (esr & 0b111111);
+    if ((dfs & 0b111100) == 0b100) {
+        unsigned long page = get_free_page();
+        if (page == 0) {
+            return -1;
+        }
+        map_page(currents[get_cpuid()], addr & PAGE_MASK, page);
+        ind++;
+        if (ind > 2){
+            return -1;
+        }
+        return 0;
+    }
+    return -1;
 }

@@ -1,5 +1,5 @@
-#ifndef	_P_GPIO_REGS_H
-#define	_P_GPIO_REGS_H
+#ifndef _P_GPIO_REGS_H
+#define _P_GPIO_REGS_H
 
 #include "boards/raspi3/raspi3.h"
 

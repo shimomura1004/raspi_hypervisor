@@ -15,7 +15,7 @@
 // TZASC を設定できるのは EL3 のみ
 // note: Raspberry Pi 3 (BCM2837) には TZASC が搭載されていないのでアクセス制限ができない
 
-#define HV_BASE 				0x80000
+#define HV_BASE                 0x80000
 #define EL3_STACK_SIZE_PER_CORE 0x1000
 
 .extern vectors
@@ -32,57 +32,57 @@
 // ここが SM のスタートポイントになる
 .globl _start
 _start:
-	// もし単一コアでのみ実行する処理があれば他コアをここでとどめる
-	b	el3_entry
+    // もし単一コアでのみ実行する処理があれば他コアをここでとどめる
+    b   el3_entry
 
 el3_entry:
-	// スタックポインタの設定 (SM 領域の末尾 0x3f400-0x40000 を使用)
-	// 各コア用のスタックとして 768B (0x300) を確保
-	// SP = _el3_stack_top - (core_id * EL3_STACK_SIZE_PER_CORE)
-	mrs	x0, mpidr_el1
-	and	x0, x0, #3
-	ldr	x1, =_el3_stack_top
-	mov	x2, #EL3_STACK_SIZE_PER_CORE
-	mul	x2, x0, x2
-	sub	x1, x1, x2
-	mov	sp, x1
+    // スタックポインタの設定 (SM 領域の末尾 0x3f400-0x40000 を使用)
+    // 各コア用のスタックとして 768B (0x300) を確保
+    // SP = _el3_stack_top - (core_id * EL3_STACK_SIZE_PER_CORE)
+    mrs x0, mpidr_el1
+    and x0, x0, #3
+    ldr x1, =_el3_stack_top
+    mov x2, #EL3_STACK_SIZE_PER_CORE
+    mul x2, x0, x2
+    sub x1, x1, x2
+    mov sp, x1
 
-	// VBAR_EL3 にベクタテーブルのアドレスを設定
-	adr	x0, vectors
-	msr	vbar_el3, x0
+    // VBAR_EL3 にベクタテーブルのアドレスを設定
+    adr x0, vectors
+    msr vbar_el3, x0
 
-	// RW(register width) は hcr_el2 と同じく 1 にしておかないと 32 ビットになる様子
-	// NS(non-secure) は non-secure bit で、1 にすると
-	//   Indicates that Exception levels lower than EL3 are
-	//   in Non-secure state, so memory accesses
-	//   from those Exception levels cannot access Secure memory.
-	//   今回はそのまま Normal world に遷移したいので NS は 1 にする
-	ldr	x0, =SCR_EL3_VALUE
-	msr	scr_el3, x0
+    // RW(register width) は hcr_el2 と同じく 1 にしておかないと 32 ビットになる様子
+    // NS(non-secure) は non-secure bit で、1 にすると
+    //   Indicates that Exception levels lower than EL3 are
+    //   in Non-secure state, so memory accesses
+    //   from those Exception levels cannot access Secure memory.
+    //   今回はそのまま Normal world に遷移したいので NS は 1 にする
+    ldr x0, =SCR_EL3_VALUE
+    msr scr_el3, x0
 
-	// CPTR_EL3: Architectural Feature Trap Register (EL3)
-	// TFP(bit 10) を 0 にして、EL2/1 からの SIMD/FP 命令のトラップを無効にする
-	mov x0, xzr
-	msr cptr_el3, x0
+    // CPTR_EL3: Architectural Feature Trap Register (EL3)
+    // TFP(bit 10) を 0 にして、EL2/1 からの SIMD/FP 命令のトラップを無効にする
+    mov x0, xzr
+    msr cptr_el3, x0
 
-	// SPSR_EL3 を設定して、eret で EL2h (EL2 + SP_ELx) に遷移するようにする
-	// M[4]=0 (AArch64)
-	// M[3:0]=1001 (EL2h)
-	// F, I, A ビットをマスク
-	ldr	x0, =SPSR_EL3_VALUE
-	msr	spsr_el3, x0
+    // SPSR_EL3 を設定して、eret で EL2h (EL2 + SP_ELx) に遷移するようにする
+    // M[4]=0 (AArch64)
+    // M[3:0]=1001 (EL2h)
+    // F, I, A ビットをマスク
+    ldr x0, =SPSR_EL3_VALUE
+    msr spsr_el3, x0
 
-	// Core 0 以外はログ出力をスキップして HV へ遷移
-	mrs	x0, mpidr_el1
-	and	x0, x0, #3
-	cbnz	x0, jump_to_hv
+    // Core 0 以外はログ出力をスキップして HV へ遷移
+    mrs x0, mpidr_el1
+    and x0, x0, #3
+    cbnz    x0, jump_to_hv
 
-	// 起動ログの出力
-	//bl sm_log_init
-	bl print_boot_message
+    // 起動ログの出力
+    //bl sm_log_init
+    bl print_boot_message
 
 jump_to_hv:
-	// EL2 に遷移しつつ HV_BASE にジャンプ
-	ldr	x0, =HV_BASE
-	msr	elr_el3, x0
-	eret
+    // EL2 に遷移しつつ HV_BASE にジャンプ
+    ldr x0, =HV_BASE
+    msr elr_el3, x0
+    eret

@@ -1,5 +1,5 @@
-#ifndef	_BOOT_H
-#define	_BOOT_H
+#ifndef _BOOT_H
+#define _BOOT_H
 
 #include "common_utils.h"
 

@@ -1,12 +1,12 @@
-#ifndef	_P_IRQ_H
-#define	_P_IRQ_H
+#ifndef _P_IRQ_H
+#define _P_IRQ_H
 
 #include "boards/raspi3/raspi3.h"
 
 #define IRQ_BASIC_PENDING_OFFSET    (0x00)
 #define IRQ_PENDING_1_OFFSET        (0x04)
 #define IRQ_PENDING_2_OFFSET        (0x08)
-#define FIQ_CONTROL_OFFSET	        (0x0C)
+#define FIQ_CONTROL_OFFSET          (0x0C)
 #define ENABLE_IRQS_1_OFFSET        (0x10)
 #define ENABLE_IRQS_2_OFFSET        (0x14)
 #define ENABLE_BASIC_IRQS_OFFSET    (0x18)
@@ -18,7 +18,7 @@
 #define IRQ_BASIC_PENDING           (IRQ_BASE + IRQ_BASIC_PENDING_OFFSET)
 #define IRQ_PENDING_1               (IRQ_BASE + IRQ_PENDING_1_OFFSET)
 #define IRQ_PENDING_2               (IRQ_BASE + IRQ_PENDING_2_OFFSET)
-#define FIQ_CONTROL	                (IRQ_BASE + FIQ_CONTROL_OFFSET)
+#define FIQ_CONTROL                 (IRQ_BASE + FIQ_CONTROL_OFFSET)
 #define ENABLE_IRQS_1               (IRQ_BASE + ENABLE_IRQS_1_OFFSET)
 #define ENABLE_IRQS_2               (IRQ_BASE + ENABLE_IRQS_2_OFFSET)
 #define ENABLE_BASIC_IRQS           (IRQ_BASE + ENABLE_BASIC_IRQS_OFFSET)

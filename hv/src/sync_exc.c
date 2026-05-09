@@ -10,75 +10,75 @@
 
 // eclass のインデックスに合わせたエラーメッセージ
 static const char *sync_error_reasons[] = {
-	"Unknown reason.",
-	"Trapped WFI or WFE instruction execution.",
-	"(unknown)",
-	"Trapped MCR or MRC access with (coproc==0b1111).",
-	"Trapped MCRR or MRRC access with (coproc=0b1111).",
-	"Trapped MCR or MRC access with (coproc==0b1110).",
-	"Trapped LDC or STC access.",
-	"Access to SVE, Advanced SIMD, or floating-point functionality trapped by CPACR_EL1.FPEN, CPTR_EL2.FPEN, CPTR_EL2.TFP, or CPTR_EL3.TFP control.",
-	"Trapped VMRS access, from ID group trap.",
-	"Trapped use of a Pointer authentication instruction because HCR_EL2.API == 0 || SCR_EL3.API == 0.",
-	"(unknown)",
-	"(unknown)",
-	"Trapped MRRC access with (coproc==0b1110).",
-	"Branch Target Exception.",
-	"Ilegal Execution state.",
-	"(unknown)",
-	"(unknown)",
-	"SVC instruction execution in AArch32 state.",
-	"HVC instruction execution in AArch32 state.",
-	"SMC instruction execution in AArch32 state.",
-	"(unknown)",
-	"SVC instruction execution in AArch64 state.",
-	"HVC instruction execution in AArch64 state.",
-	"SMC instruction execution in AArch64 state.",
-	"Trapped MSR, MRS or System instruction execution in AArch64 state.",
-	"Access to SVE functionality trapped as a result of CPAR_EL1.ZEN, CPTR_EL2.ZEN, CPTR_EL.TZ, or CPTR_EL3.EZ.",
-	"Trapped ERET, ERETAA, or ERETAB instruction execution.",
-	"(unknown)",
-	"Exception from a Pointer Authentication instruction authentication failure.",
-	"(unknown)",
-	"(unknown)",
-	"(unknown)",
-	"Instruction Abort from a lower Exception level.",
-	"Instruction Abort taken without a change in Exception level.",
-	"PC alignment fault exception.",
-	"(unknown)",
-	"Data Abort from a lower Exception level.",
-	"Data Abort without a change in Exception level, or Data Aborts taken to EL2 as a result of access generated associated with VNCR_EL2 as part of nested virtualization support.",
-	"SP alignment fault exception.",
-	"(unknown)",
-	"Trapped floating-point exception taken from AArch32 state.",
-	"(unknown)",
-	"(unknown)",
-	"(unknown)",
-	"Trapped floating-point exception taken from AArch64 state.",
-	"(unknown)",
-	"(unknown)",
-	"SError interrupt.",
-	"Breakpoint exception from a lower Exception level.",
-	"Breakpoint exception taken without a change in Exception level.",
-	"Software Step exception from a lower Exception level.",
-	"Software Step exception taken without a change in Exception level.",
-	"Watchpoint from a lower Exception level.",
-	"Watchpoint exceptions without a change in Exception level, or Watchpoint exceptions taken to EL2 as a result of accesses generated associated with VNCR_EL2 as part of nested virtualization support.",
-	"(unknown)",
-	"(unknown)",
-	"BKPT instruction execution in AArch32 state.",
-	"(unknown)",
-	"Vector Catch exception from AArch32 state.",
-	"(unknown)",
-	"BRK instruction execution in AArch64 state.",
+    "Unknown reason.",
+    "Trapped WFI or WFE instruction execution.",
+    "(unknown)",
+    "Trapped MCR or MRC access with (coproc==0b1111).",
+    "Trapped MCRR or MRRC access with (coproc=0b1111).",
+    "Trapped MCR or MRC access with (coproc==0b1110).",
+    "Trapped LDC or STC access.",
+    "Access to SVE, Advanced SIMD, or floating-point functionality trapped by CPACR_EL1.FPEN, CPTR_EL2.FPEN, CPTR_EL2.TFP, or CPTR_EL3.TFP control.",
+    "Trapped VMRS access, from ID group trap.",
+    "Trapped use of a Pointer authentication instruction because HCR_EL2.API == 0 || SCR_EL3.API == 0.",
+    "(unknown)",
+    "(unknown)",
+    "Trapped MRRC access with (coproc==0b1110).",
+    "Branch Target Exception.",
+    "Ilegal Execution state.",
+    "(unknown)",
+    "(unknown)",
+    "SVC instruction execution in AArch32 state.",
+    "HVC instruction execution in AArch32 state.",
+    "SMC instruction execution in AArch32 state.",
+    "(unknown)",
+    "SVC instruction execution in AArch64 state.",
+    "HVC instruction execution in AArch64 state.",
+    "SMC instruction execution in AArch64 state.",
+    "Trapped MSR, MRS or System instruction execution in AArch64 state.",
+    "Access to SVE functionality trapped as a result of CPAR_EL1.ZEN, CPTR_EL2.ZEN, CPTR_EL.TZ, or CPTR_EL3.EZ.",
+    "Trapped ERET, ERETAA, or ERETAB instruction execution.",
+    "(unknown)",
+    "Exception from a Pointer Authentication instruction authentication failure.",
+    "(unknown)",
+    "(unknown)",
+    "(unknown)",
+    "Instruction Abort from a lower Exception level.",
+    "Instruction Abort taken without a change in Exception level.",
+    "PC alignment fault exception.",
+    "(unknown)",
+    "Data Abort from a lower Exception level.",
+    "Data Abort without a change in Exception level, or Data Aborts taken to EL2 as a result of access generated associated with VNCR_EL2 as part of nested virtualization support.",
+    "SP alignment fault exception.",
+    "(unknown)",
+    "Trapped floating-point exception taken from AArch32 state.",
+    "(unknown)",
+    "(unknown)",
+    "(unknown)",
+    "Trapped floating-point exception taken from AArch64 state.",
+    "(unknown)",
+    "(unknown)",
+    "SError interrupt.",
+    "Breakpoint exception from a lower Exception level.",
+    "Breakpoint exception taken without a change in Exception level.",
+    "Software Step exception from a lower Exception level.",
+    "Software Step exception taken without a change in Exception level.",
+    "Watchpoint from a lower Exception level.",
+    "Watchpoint exceptions without a change in Exception level, or Watchpoint exceptions taken to EL2 as a result of accesses generated associated with VNCR_EL2 as part of nested virtualization support.",
+    "(unknown)",
+    "(unknown)",
+    "BKPT instruction execution in AArch32 state.",
+    "(unknown)",
+    "Vector Catch exception from AArch32 state.",
+    "(unknown)",
+    "BRK instruction execution in AArch64 state.",
 };
 
 static void handle_trap_wfx() {
-	if (should_schedule_other_vcpu(current_pcpu()->current_vcpu)) {
-		yield();
-	} else {
-		asm volatile("wfi");
-	}
+    if (should_schedule_other_vcpu(current_pcpu()->current_vcpu)) {
+        yield();
+    } else {
+        asm volatile("wfi");
+    }
 }
 
 static void handle_trap_system(unsigned long esr) {
@@ -97,182 +97,182 @@ static void handle_trap_system(unsigned long esr) {
 //   0b1: Read access, including MRS instructions
 
 #define DEFINE_SYSREG_MSR(name, _op1, _crn, _crm, _op2) \
-	do { \
-		if (op1 == (_op1) && crn == (_crn) && crm == (_crm) && op2 == (_op2)) { \
-			current_pcpu()->current_vcpu->cpu_sysregs.name = regs->regs[rt]; \
-			goto sys_fin; \
-		} \
-	} while (0)
+    do { \
+        if (op1 == (_op1) && crn == (_crn) && crm == (_crm) && op2 == (_op2)) { \
+            current_pcpu()->current_vcpu->cpu_sysregs.name = regs->regs[rt]; \
+            goto sys_fin; \
+        } \
+    } while (0)
 
 #define DEFINE_SYSREG_MRS(name, _op1, _crn, _crm, _op2) \
-	do { \
-		if (op1 == (_op1) && crn == (_crn) && crm == (_crm) && op2 == (_op2)) { \
-			regs->regs[rt] = current_pcpu()->current_vcpu->cpu_sysregs.name; \
-			goto sys_fin; \
-		} \
-	} while (0)
+    do { \
+        if (op1 == (_op1) && crn == (_crn) && crm == (_crm) && op2 == (_op2)) { \
+            regs->regs[rt] = current_pcpu()->current_vcpu->cpu_sysregs.name; \
+            goto sys_fin; \
+        } \
+    } while (0)
 
-	// hypercall した VM のプロセス情報を取り出す
-	struct pt_regs *regs = vcpu_pt_regs(current_pcpu()->current_vcpu);
+    // hypercall した VM のプロセス情報を取り出す
+    struct pt_regs *regs = vcpu_pt_regs(current_pcpu()->current_vcpu);
 
-	// ESR.ISS[24:0] instruction specific syndrome
-	// exception class に応じて使われ方が違う
-	// これは MSR/MRS のときのフォーマットを前提にしている
-	unsigned int op0 = (esr >> 20) & 0x03;
-	unsigned int op2 = (esr >> 17) & 0x07;
-	unsigned int op1 = (esr >> 14) & 0x07;
-	unsigned int crn = (esr >> 10) & 0x0f;
-	unsigned int rt  = (esr >>  5) & 0x1f;
-	unsigned int crm = (esr >>  1) & 0x0f;
-	unsigned int dir = esr         & 0x01;
+    // ESR.ISS[24:0] instruction specific syndrome
+    // exception class に応じて使われ方が違う
+    // これは MSR/MRS のときのフォーマットを前提にしている
+    unsigned int op0 = (esr >> 20) & 0x03;
+    unsigned int op2 = (esr >> 17) & 0x07;
+    unsigned int op1 = (esr >> 14) & 0x07;
+    unsigned int crn = (esr >> 10) & 0x0f;
+    unsigned int rt  = (esr >>  5) & 0x1f;
+    unsigned int crm = (esr >>  1) & 0x0f;
+    unsigned int dir = esr         & 0x01;
 
-	// INFO("trap_system: op0=%d, op2=%d, op1=%d, crn=%d, rt=%d, crm=%d, dir=%d",
-	// 	 op0, op2, op1, crn, rt, crm, dir);
-	// INFO("id_aa64mmfr0_el1 = %d", current()->cpu_sysregs.id_aa64mmfr0_el1);
+    // INFO("trap_system: op0=%d, op2=%d, op1=%d, crn=%d, rt=%d, crm=%d, dir=%d",
+    //   op0, op2, op1, crn, rt, crm, dir);
+    // INFO("id_aa64mmfr0_el1 = %d", current()->cpu_sysregs.id_aa64mmfr0_el1);
 
-	// todo: (op0 & 2) の意図が分からない 
-	if ((op0 & 2) && dir == 0) {
-		// msr
-		// todo: マクロの引数に使われている定数の意味は？
-		DEFINE_SYSREG_MSR(actlr_el1, 0, 1, 0, 1);
-		DEFINE_SYSREG_MSR(csselr_el1, 1, 0, 0, 0);
-	}
-	else if ((op0 & 2) && dir == 1) {
-		// CNTFRQ_EL0 (Op0=3, Op1=3, CRn=14, CRm=0, Op2=0)
-		if (op1 == 3 && crn == 14 && crm == 0 && op2 == 0) {
-			// CNTPCT(カウンタ)と異なり、通常 CNTFRQ(周波数)は頻繁に読む必要はないのでトラップで十分
-			// ゲストに対して偽の周波数を返したければここで変更する
-			unsigned long frq;
-			asm volatile("mrs %0, cntfrq_el0" : "=r"(frq));
-			regs->regs[rt] = frq;
-			goto sys_fin;
-		}
-		// CNTPCT_EL0 (Op0=3, Op1=3, CRn=14, CRm=0, Op2=1)
-		if (op1 == 3 && crn == 14 && crm == 0 && op2 == 1) {
-			// CNTPCT_EL0 へのアクセスはトラップされるので、ここで値をそのまま返す
-			// VM をサスペンドすると時間が飛んだようにみえるので、オフセットを考慮する場合はここで減算する
-			// ただ、通常ゲストは仮想タイマカウンタ(CNTVCT_EL0)を使うので、これは頻繁には使われない想定
-			// CNTVCT_EL0 へのアクセスはトラップされずオフセットも自動で考慮される
-			unsigned long pct;
-			asm volatile("mrs %0, cntpct_el0" : "=r"(pct));
-			regs->regs[rt] = pct;
-			goto sys_fin;
-		}
-		DEFINE_SYSREG_MRS(actlr_el1, 0, 1, 0, 1);
-		DEFINE_SYSREG_MRS(id_pfr0_el1, 0, 0, 1, 0);
-		DEFINE_SYSREG_MRS(id_pfr1_el1, 0, 0, 1, 1);
-		DEFINE_SYSREG_MRS(id_mmfr0_el1, 0, 0, 1, 4);
-		DEFINE_SYSREG_MRS(id_mmfr1_el1, 0, 0, 1, 5);
-		DEFINE_SYSREG_MRS(id_mmfr2_el1, 0, 0, 1, 6);
-		DEFINE_SYSREG_MRS(id_mmfr3_el1, 0, 0, 1, 7);
-		DEFINE_SYSREG_MRS(id_isar0_el1, 0, 0, 2, 0);
-		DEFINE_SYSREG_MRS(id_isar1_el1, 0, 0, 2, 1);
-		DEFINE_SYSREG_MRS(id_isar2_el1, 0, 0, 2, 2);
-		DEFINE_SYSREG_MRS(id_isar3_el1, 0, 0, 2, 3);
-		DEFINE_SYSREG_MRS(id_isar4_el1, 0, 0, 2, 4);
-		DEFINE_SYSREG_MRS(id_isar5_el1, 0, 0, 2, 5);
-		DEFINE_SYSREG_MRS(mvfr0_el1, 0, 0, 3, 0);
-		DEFINE_SYSREG_MRS(mvfr1_el1, 0, 0, 3, 1);
-		DEFINE_SYSREG_MRS(mvfr2_el1, 0, 0, 3, 2);
-		DEFINE_SYSREG_MRS(id_aa64pfr0_el1, 0, 0, 4, 0);
-		DEFINE_SYSREG_MRS(id_aa64pfr1_el1, 0, 0, 4, 1);
-		DEFINE_SYSREG_MRS(id_aa64dfr0_el1, 0, 0, 5, 0);
-		DEFINE_SYSREG_MRS(id_aa64dfr1_el1, 0, 0, 5, 1);
-		DEFINE_SYSREG_MRS(id_aa64isar0_el1, 0, 0, 6, 0);
-		DEFINE_SYSREG_MRS(id_aa64isar1_el1, 0, 0, 6, 1);
-		DEFINE_SYSREG_MRS(id_aa64mmfr0_el1, 0, 0, 7, 0);
-		DEFINE_SYSREG_MRS(id_aa64mmfr1_el1, 0, 0, 7, 1);
-		DEFINE_SYSREG_MRS(id_aa64afr0_el1, 0, 0, 5, 4);
-		DEFINE_SYSREG_MRS(id_aa64afr1_el1, 0, 0, 5, 5);
-		DEFINE_SYSREG_MRS(ctr_el0, 3, 0, 0, 1);
-		DEFINE_SYSREG_MRS(ccsidr_el1, 1, 0, 0, 0);
-		DEFINE_SYSREG_MRS(clidr_el1, 1, 0, 0, 1);
-		DEFINE_SYSREG_MRS(csselr_el1, 2, 0, 0, 0);
-		DEFINE_SYSREG_MRS(aidr_el1, 1, 0, 0, 7);
-		DEFINE_SYSREG_MRS(revidr_el1, 0, 0, 0, 6);
-	}
+    // todo: (op0 & 2) の意図が分からない 
+    if ((op0 & 2) && dir == 0) {
+        // msr
+        // todo: マクロの引数に使われている定数の意味は？
+        DEFINE_SYSREG_MSR(actlr_el1, 0, 1, 0, 1);
+        DEFINE_SYSREG_MSR(csselr_el1, 1, 0, 0, 0);
+    }
+    else if ((op0 & 2) && dir == 1) {
+        // CNTFRQ_EL0 (Op0=3, Op1=3, CRn=14, CRm=0, Op2=0)
+        if (op1 == 3 && crn == 14 && crm == 0 && op2 == 0) {
+            // CNTPCT(カウンタ)と異なり、通常 CNTFRQ(周波数)は頻繁に読む必要はないのでトラップで十分
+            // ゲストに対して偽の周波数を返したければここで変更する
+            unsigned long frq;
+            asm volatile("mrs %0, cntfrq_el0" : "=r"(frq));
+            regs->regs[rt] = frq;
+            goto sys_fin;
+        }
+        // CNTPCT_EL0 (Op0=3, Op1=3, CRn=14, CRm=0, Op2=1)
+        if (op1 == 3 && crn == 14 && crm == 0 && op2 == 1) {
+            // CNTPCT_EL0 へのアクセスはトラップされるので、ここで値をそのまま返す
+            // VM をサスペンドすると時間が飛んだようにみえるので、オフセットを考慮する場合はここで減算する
+            // ただ、通常ゲストは仮想タイマカウンタ(CNTVCT_EL0)を使うので、これは頻繁には使われない想定
+            // CNTVCT_EL0 へのアクセスはトラップされずオフセットも自動で考慮される
+            unsigned long pct;
+            asm volatile("mrs %0, cntpct_el0" : "=r"(pct));
+            regs->regs[rt] = pct;
+            goto sys_fin;
+        }
+        DEFINE_SYSREG_MRS(actlr_el1, 0, 1, 0, 1);
+        DEFINE_SYSREG_MRS(id_pfr0_el1, 0, 0, 1, 0);
+        DEFINE_SYSREG_MRS(id_pfr1_el1, 0, 0, 1, 1);
+        DEFINE_SYSREG_MRS(id_mmfr0_el1, 0, 0, 1, 4);
+        DEFINE_SYSREG_MRS(id_mmfr1_el1, 0, 0, 1, 5);
+        DEFINE_SYSREG_MRS(id_mmfr2_el1, 0, 0, 1, 6);
+        DEFINE_SYSREG_MRS(id_mmfr3_el1, 0, 0, 1, 7);
+        DEFINE_SYSREG_MRS(id_isar0_el1, 0, 0, 2, 0);
+        DEFINE_SYSREG_MRS(id_isar1_el1, 0, 0, 2, 1);
+        DEFINE_SYSREG_MRS(id_isar2_el1, 0, 0, 2, 2);
+        DEFINE_SYSREG_MRS(id_isar3_el1, 0, 0, 2, 3);
+        DEFINE_SYSREG_MRS(id_isar4_el1, 0, 0, 2, 4);
+        DEFINE_SYSREG_MRS(id_isar5_el1, 0, 0, 2, 5);
+        DEFINE_SYSREG_MRS(mvfr0_el1, 0, 0, 3, 0);
+        DEFINE_SYSREG_MRS(mvfr1_el1, 0, 0, 3, 1);
+        DEFINE_SYSREG_MRS(mvfr2_el1, 0, 0, 3, 2);
+        DEFINE_SYSREG_MRS(id_aa64pfr0_el1, 0, 0, 4, 0);
+        DEFINE_SYSREG_MRS(id_aa64pfr1_el1, 0, 0, 4, 1);
+        DEFINE_SYSREG_MRS(id_aa64dfr0_el1, 0, 0, 5, 0);
+        DEFINE_SYSREG_MRS(id_aa64dfr1_el1, 0, 0, 5, 1);
+        DEFINE_SYSREG_MRS(id_aa64isar0_el1, 0, 0, 6, 0);
+        DEFINE_SYSREG_MRS(id_aa64isar1_el1, 0, 0, 6, 1);
+        DEFINE_SYSREG_MRS(id_aa64mmfr0_el1, 0, 0, 7, 0);
+        DEFINE_SYSREG_MRS(id_aa64mmfr1_el1, 0, 0, 7, 1);
+        DEFINE_SYSREG_MRS(id_aa64afr0_el1, 0, 0, 5, 4);
+        DEFINE_SYSREG_MRS(id_aa64afr1_el1, 0, 0, 5, 5);
+        DEFINE_SYSREG_MRS(ctr_el0, 3, 0, 0, 1);
+        DEFINE_SYSREG_MRS(ccsidr_el1, 1, 0, 0, 0);
+        DEFINE_SYSREG_MRS(clidr_el1, 1, 0, 0, 1);
+        DEFINE_SYSREG_MRS(csselr_el1, 2, 0, 0, 0);
+        DEFINE_SYSREG_MRS(aidr_el1, 1, 0, 0, 7);
+        DEFINE_SYSREG_MRS(revidr_el1, 0, 0, 0, 6);
+    }
 
-	// DEFINE_SYSREG_MRS で sys_fin にジャンプするので else は不要
-	WARN("system register access is not handled");
+    // DEFINE_SYSREG_MRS で sys_fin にジャンプするので else は不要
+    WARN("system register access is not handled");
 sys_fin:
-	return;
+    return;
 }
 
 static void show_guest_regs(struct vcpu_struct *vcpu) {
-	struct pt_regs *regs = vcpu_pt_regs(vcpu);
-	printf("Guest Registers (vCPU %d):\n", vcpu->vcpu_id);
-	for (int i = 0; i < 31; i+=4) {
-		printf(" x%02d: %016lx x%02d: %016lx x%02d: %016lx x%02d: %016lx\n",
-			   i, regs->regs[i],
-			   i+1, regs->regs[i+1],
-			   i+2, regs->regs[i+2],
-			   i+3, i+3 < 31 ? regs->regs[i+3] : 0);
-	}
-	printf(" PC : %016lx PSTATE: %016lx\n", regs->pc, regs->pstate);
-	printf(" SP : %016lx\n", regs->sp);
+    struct pt_regs *regs = vcpu_pt_regs(vcpu);
+    printf("Guest Registers (vCPU %d):\n", vcpu->vcpu_id);
+    for (int i = 0; i < 31; i+=4) {
+        printf(" x%02d: %016lx x%02d: %016lx x%02d: %016lx x%02d: %016lx\n",
+               i, regs->regs[i],
+               i+1, regs->regs[i+1],
+               i+2, regs->regs[i+2],
+               i+3, i+3 < 31 ? regs->regs[i+3] : 0);
+    }
+    printf(" PC : %016lx PSTATE: %016lx\n", regs->pc, regs->pstate);
+    printf(" SP : %016lx\n", regs->sp);
 }
 
 // ESR_EL2
 // https://developer.arm.com/documentation/ddi0595/2021-03/AArch64-Registers/ESR-EL2--Exception-Syndrome-Register--EL2-?lang=en#fieldset_0-24_0
 void handle_sync_exception(unsigned long esr, unsigned long elr, unsigned long far) {
-	// esr にはハンドラ el01_sync により esr_el2 が渡されている
-	// esr_el2 の下位16ビットに hvc 実行時に指定した即値が入っている
-	// 今の実装では hvc に渡された数値は無視している
+    // esr にはハンドラ el01_sync により esr_el2 が渡されている
+    // esr_el2 の下位16ビットに hvc 実行時に指定した即値が入っている
+    // 今の実装では hvc に渡された数値は無視している
 
-	// EC(error class)を取得
-	int eclass = (esr >> ESR_EL2_EC_SHIFT) & 0x3f;
+    // EC(error class)を取得
+    int eclass = (esr >> ESR_EL2_EC_SHIFT) & 0x3f;
 
-	// HVC 例外は handle_sync_exception_hvc64 で処理するためここには現れない
-	switch (eclass)
-	{
-	case ESR_EL2_EC_TRAP_WFX:
-		// ゲスト VM が WFI/WFE を実行したら VM を切り替える
-		current_pcpu()->current_vcpu->vm->stat.wfx_trap_count++;
-		increment_current_pc(4);
-		handle_trap_wfx();
-		break;
-	case ESR_EL2_EC_TRAP_FP_REG:
-		WARN("TRAP_FP_REG is not implemented.");
-		break;
-	case ESR_EL2_EC_TRAP_SYSTEM:
-		// システムレジスタへのアクセスはここでトラップ
-		current_pcpu()->current_vcpu->vm->stat.sysregs_trap_count++;
-		increment_current_pc(4);
-		handle_trap_system(esr);
-		break;
-	case ESR_EL2_EC_TRAP_SVE:
-		WARN("TRAP_SVE is not implemented.");
-		break;
-	case ESR_EL2_EC_IABT_LOW:
-		WARN("IABT_LOW is not implemented.");
-		WARN("%s\nesr: 0x%lx, address: 0x%lx", sync_error_reasons[eclass], esr, elr);
-		break;
-	case ESR_EL2_EC_DABT_LOW:
-		// todo: ゲストが uart の状態を読むたびに vmexit/enter が発生している
-		// データアボートは処理し、問題なければそのまま復帰
-		if (handle_mem_abort(far, esr) < 0) {
-			PANIC("handle_mem_abort() failed.");
-		}
-		break;
-	default:
-		show_guest_regs(current_pcpu()->current_vcpu);
-		PANIC("Uncaught synchronous exception:\n%s\nesr: 0x%lx, address: 0x%lx", sync_error_reasons[eclass], esr, elr);
-		break;
-	}
+    // HVC 例外は handle_sync_exception_hvc64 で処理するためここには現れない
+    switch (eclass)
+    {
+    case ESR_EL2_EC_TRAP_WFX:
+        // ゲスト VM が WFI/WFE を実行したら VM を切り替える
+        current_pcpu()->current_vcpu->vm->stat.wfx_trap_count++;
+        increment_current_pc(4);
+        handle_trap_wfx();
+        break;
+    case ESR_EL2_EC_TRAP_FP_REG:
+        WARN("TRAP_FP_REG is not implemented.");
+        break;
+    case ESR_EL2_EC_TRAP_SYSTEM:
+        // システムレジスタへのアクセスはここでトラップ
+        current_pcpu()->current_vcpu->vm->stat.sysregs_trap_count++;
+        increment_current_pc(4);
+        handle_trap_system(esr);
+        break;
+    case ESR_EL2_EC_TRAP_SVE:
+        WARN("TRAP_SVE is not implemented.");
+        break;
+    case ESR_EL2_EC_IABT_LOW:
+        WARN("IABT_LOW is not implemented.");
+        WARN("%s\nesr: 0x%lx, address: 0x%lx", sync_error_reasons[eclass], esr, elr);
+        break;
+    case ESR_EL2_EC_DABT_LOW:
+        // todo: ゲストが uart の状態を読むたびに vmexit/enter が発生している
+        // データアボートは処理し、問題なければそのまま復帰
+        if (handle_mem_abort(far, esr) < 0) {
+            PANIC("handle_mem_abort() failed.");
+        }
+        break;
+    default:
+        show_guest_regs(current_pcpu()->current_vcpu);
+        PANIC("Uncaught synchronous exception:\n%s\nesr: 0x%lx, address: 0x%lx", sync_error_reasons[eclass], esr, elr);
+        break;
+    }
 }
 
 // EL1 からの HVC 呼び出しの処理
 void handle_sync_exception_hvc64(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigned long a2, unsigned long a3) {
-	// todo: なぜかこれを有効にすると、new ハイパーコールを呼ぶとシャットダウンなども呼ばれるようになる
-	// increment_current_pc(4);
-	current_pcpu()->current_vcpu->vm->stat.hvc_trap_count++;
-	hypercall(hvc_nr, a0, a1, a2, a3);
+    // todo: なぜかこれを有効にすると、new ハイパーコールを呼ぶとシャットダウンなども呼ばれるようになる
+    // increment_current_pc(4);
+    current_pcpu()->current_vcpu->vm->stat.hvc_trap_count++;
+    hypercall(hvc_nr, a0, a1, a2, a3);
 }
 
 // EL1 からの SMC 呼び出しの処理
 void handle_sync_exception_smc64(unsigned long smc_nr, unsigned long a0, unsigned long a1, unsigned long a2, unsigned long a3) {
-	increment_current_pc(4);
-	smcall(smc_nr, a0, a1, a2, a3);
-	// セキュアモニタコールのあとはログが入っているかもしれないのでダンプする
-	sm_log_dump();
+    increment_current_pc(4);
+    smcall(smc_nr, a0, a1, a2, a3);
+    // セキュアモニタコールのあとはログが入っているかもしれないのでダンプする
+    sm_log_dump();
 }

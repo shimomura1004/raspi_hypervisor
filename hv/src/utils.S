@@ -28,354 +28,354 @@
 // void set_stage2_pgd(unsigned long pgd, unsigned long vmid);
 .globl set_stage2_pgd
 set_stage2_pgd:
-	// prepare VMID
-	and x1, x1, #0xff	// 下位8ビットだけを残す
-	lsl x1, x1, #48		// 48ビットずらすので、下位8ビットが64ビットの上位8ビットに移動する
-	// set VMID
-	orr x0, x0, x1		// アドレスの上位8ビットに VMID を入れる
-	// アドレス空間を切り替え
-	// EL2 にはページテーブルが1つしかない
-	// VTTBR_EL2 の上位16ビットは VMID を格納する、残りの48ビットはベースアドレス
-	msr	vttbr_el2, x0
+    // prepare VMID
+    and x1, x1, #0xff   // 下位8ビットだけを残す
+    lsl x1, x1, #48     // 48ビットずらすので、下位8ビットが64ビットの上位8ビットに移動する
+    // set VMID
+    orr x0, x0, x1      // アドレスの上位8ビットに VMID を入れる
+    // アドレス空間を切り替え
+    // EL2 にはページテーブルが1つしかない
+    // VTTBR_EL2 の上位16ビットは VMID を格納する、残りの48ビットはベースアドレス
+    msr vttbr_el2, x0
 
-	// out-of-order 実行で勝手に実行しないように
-	// data synchronization barrier
-	dsb ish				// ensure completion of TLB invalidation
-	// instruction synchronization barrier
-	isb
+    // out-of-order 実行で勝手に実行しないように
+    // data synchronization barrier
+    dsb ish             // ensure completion of TLB invalidation
+    // instruction synchronization barrier
+    isb
 
-	ret
+    ret
 
 // x0 が指すメモリアドレスに保存された値を各システムレジスタに復元する
 // sched.h で定義された struct cpu_sysregs のメンバの並び順に依存する
 .globl restore_sysregs
 restore_sysregs:
-	// 2変数分読みだしてセットする、の繰り返し
-	ldp x1, x2, [x0], #16
-	msr sctlr_el1, x1
-	msr ttbr0_el1, x2
-	ldp x1, x2, [x0], #16
-	msr ttbr1_el1, x1
-	msr tcr_el1, x2
-	ldp x1, x2, [x0], #16
-	msr esr_el1, x1
-	msr far_el1, x2
-	ldp x1, x2, [x0], #16
-	msr afsr0_el1, x1
-	msr afsr1_el1, x2
-	ldp x1, x2, [x0], #16
-	msr mair_el1, x1
-	msr amair_el1, x2
-	ldp x1, x2, [x0], #16
-	msr contextidr_el1, x1
-	msr cpacr_el1, x2
-	ldp x1, x2, [x0], #16
-	msr elr_el1, x1
-	msr fpcr, x2
-	ldp x1, x2, [x0], #16
-	msr fpsr, x1
-	msr vpidr_el2, x2		// for virtualization
-	ldp x1, x2, [x0], #16
-	msr vmpidr_el2, x1		// for virtualization
-	msr par_el1, x2
-	ldp x1, x2, [x0], #16
-	msr sp_el0, x1
-	msr sp_el1, x2
-	ldp x1, x2, [x0], #16
-	msr spsr_el1, x1
-	msr tpidr_el0, x2
-	ldp x1, x2, [x0], #16
-	msr tpidr_el1, x1
-	msr tpidrro_el0, x2
-	ldp x1, x2, [x0], #16
-	msr vbar_el1, x1
-	msr cntkctl_el1, x2
-	ldp x1, x2, [x0], #16
-	msr cntp_ctl_el0, x1
-	msr cntp_cval_el0, x2
-	ldp x1, x2, [x0], #16
-	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
-	//msr cntp_tval_el0, x1
-	msr cntv_ctl_el0, x2
-	ldp x1, x2, [x0], #16
-	msr cntv_cval_el0, x1
-	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
-	//msr cntv_tval_el0, x2
+    // 2変数分読みだしてセットする、の繰り返し
+    ldp x1, x2, [x0], #16
+    msr sctlr_el1, x1
+    msr ttbr0_el1, x2
+    ldp x1, x2, [x0], #16
+    msr ttbr1_el1, x1
+    msr tcr_el1, x2
+    ldp x1, x2, [x0], #16
+    msr esr_el1, x1
+    msr far_el1, x2
+    ldp x1, x2, [x0], #16
+    msr afsr0_el1, x1
+    msr afsr1_el1, x2
+    ldp x1, x2, [x0], #16
+    msr mair_el1, x1
+    msr amair_el1, x2
+    ldp x1, x2, [x0], #16
+    msr contextidr_el1, x1
+    msr cpacr_el1, x2
+    ldp x1, x2, [x0], #16
+    msr elr_el1, x1
+    msr fpcr, x2
+    ldp x1, x2, [x0], #16
+    msr fpsr, x1
+    msr vpidr_el2, x2       // for virtualization
+    ldp x1, x2, [x0], #16
+    msr vmpidr_el2, x1      // for virtualization
+    msr par_el1, x2
+    ldp x1, x2, [x0], #16
+    msr sp_el0, x1
+    msr sp_el1, x2
+    ldp x1, x2, [x0], #16
+    msr spsr_el1, x1
+    msr tpidr_el0, x2
+    ldp x1, x2, [x0], #16
+    msr tpidr_el1, x1
+    msr tpidrro_el0, x2
+    ldp x1, x2, [x0], #16
+    msr vbar_el1, x1
+    msr cntkctl_el1, x2
+    ldp x1, x2, [x0], #16
+    msr cntp_ctl_el0, x1
+    msr cntp_cval_el0, x2
+    ldp x1, x2, [x0], #16
+    // todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
+    //msr cntp_tval_el0, x1
+    msr cntv_ctl_el0, x2
+    ldp x1, x2, [x0], #16
+    msr cntv_cval_el0, x1
+    // todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
+    //msr cntv_tval_el0, x2
 
-  	// TTBR を復元してメモリ空間が変わるので、念のためブロックしている？　
-	dsb ish
-	isb
-	ret
+    // TTBR を復元してメモリ空間が変わるので、念のためブロックしている？　
+    dsb ish
+    isb
+    ret
 
 // 各システムレジスタの値を取り出し、x0 が指すメモリアドレスに保存する
 .globl save_sysregs
 save_sysregs:
-	// todo: なぜ save 前に barrier が必要なのか？
-	//       データを保存する前にシステムレジスタへの書き込み命令をすべて完了させたい？
-	dsb ish
-	isb
+    // todo: なぜ save 前に barrier が必要なのか？
+    //       データを保存する前にシステムレジスタへの書き込み命令をすべて完了させたい？
+    dsb ish
+    isb
 
-	mrs x1, sctlr_el1
-	mrs x2, ttbr0_el1
-	stp x1, x2, [x0], #16
-	mrs x1, ttbr1_el1
-	mrs x2, tcr_el1
-	stp x1, x2, [x0], #16
-	mrs x1, esr_el1
-	mrs x2, far_el1
-	stp x1, x2, [x0], #16
-	mrs x1, afsr0_el1
-	mrs x2, afsr1_el1
-	stp x1, x2, [x0], #16
-	mrs x1, mair_el1
-	mrs x2, amair_el1
-	stp x1, x2, [x0], #16
-	mrs x1, contextidr_el1
-	mrs x2, cpacr_el1
-	stp x1, x2, [x0], #16
-	mrs x1, elr_el1
-	mrs x2, fpcr
-	stp x1, x2, [x0], #16
-	mrs x1, fpsr
-	mrs x2, midr_el1		// todo: 読み出し時は midr_el1 だけど書き込み時は vpidr_el2
-//	mrs x2, vpidr_el2
-	stp x1, x2, [x0], #16
-//	mrs x1, mpidr_el1		// todo: 読み出し時は mpidr_el1 だけど書き込み時は vmpidr_el2
-	mrs x1, vmpidr_el2
-	mrs x2, par_el1
-	stp x1, x2, [x0], #16
-	mrs x1, sp_el0
-	mrs x2, sp_el1
-	stp x1, x2, [x0], #16
-	mrs x1, spsr_el1
-	mrs x2, tpidr_el0
-	stp x1, x2, [x0], #16
-	mrs x1, tpidr_el1
-	mrs x2, tpidrro_el0
-	stp x1, x2, [x0], #16
-	mrs x1, vbar_el1
-	mrs x2, cntkctl_el1
-	stp x1, x2, [x0], #16
-	mrs x1, cntp_ctl_el0
-	mrs x2, cntp_cval_el0
-	stp x1, x2, [x0], #16
-	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
-	mrs x1, cntp_tval_el0
-	mrs x2, cntv_ctl_el0
-	stp x1, x2, [x0], #16
-	mrs x1, cntv_cval_el0
-	// todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
-	mrs x2, cntv_tval_el0
-	stp x1, x2, [x0], #16
-	ret
+    mrs x1, sctlr_el1
+    mrs x2, ttbr0_el1
+    stp x1, x2, [x0], #16
+    mrs x1, ttbr1_el1
+    mrs x2, tcr_el1
+    stp x1, x2, [x0], #16
+    mrs x1, esr_el1
+    mrs x2, far_el1
+    stp x1, x2, [x0], #16
+    mrs x1, afsr0_el1
+    mrs x2, afsr1_el1
+    stp x1, x2, [x0], #16
+    mrs x1, mair_el1
+    mrs x2, amair_el1
+    stp x1, x2, [x0], #16
+    mrs x1, contextidr_el1
+    mrs x2, cpacr_el1
+    stp x1, x2, [x0], #16
+    mrs x1, elr_el1
+    mrs x2, fpcr
+    stp x1, x2, [x0], #16
+    mrs x1, fpsr
+    mrs x2, midr_el1        // todo: 読み出し時は midr_el1 だけど書き込み時は vpidr_el2
+//  mrs x2, vpidr_el2
+    stp x1, x2, [x0], #16
+//  mrs x1, mpidr_el1       // todo: 読み出し時は mpidr_el1 だけど書き込み時は vmpidr_el2
+    mrs x1, vmpidr_el2
+    mrs x2, par_el1
+    stp x1, x2, [x0], #16
+    mrs x1, sp_el0
+    mrs x2, sp_el1
+    stp x1, x2, [x0], #16
+    mrs x1, spsr_el1
+    mrs x2, tpidr_el0
+    stp x1, x2, [x0], #16
+    mrs x1, tpidr_el1
+    mrs x2, tpidrro_el0
+    stp x1, x2, [x0], #16
+    mrs x1, vbar_el1
+    mrs x2, cntkctl_el1
+    stp x1, x2, [x0], #16
+    mrs x1, cntp_ctl_el0
+    mrs x2, cntp_cval_el0
+    stp x1, x2, [x0], #16
+    // todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
+    mrs x1, cntp_tval_el0
+    mrs x2, cntv_ctl_el0
+    stp x1, x2, [x0], #16
+    mrs x1, cntv_cval_el0
+    // todo: tval は cval と pct/vct から計算されるものなので本来退避・復元は不要
+    mrs x2, cntv_tval_el0
+    stp x1, x2, [x0], #16
+    ret
 
 .globl get_all_sysregs
 get_all_sysregs:
-	mrs x1, sctlr_el1
-	mrs x2, ttbr0_el1
-	stp x1, x2, [x0], #16
-	mrs x1, ttbr1_el1
-	mrs x2, tcr_el1
-	stp x1, x2, [x0], #16
-	mrs x1, esr_el1
-	mrs x2, far_el1
-	stp x1, x2, [x0], #16
-	mrs x1, afsr0_el1
-	mrs x2, afsr1_el1
-	stp x1, x2, [x0], #16
-	mrs x1, mair_el1
-	mrs x2, amair_el1
-	stp x1, x2, [x0], #16
-	mrs x1, contextidr_el1
-	mrs x2, cpacr_el1
-	stp x1, x2, [x0], #16
-	mrs x1, elr_el1
-	mrs x2, fpcr
-	stp x1, x2, [x0], #16
-	mrs x1, fpsr
-	mrs x2, midr_el1		// todo: 読み出し時は midr_el1 だけど書き込み時は vpidr_el2
-//	mrs x2, vpidr_el2
-	stp x1, x2, [x0], #16
-//	mrs x1, mpidr_el1		// todo: 読み出し時は mpidr_el1 だけど書き込み時は vmpidr_el2
-	mrs x1, vmpidr_el2
-	mrs x2, par_el1
-	stp x1, x2, [x0], #16
-	mrs x1, sp_el0
-	mrs x2, sp_el1
-	stp x1, x2, [x0], #16
-	mrs x1, spsr_el1
-	mrs x2, tpidr_el0
-	stp x1, x2, [x0], #16
-	mrs x1, tpidr_el1
-	mrs x2, tpidrro_el0
-	stp x1, x2, [x0], #16
-	mrs x1, vbar_el1
-	mrs x2, cntkctl_el1
-	stp x1, x2, [x0], #16
-	mrs x1, cntp_ctl_el0
-	mrs x2, cntp_cval_el0
-	stp x1, x2, [x0], #16
-	mrs x1, cntp_tval_el0
-	mrs x2, cntv_ctl_el0
-	stp x1, x2, [x0], #16
-	mrs x1, cntv_cval_el0
-	mrs x2, cntv_tval_el0
-	stp x1, x2, [x0], #16
+    mrs x1, sctlr_el1
+    mrs x2, ttbr0_el1
+    stp x1, x2, [x0], #16
+    mrs x1, ttbr1_el1
+    mrs x2, tcr_el1
+    stp x1, x2, [x0], #16
+    mrs x1, esr_el1
+    mrs x2, far_el1
+    stp x1, x2, [x0], #16
+    mrs x1, afsr0_el1
+    mrs x2, afsr1_el1
+    stp x1, x2, [x0], #16
+    mrs x1, mair_el1
+    mrs x2, amair_el1
+    stp x1, x2, [x0], #16
+    mrs x1, contextidr_el1
+    mrs x2, cpacr_el1
+    stp x1, x2, [x0], #16
+    mrs x1, elr_el1
+    mrs x2, fpcr
+    stp x1, x2, [x0], #16
+    mrs x1, fpsr
+    mrs x2, midr_el1        // todo: 読み出し時は midr_el1 だけど書き込み時は vpidr_el2
+//  mrs x2, vpidr_el2
+    stp x1, x2, [x0], #16
+//  mrs x1, mpidr_el1       // todo: 読み出し時は mpidr_el1 だけど書き込み時は vmpidr_el2
+    mrs x1, vmpidr_el2
+    mrs x2, par_el1
+    stp x1, x2, [x0], #16
+    mrs x1, sp_el0
+    mrs x2, sp_el1
+    stp x1, x2, [x0], #16
+    mrs x1, spsr_el1
+    mrs x2, tpidr_el0
+    stp x1, x2, [x0], #16
+    mrs x1, tpidr_el1
+    mrs x2, tpidrro_el0
+    stp x1, x2, [x0], #16
+    mrs x1, vbar_el1
+    mrs x2, cntkctl_el1
+    stp x1, x2, [x0], #16
+    mrs x1, cntp_ctl_el0
+    mrs x2, cntp_cval_el0
+    stp x1, x2, [x0], #16
+    mrs x1, cntp_tval_el0
+    mrs x2, cntv_ctl_el0
+    stp x1, x2, [x0], #16
+    mrs x1, cntv_cval_el0
+    mrs x2, cntv_tval_el0
+    stp x1, x2, [x0], #16
 
-	// The following registers are only for debugging
-	mrs x1, actlr_el1
-	mrs x2, id_pfr0_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_pfr1_el1
-	mrs x2, id_mmfr0_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_mmfr1_el1
-	mrs x2, id_mmfr2_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_mmfr3_el1
-	mrs x2, id_isar0_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_isar1_el1
-	mrs x2, id_isar2_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_isar3_el1
-	mrs x2, id_isar4_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_isar5_el1
-	mrs x2, mvfr0_el1
-	stp x1, x2, [x0], #16
-	mrs x1, mvfr1_el1
-	mrs x2, mvfr2_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_aa64pfr0_el1
-	mrs x2, id_aa64pfr1_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_aa64dfr0_el1
-	mrs x2, id_aa64dfr1_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_aa64isar0_el1
-	mrs x2, id_aa64isar1_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_aa64mmfr0_el1
-	mrs x2, id_aa64mmfr1_el1
-	stp x1, x2, [x0], #16
-	mrs x1, id_aa64afr0_el1
-	mrs x2, id_aa64afr1_el1
-	stp x1, x2, [x0], #16
-	mrs x1, ctr_el0
-	mrs x2, ccsidr_el1
-	stp x1, x2, [x0], #16
-	mrs x1, clidr_el1
-	mrs x2, csselr_el1
-	stp x1, x2, [x0], #16
-	mrs x1, aidr_el1
-	mrs x2, revidr_el1
-	stp x1, x2, [x0], #16
-	ret
+    // The following registers are only for debugging
+    mrs x1, actlr_el1
+    mrs x2, id_pfr0_el1
+    stp x1, x2, [x0], #16
+    mrs x1, id_pfr1_el1
+    mrs x2, id_mmfr0_el1
+    stp x1, x2, [x0], #16
+    mrs x1, id_mmfr1_el1
+    mrs x2, id_mmfr2_el1
+    stp x1, x2, [x0], #16
+    mrs x1, id_mmfr3_el1
+    mrs x2, id_isar0_el1
+    stp x1, x2, [x0], #16
+    mrs x1, id_isar1_el1
+    mrs x2, id_isar2_el1
+    stp x1, x2, [x0], #16
+    mrs x1, id_isar3_el1
+    mrs x2, id_isar4_el1
+    stp x1, x2, [x0], #16
+    mrs x1, id_isar5_el1
+    mrs x2, mvfr0_el1
+    stp x1, x2, [x0], #16
+    mrs x1, mvfr1_el1
+    mrs x2, mvfr2_el1
+    stp x1, x2, [x0], #16
+    mrs x1, id_aa64pfr0_el1
+    mrs x2, id_aa64pfr1_el1
+    stp x1, x2, [x0], #16
+    mrs x1, id_aa64dfr0_el1
+    mrs x2, id_aa64dfr1_el1
+    stp x1, x2, [x0], #16
+    mrs x1, id_aa64isar0_el1
+    mrs x2, id_aa64isar1_el1
+    stp x1, x2, [x0], #16
+    mrs x1, id_aa64mmfr0_el1
+    mrs x2, id_aa64mmfr1_el1
+    stp x1, x2, [x0], #16
+    mrs x1, id_aa64afr0_el1
+    mrs x2, id_aa64afr1_el1
+    stp x1, x2, [x0], #16
+    mrs x1, ctr_el0
+    mrs x2, ccsidr_el1
+    stp x1, x2, [x0], #16
+    mrs x1, clidr_el1
+    mrs x2, csselr_el1
+    stp x1, x2, [x0], #16
+    mrs x1, aidr_el1
+    mrs x2, revidr_el1
+    stp x1, x2, [x0], #16
+    ret
 
 .globl assert_vfiq
 assert_vfiq:
-	// HCR_EL2.VF(Virtual FIQ) をセットする
-	mrs x0, hcr_el2
-	orr x1, x0, #0x40
-	msr hcr_el2, x1
-	ret
+    // HCR_EL2.VF(Virtual FIQ) をセットする
+    mrs x0, hcr_el2
+    orr x1, x0, #0x40
+    msr hcr_el2, x1
+    ret
 
 .globl assert_virq
 assert_virq:
-	// HCR_EL2.VI(Virtual IRQ) をセットする
-	mrs x0, hcr_el2
-	orr x1, x0, #0x80
-	msr hcr_el2, x1
-	ret
+    // HCR_EL2.VI(Virtual IRQ) をセットする
+    mrs x0, hcr_el2
+    orr x1, x0, #0x80
+    msr hcr_el2, x1
+    ret
 
 .globl assert_vserror
 assert_vserror:
-	// HCR_EL2.VSI(Virtual SError) をセットする
-	mrs x0, hcr_el2
-	orr x1, x0, #0x100
-	msr hcr_el2, x1
-	ret
+    // HCR_EL2.VSI(Virtual SError) をセットする
+    mrs x0, hcr_el2
+    orr x1, x0, #0x100
+    msr hcr_el2, x1
+    ret
 
 .globl clear_vfiq
 clear_vfiq:
-	mrs x0, hcr_el2
-	// bic(bit clear)
-	//   bic x0, x1, x2: x0 = x1 & ~x2
-	// つまり hcr_el2 の VF を 0 にしたものを x1 に入れる
-	bic x1, x0, #0x40
-	msr hcr_el2, x1
-	ret
+    mrs x0, hcr_el2
+    // bic(bit clear)
+    //   bic x0, x1, x2: x0 = x1 & ~x2
+    // つまり hcr_el2 の VF を 0 にしたものを x1 に入れる
+    bic x1, x0, #0x40
+    msr hcr_el2, x1
+    ret
 
 .globl clear_virq
 clear_virq:
-	mrs x0, hcr_el2
-	bic x1, x0, #0x80
-	msr hcr_el2, x1
-	ret
+    mrs x0, hcr_el2
+    bic x1, x0, #0x80
+    msr hcr_el2, x1
+    ret
 
 .globl clear_vserror
 clear_vserror:
-	mrs x0, hcr_el2
-	bic x1, x0, #0x100
-	msr hcr_el2, x1
-	ret
+    mrs x0, hcr_el2
+    bic x1, x0, #0x100
+    msr hcr_el2, x1
+    ret
 
 .globl translate_el1
 translate_el1:
-	// at s1e1r: address translation stage 1 el1 read
-	// x0 のアドレスを EL1 のステージ1アドレス変換する
-	// 結果は par_el1 (physical address register) に入る
-	at s1e1r, x0
-	mrs x0, par_el1
-	ret
+    // at s1e1r: address translation stage 1 el1 read
+    // x0 のアドレスを EL1 のステージ1アドレス変換する
+    // 結果は par_el1 (physical address register) に入る
+    at s1e1r, x0
+    mrs x0, par_el1
+    ret
 
 .globl translate_el12
 translate_el12:
-	// at s12e1r
-	// x0 のアドレスを二段階アドレス変換する
-	at s12e1r, x0
-	mrs x0, par_el1
-	ret
+    // at s12e1r
+    // x0 のアドレスを二段階アドレス変換する
+    at s12e1r, x0
+    mrs x0, par_el1
+    ret
 
 .globl get_ttbr0_el1
 get_ttbr0_el1:
-	mrs x0, ttbr0_el1
-	ret
+    mrs x0, ttbr0_el1
+    ret
 .globl get_ttbr1_el1
 get_ttbr1_el1:
-	mrs x0, ttbr1_el1
-	ret
+    mrs x0, ttbr1_el1
+    ret
 .globl get_ttbr0_el2
 get_ttbr0_el2:
-	mrs x0, ttbr0_el2
-	ret
+    mrs x0, ttbr0_el2
+    ret
 .globl get_vttbr_el2
 get_vttbr_el2:
-	mrs x0, vttbr_el2
-	ret
+    mrs x0, vttbr_el2
+    ret
 
 .globl get_sp
 get_sp:
-	mov x0, sp
-	ret
+    mov x0, sp
+    ret
 
 .globl set_vmpidr_el2
 set_vmpidr_el2:
     msr vmpidr_el2, x0
-	ret
+    ret
 
 .globl issue_smc
 issue_smc:
-	smc #0
-	ret
+    smc #0
+    ret
 
 // 使っていない
 // 引数として仮想アドレスを取り、Stage1 と 2 のアドレス変換を行った値を返す 
 .globl do_at
 do_at:
-	// x0 に入った仮想アドレスを変換
-	at s12e1r, x0
-	// par_el1 に at 命令の結果が入る
-	mrs x0, par_el1
-	ret
+    // x0 に入った仮想アドレスを変換
+    at s12e1r, x0
+    // par_el1 に at 命令の結果が入る
+    mrs x0, par_el1
+    ret

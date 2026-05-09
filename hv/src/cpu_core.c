@@ -18,9 +18,9 @@ void init_pcpu_struct(unsigned long cpuid) {
 
 // 現在実行中の pCPU を返す
 struct pcpu_struct *current_pcpu() {
-	return &pcpus[get_cpuid()];
+    return &pcpus[get_cpuid()];
 }
 
 struct pcpu_struct *pcpu_of(unsigned long cpuid) {
-	return &pcpus[cpuid];
+    return &pcpus[cpuid];
 }

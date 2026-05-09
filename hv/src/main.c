@@ -20,86 +20,86 @@
 volatile unsigned long initialized_flag __attribute__((section(".data"))) = 0;
 
 static struct loader_args vmm_elf_args = {
-	.loader_addr = 0x0,
-	.entry_point = 0x0,
-	.sp = 0x0,
-	.filename = "VMM.ELF",
-	.vcpu_num = 1,
+    .loader_addr = 0x0,
+    .entry_point = 0x0,
+    .sp = 0x0,
+    .filename = "VMM.ELF",
+    .vcpu_num = 1,
 };
 
 // 各 pCPU で必要な初期化処理
 static void initialize_pcpu(unsigned long cpuid) {
-	// CPU コア構造体の初期化
-	init_pcpu_struct(cpuid);
+    // CPU コア構造体の初期化
+    init_pcpu_struct(cpuid);
 
-	// VBAR_EL2 レジスタに割込みベクタのアドレスを設定する
-	// 各 CPU コアで呼び出す必要がある
-	irq_vector_init();
+    // VBAR_EL2 レジスタに割込みベクタのアドレスを設定する
+    // 各 CPU コアで呼び出す必要がある
+    irq_vector_init();
 
-	// システムタイマ(Generic Timer)の初期化
-	generic_timer_init();
+    // システムタイマ(Generic Timer)の初期化
+    generic_timer_init();
 
-	// 割込みコントローラの有効化
-	disable_irq();
-	enable_interrupt_controller(cpuid);
+    // 割込みコントローラの有効化
+    disable_irq();
+    enable_interrupt_controller(cpuid);
 }
 
 // 全コア共通で一度だけ実施する初期化処理
 static void initialize_hypervisor() {
-	mm_init();
-	console_init();
-	init_printf(NULL, putc);
+    mm_init();
+    console_init();
+    init_printf(NULL, putc);
 
-	// セキュアモニタ経由で起動された場合はここでセキュアモニタのログを出力
-	// todo: セキュアモニタ経由じゃなくても実行されてしまう
-	sm_log_dump();
+    // セキュアモニタ経由で起動された場合はここでセキュアモニタのログを出力
+    // todo: セキュアモニタ経由じゃなくても実行されてしまう
+    sm_log_dump();
 
-	// システム共通の割込み設定を有効化
-	enable_legacy_interrupt_controller();
+    // システム共通の割込み設定を有効化
+    enable_legacy_interrupt_controller();
 
-	// // システムタイマは全コアで共有されるのでここで初期化
-	// systimer_init();
+    // // システムタイマは全コアで共有されるのでここで初期化
+    // systimer_init();
 
-	// ブロックデバイス（ストレージ）の初期化
-	if (block_init() < 0) {
-		PANIC("block_init() failed");
-	}
+    // ブロックデバイス（ストレージ）の初期化
+    if (block_init() < 0) {
+        PANIC("block_init() failed");
+    }
 }
 
 static void prepare_vmm() {
-	if (create_vm_with_loader(elf_binary_loader, &vmm_elf_args) < 0) {
-		WARN("error while starting VMM");
-	}
+    if (create_vm_with_loader(elf_binary_loader, &vmm_elf_args) < 0) {
+        WARN("error while starting VMM");
+    }
 }
 
 // todo: 起動したらコンソールを VMM に切り替えたい
 // hypervisor としてのスタート地点
 void hypervisor_main(unsigned long cpuid)
 {
-	// 実行中の CPU コアを初期化
-	initialize_pcpu(cpuid);
+    // 実行中の CPU コアを初期化
+    initialize_pcpu(cpuid);
 
-	// CPU 0 がハイパーバイザの初期化を実施
-	if (cpuid == 0) {
-		// ハイパーバイザの初期化とゲストのロードを実施
-		initialize_hypervisor();
-		INFO("Raspvisor initialized (BOARD: %s)", BOARD_NAME);
+    // CPU 0 がハイパーバイザの初期化を実施
+    if (cpuid == 0) {
+        // ハイパーバイザの初期化とゲストのロードを実施
+        initialize_hypervisor();
+        INFO("Raspvisor initialized (BOARD: %s)", BOARD_NAME);
 
-		// pCPU の数と同じ数の vCPU を持った idle VM を準備
-		create_idle_vm();
-		INFO("Idle VM and idle vCPUs are created");
+        // pCPU の数と同じ数の vCPU を持った idle VM を準備
+        create_idle_vm();
+        INFO("Idle VM and idle vCPUs are created");
 
-		prepare_vmm();
-		INFO("Guest VMs are prepared");
+        prepare_vmm();
+        INFO("Guest VMs are prepared");
 
-		switch_console_to_vm(1);
+        switch_console_to_vm(1);
 
-		initialized_flag = 1;
-		asm volatile ("dc civac, %0" : : "r" (&initialized_flag) : "memory");
-		asm volatile ("sev");
-	}
+        initialized_flag = 1;
+        asm volatile ("dc civac, %0" : : "r" (&initialized_flag) : "memory");
+        asm volatile ("sev");
+    }
 
-	INFO("pCPU%d start running", cpuid);
+    INFO("pCPU%d start running", cpuid);
 
-	scheduler(cpuid);
+    scheduler(cpuid);
 }
