@@ -215,15 +215,15 @@ __create_page_tables:
     // PMD の中身(各エントリ)を作成
     // 1回目の create_block_map ではまずメインメモリをマップする
     // この時点でも x0 には PMD のアドレスが入っている
-    ldr     x1, =RAM_BASE                           // マップ元の物理アドレスの開始位置
-    ldr     x2, =VA_START                           // マップ先の仮想アドレスの開始位置
-    ldr x3, =(VA_START + RAM_SIZE - SECTION_SIZE)   // マップ先の仮想アドレスの終了位置(このアドレスを含んでマップされる)
+    ldr x1, =RAM_BASE                                           // マップ元の物理アドレスの開始位置
+    ldr x2, =(VA_START + RAM_BASE)                              // マップ先の仮想アドレスの開始位置
+    ldr x3, =(VA_START + RAM_BASE + RAM_SIZE - SECTION_SIZE)    // マップ先の仮想アドレスの終了位置
     create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
 
     // 2回目の create_block_map では周辺機器をマップする
     // この時点でも x0 には PMD のアドレスが入っている
-    ldr     x1, =DEVICE_BASE
-    ldr     x2, =(VA_START + DEVICE_BASE)
+    ldr x1, =DEVICE_BASE
+    ldr x2, =(VA_START + DEVICE_BASE)
     ldr x3, =(VA_START + DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE)
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
 

@@ -35,10 +35,10 @@
 
 #ifndef __ASSEMBLER__
 
-// 受けとった物理アドレス(pa)から、ボード上のメモリの開始位置(RAM_BASE)を引いてオフセットを計算
-// それに仮想アドレスの開始位置(VA_START)を足すことで、仮想アドレスに変換
-#define PHYS_TO_VIRT(pa) ((pa) - RAM_BASE + VA_START)
-#define VIRT_TO_PHYS(va) ((va) - VA_START + RAM_BASE)
+// raspios は単純なオフセットマッピング
+// 受けとった物理アドレス(pa)からに仮想アドレスの開始位置(VA_START)を足すことで、仮想アドレスに変換
+#define PHYS_TO_VIRT(pa) ((pa) + VA_START)
+#define VIRT_TO_PHYS(va) ((va) - VA_START)
 
 struct task_struct;
 
