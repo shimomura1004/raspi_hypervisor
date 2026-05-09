@@ -31,6 +31,9 @@ const char *entry_error_messages[] = {
 	"SYSCALL_ERROR"
 };
 
+// todo: init 関数を作り、ベースの仮想アドレスを受け取るようにする
+//       その上で、毎回 P2V マクロを呼び出すのではなく、ベースアドレスとオフセットで計算した値にアクセスするようにする
+
 void enable_interrupt_controller(unsigned long cpuid)
 {
 	// generic timer の割込みを有効化する
@@ -41,7 +44,7 @@ void enable_interrupt_controller(unsigned long cpuid)
 	// put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_1_BIT);
 
 	// UART を有効化する
-	put32(ENABLE_IRQS_1, (1 << 29));
+	put32(PHYS_TO_VIRT(ENABLE_IRQS_1), (1 << 29));
 }
 
 void disable_interrupt_controller(unsigned long cpuid)
@@ -53,7 +56,7 @@ void disable_interrupt_controller(unsigned long cpuid)
 	// put32(DISABLE_IRQS_1, SYSTEM_TIMER_IRQ_1_BIT);
 
 	// UART の割り込みを無効にする
-	put32(DISABLE_IRQS_1, (1 << 29));
+	put32(PHYS_TO_VIRT(DISABLE_IRQS_1), (1 << 29));
 }
 
 void show_invalid_entry_message(int type, unsigned long esr, unsigned long address)
@@ -75,7 +78,7 @@ void handle_irq(void)
 		return;
 	}
 
-	unsigned int irq = get32(IRQ_PENDING_1);
+	unsigned int irq = get32(PHYS_TO_VIRT(IRQ_PENDING_1));
 	// UART の割り込みを確認
 	if (irq & (1 << 29)) {
 		handle_uart_irq();
@@ -99,5 +102,5 @@ void clear_timer_irq(void)
 	// ゲストが仮想タイマ割込みを処理したタイミングを自分で知ることができない
 	// よって明示的に IRQ_PENDING_1 にアクセスすることで MMIO によるトラップを発生させ、
 	// ハイパーバイザに仮想割り込みの状態を更新(クリア)させる
-	get32(IRQ_PENDING_1);
+	get32(PHYS_TO_VIRT(IRQ_PENDING_1));
 }

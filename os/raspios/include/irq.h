@@ -3,7 +3,7 @@
 
 #include "arm/irq.h"
 
-void irq_vector_init( void );
+void irq_vector_init(void);
 
 void enable_interrupt_controller(unsigned long cpuid);
 void disable_interrupt_controller(unsigned long cpuid);

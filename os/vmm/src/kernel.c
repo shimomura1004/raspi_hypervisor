@@ -175,7 +175,7 @@ void kernel_main(void)
 	init_printf(0, putc);
 	
 	irq_vector_init();
-	enable_interrupt_controller();
+	enable_interrupt_controller(0);
 	enable_irq();
 
 	int count = 0;
