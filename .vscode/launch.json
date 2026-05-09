@@ -40,7 +40,6 @@
                     "ignoreFailures": true
                 }
             ]
-
         },
         {
             "name": "Debug Secure monitor (QEMU)",
@@ -78,7 +77,48 @@
                     "ignoreFailures": true
                 }
             ]
-
+        },
+        {
+            "name": "Debug raspios (QEMU) on Linux",
+            "type": "cppdbg",
+            "request": "launch",
+            "targetArchitecture": "arm64",
+            "program": "${workspaceFolder}/os/raspios/build/kernel8.elf",
+            "cwd": "${workspaceFolder}",
+            "miDebuggerServerAddress": "localhost:1234",
+            "stopAtEntry": true,
+            "sourceFileMap": {
+                "/work": "${workspaceFolder}/os/raspios"
+            },
+            "MIMode": "gdb",
+            "miDebuggerPath": "gdb-multiarch",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "text": "set arch aarch64",
+                    "ignoreFailures": true
+                }
+            ],
+            "launchCompleteCommand": "None"
+        },
+        {
+            "name": "Debug raspios (QEMU) on Mac",
+            "type": "lldb",
+            "request": "custom",
+            "targetCreateCommands": [
+                "target create ${workspaceFolder}/os/raspios/build/kernel8.elf"
+            ],
+            "processCreateCommands": [
+                "gdb-remote localhost:1234"
+            ],
+            "cwd": "${workspaceFolder}/os/raspios",
+            "sourceMap": {
+                "/work": "${workspaceFolder}"
+            },
         }
     ]
 }
