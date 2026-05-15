@@ -149,7 +149,8 @@ after_page_table_setup:
     bl get_cpuid
     add x0, x0, #1
     mul x0, x1, x0
-    mov x1, #VA_START
+    // todo: RAM の先頭を使ってもいいのか？最初のあたりは device tree 用になっていたのでは？
+    ldr x1, =(VA_START + RAM_BASE)
     add sp, x0, x1
 
     adrp    x0, pg_dir
