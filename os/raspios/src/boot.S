@@ -194,88 +194,81 @@ __create_page_tables:
     // 戻りアドレスを控える
     mov x29, x30
 
-    // ページテーブル用の領域全体(PGD, PUD, PMD)をまずゼロクリア
+    // ページテーブル用の領域全体(PGD 1個, PUD 1個, PMD 2個)をまずゼロクリア
     adrp    x0, pg_dir
-#if defined(LOCAL_PERIPHERAL_BASE)
-    // raspi3 の場合はローカルペリフェラルが別途必要なので4個分の領域をクリアする
     mov x1, #(4 * PAGE_SIZE)
-#else
-    mov x1, #(3 * PAGE_SIZE)
-#endif
     bl  memzero_without_stack
 
-    // メインメモリに対する PGD と PUD を設定(PMD までのリンク構造を作成)
+    // PGD と PUD を設定 (PGD -> PUD -> PMD0 までのリンクを作成)
     adrp    x0, pg_dir
-    mov x1, #VA_START
-    create_pgd_pud_entry x0, x1, x2, x3
+    ldr x1, =VA_START
+    create_pgd_pud_entry x0, x1, x2, x3 // x0 は PMD0 (pg_dir + 2*PAGE) を指して戻る
 
-    // MMU が有効になった直後にクラッシュしないように追加で恒等マッピングも行う
-    // PUD のアドレス(PGD の次のページ)を x2 にセット
-    adrp x2, pg_dir
-    add x2, x2, #PAGE_SIZE
-    // 物理アドレスの開始位置のインデックスを計算して x1 にセット
+    // PGD[0] に PUD へのリンクを張る (仮想アドレスを有効にした直後にクラッシュしないようにするため)
+    //   既に VA_START に対して作成した PMD へのリンクを PGD の最初の PUD へのエントリ(0-1GB用)にも追加する
+    // PGD[0x0000] --+
+    //               |           ← このリンクを追加する
+    // PGD[0xXXXX] --+---> PUD
+    adrp x1, pg_dir                 // x1 = PGD の先頭
+    add x2, x1, #PAGE_SIZE          // x2 = PUD の物理アドレス
+    orr x2, x2, #MM_TYPE_PAGE_TABLE // フラグを追加
+    str x2, [x1]                    // PGD のエントリを更新
+
+    // todo: 全体的に似た処理が多いのでマクロを導入したい
+    // todo: この定数が定義されているかで分岐するより、ボードごとにファイルをわけたほうがいいのではないか
+
+#if defined(BOARD_RASPI3)
+    // PMD0 (0-1GB: DRAM + BCM Peripherals)
     ldr x1, =RAM_BASE
-    lsr x1, x1, #PUD_SHIFT
-    and x1, x1, #PTRS_PER_TABLE - 1
-    // メモリ属性を設定
-    // x0 には PMD のアドレスが入っている
-    orr x3, x0, #MM_TYPE_PAGE_TABLE
-    // str 命令は x3 に入ったデータを、x2 が示すベースアドレスに x1 のオフセットを足したアドレスに書き込む
-    // つまり、PUD に既存の PMD への参照を追加している
-    // この PMD は先ほど作成したもので、メモリ空間を正しくマップしている
-    str x3, [x2, x1, lsl #3]
-
-    // todo: create_block_map などのマクロは hv と同じなのでライブラリにする？
-    // PMD の中身(各エントリ)を作成
-    // 1回目の create_block_map ではまずメインメモリをマップする
-    // この時点でも x0 には PMD のアドレスが入っている
-    ldr x1, =RAM_BASE                                           // マップ元の物理アドレスの開始位置
-    ldr x2, =(VA_START + RAM_BASE)                              // マップ先の仮想アドレスの開始位置
-    ldr x3, =(VA_START + RAM_BASE + RAM_SIZE - SECTION_SIZE)    // マップ先の仮想アドレスの終了位置
+    ldr x2, =(VA_START + RAM_BASE)
+    ldr x3, =(VA_START + RAM_BASE + RAM_SIZE - SECTION_SIZE)
     create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
 
-    // 2回目の create_block_map では周辺機器をマップする
-    // この時点でも x0 には PMD のアドレスが入っている
     ldr x1, =DEVICE_BASE
     ldr x2, =(VA_START + DEVICE_BASE)
     ldr x3, =(VA_START + DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE)
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
 
-// todo: この定数が定義されているかで分岐するより、ボードごとにファイルをわけたほうがいいのではないか
-#if defined(LOCAL_PERIPHERAL_BASE)
-    // 1GB 以降の領域 (Local Peripherals) をマップするために PUD にエントリを追加
-    // この時点でも x0 には PMD(0-1GB用) のアドレスが入っているが、今追加登録したいのはその次の PMD である
-    //   各ページは物理アドレス上で
-    //   pg_dir
-    //   |
-    //   v
-    //   [PGD], [PUD], [PMD1], [PMD2]
-    //   というならびになっている
-
-    // まず PUD に2つめの PMD のテーブルを登録する
-    // x2 に PUD のアドレス(PGD の次のページ)をセット
+    // PMD1 (1-2GB: Local Peripherals)
+    // PUD に PMD1 へのエントリを追加する
     adrp x2, pg_dir
-    add x2, x2, #PAGE_SIZE
-    // x1 にローカルペリフェラルの開始位置のインデックスを計算してセット
-    // まず仮想アドレス(マップ先)を計算
+    add x2, x2, #PAGE_SIZE          // x2 = PUD
     ldr x1, =(VA_START + LOCAL_PERIPHERAL_BASE)
-    // 仮想アドレスをインデックスに変換
     lsr x1, x1, #PUD_SHIFT
-    and x1, x1, #PTRS_PER_TABLE - 1
-    // x3 に2つめの PMD の物理アドレスをセット
-    mov x4, #PAGE_SIZE
-    add x3, x0, x4
+    and x1, x1, #PTRS_PER_TABLE - 1 // インデックス計算
+    add x3, x0, #PAGE_SIZE          // x3 = PMD1 (x0 は PMD0 を指している)
     orr x3, x3, #MM_TYPE_PAGE_TABLE
-    // PUD に PMD への参照を追加
     str x3, [x2, x1, lsl #3]
 
-    // raspi3 用に local peripheral のマッピングを行う
-    // x0 は2つめの PMD を指すようにする(1ページ分ずらす)
-    add x0, x0, #PAGE_SIZE
+    add x0, x0, #PAGE_SIZE          // x0 を PMD1 のアドレスに進める
     ldr x1, =LOCAL_PERIPHERAL_BASE
     ldr x2, =(VA_START + LOCAL_PERIPHERAL_BASE)
     ldr x3, =(VA_START + LOCAL_PERIPHERAL_BASE + LOCAL_PERIPHERAL_SIZE - SECTION_SIZE)
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
+
+#elif defined(BOARD_VIRT)
+    // PMD0 (0-1GB: Device 領域)
+    ldr x1, =DEVICE_BASE
+    ldr x2, =(VA_START + DEVICE_BASE)
+    ldr x3, =(VA_START + DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE)
+    create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
+
+    // PMD1 (1-2GB: RAM 領域)
+    // PUD に PMD1 へのエントリを追加する
+    adrp x2, pg_dir
+    add x2, x2, #PAGE_SIZE          // x2 = PUD
+    ldr x1, =(VA_START + RAM_BASE)  // 物理アドレス上の RAM の位置を加算することでオフセットマッピングする
+    lsr x1, x1, #PUD_SHIFT
+    and x1, x1, #PTRS_PER_TABLE - 1
+    add x3, x0, #PAGE_SIZE          // x3 = PMD1
+    orr x3, x3, #MM_TYPE_PAGE_TABLE
+    str x3, [x2, x1, lsl #3]
+
+    add x0, x0, #PAGE_SIZE          // x0 を PMD1 のアドレスに進める
+    ldr x1, =RAM_BASE
+    ldr x2, =(VA_START + RAM_BASE)
+    ldr x3, =(VA_START + RAM_BASE + RAM_SIZE - SECTION_SIZE)
+    create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
 #endif
 
     // 戻りアドレスを戻して ret する

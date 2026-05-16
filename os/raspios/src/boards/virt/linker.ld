@@ -11,7 +11,7 @@ SECTIONS
         論理アドレスは ELF ファイルの p_vaddr に、物理アドレスは p_paddr に、それぞれ格納される
         ローダはこの数字を見てロード先を切り替えないといけない
       */
-    . = 0xffff000000100000;
+    . = 0xffff000040100000;
     .text.boot : AT(0x40100000) { *(.text.boot) }
     . = ALIGN(0x00001000);
     user_begin = .;
