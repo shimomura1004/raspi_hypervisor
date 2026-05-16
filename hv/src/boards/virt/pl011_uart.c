@@ -1,5 +1,4 @@
 #include "board_config.h"
-#include "peripherals/pl011_uart.h"
 #include "console.h"
 #include "utils.h"
 #include "mm.h"

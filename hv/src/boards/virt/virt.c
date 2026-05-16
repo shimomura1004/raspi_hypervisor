@@ -1,11 +1,10 @@
 #include <stddef.h>
 #include <stdint.h>
-#include "board.h"
 #include "board_config.h"
+#include "board.h"
 #include "mm.h"
 #include "console.h"
 #include "fifo.h"
-#include "peripherals/pl011_uart.h"
 
 // todo: 0x1000 を定数化する
 #define ADDR_IN_AUX(a)      (UART_BASE <= (a) && (a) < UART_BASE + 0x1000)

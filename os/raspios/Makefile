@@ -1,3 +1,5 @@
+.PHONY: all clean
+
 ifeq ($(filter clean,$(MAKECMDGOALS)),)
   ifeq ($(BOARD),)
     $(error BOARD environment variable is not defined. Please set it (e.g., export BOARD=raspi3))
