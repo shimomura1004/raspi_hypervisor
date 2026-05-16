@@ -1,8 +1,6 @@
 #ifndef _P_IRQ_REGS_H
 #define _P_IRQ_REGS_H
 
-#include "peripherals/base.h"
-
 // GIC v2 (Standard for virt machine unless GICv3 is specified)
 #define GIC_BASE        DEVICE_BASE
 #define GIC_DIST_BASE   (GIC_BASE + 0x00000)

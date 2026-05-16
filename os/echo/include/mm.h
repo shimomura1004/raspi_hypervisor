@@ -18,8 +18,6 @@
 #define PUD_SHIFT           (PAGE_SHIFT + 2 * TABLE_SHIFT)
 #define PMD_SHIFT           (PAGE_SHIFT +     TABLE_SHIFT)
 
-#define PBASE               (DEVICE_BASE)
-
 #define LOW_MEMORY          (2 * SECTION_SIZE)
 
 #endif  /*_MM_H */
