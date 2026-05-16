@@ -94,7 +94,7 @@ void kernel_main()
 #endif
 
     disable_irq();
-    enable_interrupt_controller(cpuid);
+    enable_all_interrupts(cpuid);
     enable_irq();
 
     INFO("CPU %d started", cpuid);
@@ -109,7 +109,7 @@ void kernel_main()
     }
 
     if (cpuid >= 4) {
-        disable_interrupt_controller(cpuid);
+        disable_all_interrupts(cpuid);
         while (1) {
             INFO("CPU %d sleeps", cpuid);
             asm volatile("wfi");

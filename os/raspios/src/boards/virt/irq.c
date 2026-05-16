@@ -32,7 +32,7 @@ const char *entry_error_messages[] = {
     "SYSCALL_ERROR"
 };
 
-void enable_interrupt_controller(unsigned long cpuid)
+void enable_all_interrupts(unsigned long cpuid)
 {
     // Initialize GIC Distributor on core 0 only
     if (cpuid == 0) {
@@ -52,7 +52,7 @@ void enable_interrupt_controller(unsigned long cpuid)
     put32(GICD_ISENABLER, val | (1 << 27));
 }
 
-void disable_interrupt_controller(unsigned long cpuid)
+void disable_all_interrupts(unsigned long cpuid)
 {
     // Disable Virtual Timer
     unsigned int val = get32(GICD_ICENABLER);

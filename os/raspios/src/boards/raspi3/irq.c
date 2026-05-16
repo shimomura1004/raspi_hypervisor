@@ -34,7 +34,7 @@ const char *entry_error_messages[] = {
 // todo: init 関数を作り、ベースの仮想アドレスを受け取るようにする
 //       その上で、毎回 P2V マクロを呼び出すのではなく、ベースアドレスとオフセットで計算した値にアクセスするようにする
 
-void enable_interrupt_controller(unsigned long cpuid)
+void enable_all_interrupts(unsigned long cpuid)
 {
     // generic timer の割込みを有効化する
     // todo: BCM2837 には GIC がないため専用の割込みコントローラの設定が必要で、ゲスト環境ではトラップして処理する必要あり
@@ -47,7 +47,7 @@ void enable_interrupt_controller(unsigned long cpuid)
     put32(PHYS_TO_VIRT(ENABLE_IRQS_1), (1 << 29));
 }
 
-void disable_interrupt_controller(unsigned long cpuid)
+void disable_all_interrupts(unsigned long cpuid)
 {
     // generic timer の割込みを無効化する
     put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, 0);

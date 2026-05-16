@@ -5,7 +5,7 @@
 
 void irq_vector_init(void);
 
-void enable_interrupt_controller(unsigned long cpuid);
-void disable_interrupt_controller(unsigned long cpuid);
+void enable_all_interrupts(unsigned long cpuid);
+void disable_all_interrupts(unsigned long cpuid);
 
 #endif  /*_IRQ_H */
