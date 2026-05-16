@@ -11,6 +11,9 @@
 #include "debug.h"
 #include "spinlock.h"
 
+// todo: lib/src/drivers/uart/mini_uart.c にマージする
+//       なにかマージできない理由があるのか？
+
 struct spinlock uart_lock;
 struct spinlock console_lock;
 

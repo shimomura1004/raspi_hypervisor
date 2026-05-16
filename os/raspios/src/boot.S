@@ -15,15 +15,15 @@
 
 //======== create_pgd_pud_entry ===============================================
 .macro  create_pgd_pud_entry, tbl, virt, tmp1, tmp2
-    // for PGD (PGD は1エントリで512GBをカバーする)
-    add \tmp2, \tbl, #PAGE_SIZE             // PUD のアドレスを計算 (PUD は PGD のすぐ後ろ)
+    // for PGD (PGD は1エントリで 512GB のアドレス空間全体をカバーする)
+    add \tmp2, \tbl, #PAGE_SIZE                             // PUD のアドレスを計算 (PUD は PGD のすぐ後ろ)
     create_table_entry \tbl, \virt, PGD_SHIFT, \tmp2, \tmp1 // create PGD entry
-    mov \tbl, \tmp2                         // PUD のアドレスをセット
+    mov \tbl, \tmp2                                         // PUD のアドレスをセット
 
     // for PUD (PUD は1エントリで1GBをカバーする)
-    add \tmp2, \tbl, #PAGE_SIZE             // PMD のアドレスを計算
+    add \tmp2, \tbl, #PAGE_SIZE                             // PMD のアドレスを計算
     create_table_entry \tbl, \virt, PUD_SHIFT, \tmp2, \tmp1 // create PUD entry
-    mov \tbl, \tmp2                         // PMD のアドレスをセット
+    mov \tbl, \tmp2                                         // PMD のアドレスをセット
 .endm
 
 //======== create_table_entry ===============================================
@@ -42,8 +42,13 @@
 .endm
 
 //======== create_block_map ===============================================
-// 実ページへのエントリを、上位のテーブルに追記するマクロ
+// 指定された PMD に対して最大512個のエントリ(実ページへのポインタ)を書き込む
 // start と end で指定された範囲を tbl で指定されたテーブルに一気に追記していく
+// raspios では 4KB ごとのエントリを作成しておらず、2MB ごとの Section Mapping になっている
+// よって PMD の各エントリは OS やアプリが使うメモリ領域(セクション)へのポインタになっている
+// phys:    マップ元の物理アドレスの開始位置
+// start:   マップ先の仮想アドレスの開始位置
+// end:     マップ先の仮想アドレスの終了位置
 .macro  create_block_map, tbl, phys, start, end, flags, tmp1
     // 開始アドレスと終了アドレスをテーブル内のインデックスに変換
     // ページは 2MB 単位なので SECTION_SHIFT 分シフトしてマスクする
@@ -177,6 +182,14 @@ after_page_table_setup:
 
     br  x2
 
+// todo: ページの初期化を汎用的にする
+// todo: PGD, PUD の初期化の処理がベタ書きになっているのでマクロにするなどする
+//   各ページは物理アドレス上で
+//   pg_dir
+//   |
+//   v
+//   [PGD], [PUD], [PMD1], [PMD2]
+//   というならびになっている
 __create_page_tables:
     // 戻りアドレスを控える
     mov x29, x30
