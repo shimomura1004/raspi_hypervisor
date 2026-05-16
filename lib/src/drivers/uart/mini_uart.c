@@ -1,6 +1,5 @@
 #include "utils.h"
-#include "peripherals/mini_uart_regs.h"
-#include "peripherals/gpio_regs.h"
+#include "board_config.h"
 #include "drivers/uart.h"
 
 #define BUF_SIZE 256
@@ -55,6 +54,7 @@ void uart_init(unsigned long uart_base_virt_address, unsigned long gpio_base_vir
     uart_base_address = uart_base_virt_address;
     gpio_base_address = gpio_base_virt_address;
 
+    // raspi3 では UART を使うために GPIO が必要
     selector = get32(gpio_base_address + GPFSEL1_OFFSET);
     selector &= ~(7 << 12);         // clean gpio14
     selector |= 2 << 12;            // set alt5 for gpio14
@@ -68,14 +68,14 @@ void uart_init(unsigned long uart_base_virt_address, unsigned long gpio_base_vir
     delay(150);
     put32(gpio_base_address + GPPUDCLK0_OFFSET, 0);
 
-    put32(uart_base_address + AUX_ENABLES_OFFSET, 1);        //Enable mini uart (this also enables access to it registers)
-    put32(uart_base_address + AUX_MU_CNTL_REG_OFFSET, 0);    //Disable auto flow control and disable receiver and transmitter (for now)
-    put32(uart_base_address + AUX_MU_IER_REG_OFFSET, 1);     //Enable receive interrupts
-    put32(uart_base_address + AUX_MU_LCR_REG_OFFSET, 3);     //Enable 8 bit mode
-    put32(uart_base_address + AUX_MU_MCR_REG_OFFSET, 0);     //Set RTS line to be always high
-    put32(uart_base_address + AUX_MU_BAUD_REG_OFFSET, 270);  //Set baud rate to 115200
+    put32(uart_base_address + AUX_ENABLES_OFFSET, 1);        // Enable mini uart (this also enables access to it registers)
+    put32(uart_base_address + AUX_MU_CNTL_REG_OFFSET, 0);    // Disable auto flow control and disable receiver and transmitter (for now)
+    put32(uart_base_address + AUX_MU_IER_REG_OFFSET, 1);     // Enable receive interrupts
+    put32(uart_base_address + AUX_MU_LCR_REG_OFFSET, 3);     // Enable 8 bit mode
+    put32(uart_base_address + AUX_MU_MCR_REG_OFFSET, 0);     // Set RTS line to be always high
+    put32(uart_base_address + AUX_MU_BAUD_REG_OFFSET, 270);  // Set baud rate to 115200
 
-    put32(uart_base_address + AUX_MU_CNTL_REG_OFFSET, 3);    //Finally, enable transmitter and receiver
+    put32(uart_base_address + AUX_MU_CNTL_REG_OFFSET, 3);    // Finally, enable transmitter and receiver
 }
 
 // This function is required by printf function

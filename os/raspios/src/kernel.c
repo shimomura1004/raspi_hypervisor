@@ -1,11 +1,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "board_config.h"
 #include "utils.h"
 #include "mm.h"
 #include "drivers/uart.h"
-#include "peripherals/mini_uart_regs.h"
-#include "peripherals/gpio_regs.h"
 
 // todo: PSCI でシャットダウンする
 
@@ -22,7 +21,7 @@
 struct spinlock console_lock;
 #include "debug.h"
 
-#ifdef BOARD_VIRT
+#if defined(BOARD_VIRT)
 #include "psci.h"
 #endif
 
@@ -58,14 +57,18 @@ void kernel_main()
         // todo: 今は AUX_BASE/GPIO_BASE は仮想アドレスになっているので、PHYS_TO_VIRT は不要
         //       ただし本来は物理アドレスを渡すべきなので、将来的には PHYS_TO_VIRT を使うようにする
         // uart_init(PHYS_TO_VIRT(AUX_BASE), PHYS_TO_VIRT(GPIO_BASE));
-        uart_init(AUX_BASE, GPIO_BASE);
+#if defined(BOARD_RASPI3)
+        uart_init(PHYS_TO_VIRT(AUX_BASE), PHYS_TO_VIRT(GPIO_BASE));
+#elif defined(BOARD_VIRT)
+        uart_init(PHYS_TO_VIRT(UART_BASE), 0);
+#endif
         init_printf(NULL, putc);
 
         init_sched();
 
         INFO("raspios initialization complete (BOARD: %s)", BOARD_NAME);
 
-#ifdef BOARD_VIRT
+#if defined(BOARD_VIRT)
         for (int i = 1; i < 4; i++) {
             // virt ボードではセカンダリ CPU は PSCI を使って起動する必要がある
             // エントリポイントは _start の物理アドレス (0x40100000)
