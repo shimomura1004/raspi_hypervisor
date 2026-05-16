@@ -1,7 +1,9 @@
 #include "board_config.h"
 #include "utils.h"
 #include "debug.h"
+#if defined(BOARD_RASPI3)
 #include "generic_timer.h"
+#endif
 #include "entry.h"
 #include "drivers/uart.h"
 
@@ -83,7 +85,9 @@ void handle_irq(void)
     unsigned long cntv_ctl;
     asm volatile("mrs %0, cntv_ctl_el0" : "=r"(cntv_ctl));
     if (cntv_ctl & 0x4) { // ISTATUS bit: 割込み条件が成立しているか
+#if defined(BOARD_RASPI3)
         handle_timer_irq();
+#endif
         timer_handled = 1;
     }
 
@@ -94,7 +98,9 @@ void handle_irq(void)
     if (irq == 27) {
         // すでにタイマレジスタのチェックで処理済みの場合はスキップ
         if (!timer_handled) {
+#if defined(BOARD_RASPI3)
             handle_timer_irq();
+#endif
         }
     } else if (irq == 33) {
         handle_uart_irq();

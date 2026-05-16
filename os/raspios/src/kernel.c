@@ -16,7 +16,12 @@
 #include "user.h"
 #include "spinlock.h"
 #include "fork.h"
+
+#if defined(BOARD_RASPI3)
 #include "generic_timer.h"
+#elif defined(BOARD_VIRT)
+// todo: virt では generic_timer は gic 経由でアクセスする
+#endif
 
 struct spinlock console_lock;
 #include "debug.h"
@@ -82,7 +87,11 @@ void kernel_main()
 
     // 各コアで実施する初期化処理
     irq_vector_init();
-    timer_init();
+#if defined(BOARD_RASPI3)
+    timer_init(PHYS_TO_VIRT(IRQ_BASE));
+#elif defined(BOARD_VIRT)
+    // todo: virt 用の timer を実装する
+#endif
 
     disable_irq();
     enable_interrupt_controller(cpuid);

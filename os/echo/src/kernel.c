@@ -1,15 +1,18 @@
+#include "board_config.h"
 #include "printf.h"
 #include "utils.h"
 #include "mm.h"
 #include "drivers/uart.h"
-#include "peripherals/mini_uart_regs.h"
-#include "peripherals/gpio_regs.h"
 #include "irq.h"
 #include "hypercall_type.h"
 
 void kernel_main(void)
 {
+#if defined(BOARD_RASPI3)
     uart_init(AUX_BASE, GPIO_BASE);
+#elif defined(BOARD_VIRT)
+    uart_init(UART_BASE, 0);
+#endif
     init_printf(0, putc);
 
     irq_vector_init();

@@ -1,6 +1,7 @@
 ENTRY("_start")
 SECTIONS
 {
+    . = 0x80000;
     .text.boot : { *(.text.boot) }
     .text : { *(.text) }
     .rodata : { *(.rodata) }
@@ -9,4 +10,7 @@ SECTIONS
     bss_begin = .;
     .bss : { *(.bss*) } 
     bss_end = .;
+    . = ALIGN(16);
+    . += 0x4000; /* 16KB のスタック領域を確保 */
+    stack_top = .;
 }

@@ -2,7 +2,9 @@
 #include "utils.h"
 #include "mm.h"
 #include "systimer.h"
+#if defined(BOARD_RASPI3)
 #include "generic_timer.h"
+#endif
 #include "entry.h"
 #include "peripherals/mailbox.h"
 #include "arm/sysregs_def.h"
