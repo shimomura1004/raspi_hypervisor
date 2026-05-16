@@ -29,7 +29,7 @@
 #define PG_DIR_SIZE         (3 * PAGE_SIZE)
 
 #define VA_START            (0xffff000000000000)
-#define PBASE               (VA_START + DEVICE_BASE)
+// #define PBASE               (VA_START + DEVICE_BASE)
 
 #define STACK_SIZE          (0x400000)
 
