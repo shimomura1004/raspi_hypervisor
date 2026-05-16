@@ -1,5 +1,5 @@
-#ifndef _P_IRQ_H
-#define _P_IRQ_H
+#ifndef _P_IRQ_REGS_H
+#define _P_IRQ_REGS_H
 
 #include "peripherals/base.h"
 
@@ -69,8 +69,9 @@
 #define IRQ_ID_PPI_START        16
 #define IRQ_ID_SPI_START        32
 
+// todo: _regs.h で定義するべきではない
 #ifndef __ASSEMBLER__
 void clear_timer_irq(void);
 #endif
 
-#endif  /*_P_IRQ_H */
+#endif  /*_P_IRQ_REGS_H */

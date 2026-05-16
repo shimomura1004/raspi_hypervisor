@@ -1,5 +1,7 @@
-#ifndef _GENERIC_TIMER_H
-#define _GENERIC_TIMER_H
+#ifndef _GENERIC_TIMER_REGS_H
+#define _GENERIC_TIMER_REGS_H
+
+// todo: これは BCM2837 に依存したもの、名前を変えるべきかも
 
 #define CORE0_TIMER_IRQCNTL 0x40000040
 #define CORE1_TIMER_IRQCNTL 0x40000044 
@@ -15,7 +17,4 @@
 #define TIMER_IRQCNTL_CNTPNSIRQ_IRQ_ENABLED (1 << 1)
 #define TIMER_IRQCNTL_CNTPSIRQ_IRQ_ENABLED  (1 << 0)
 
-void timer_init ( void );
-void handle_timer_irq ( void );
-
-#endif  /*_GENERIC_TIMER_H */
+#endif  /*_GENERIC_TIMER_REGS_H */

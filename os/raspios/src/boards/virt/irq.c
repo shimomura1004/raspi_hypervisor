@@ -104,8 +104,3 @@ void handle_irq(void)
 
     put32(GICC_EOIR, iar);
 }
-
-void clear_timer_irq(void)
-{
-    // virt with GIC handles it through proper EOI
-}
