@@ -1,11 +1,9 @@
 #include <inttypes.h>
+#include "board_config.h"
 #include "board.h"
 #include "mm.h"
 #include "fifo.h"
 #include "utils.h"
-#include "peripherals/mini_uart_regs.h"
-#include "peripherals/systimer_regs.h"
-#include "peripherals/irq.h"
 #include "peripherals/mailbox.h"
 #include "mini_uart.h"
 #include "systimer.h"

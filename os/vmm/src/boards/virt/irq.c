@@ -1,6 +1,6 @@
+#include "board_config.h"
 #include "utils.h"
 #include "printf.h"
-#include "peripherals/irq.h"
 #include "drivers/uart.h"
 
 void enable_interrupt_controller(void)

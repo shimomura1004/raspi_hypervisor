@@ -6,7 +6,6 @@
 #include "console.h"
 #include "fifo.h"
 #include "peripherals/pl011_uart.h"
-#include "peripherals/irq.h"
 
 // todo: 0x1000 を定数化する
 #define ADDR_IN_AUX(a)      (UART_BASE <= (a) && (a) < UART_BASE + 0x1000)

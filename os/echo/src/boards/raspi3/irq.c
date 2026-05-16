@@ -1,10 +1,10 @@
+#include "board_config.h"
 #include "utils.h"
 #include "printf.h"
 #include "mm.h"
 #include "drivers/uart.h"
-#include "peripherals/irq.h"
 
-// todo: abstract な irq.h が必要では？
+// todo: abstract な irq.h が必要では？ →　board_config で吸収する方針に変更
 void enable_interrupt_controller(void)
 {
     // UART (AUX int) を有効化する

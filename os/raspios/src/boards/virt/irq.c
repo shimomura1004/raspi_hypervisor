@@ -1,8 +1,8 @@
+#include "board_config.h"
 #include "utils.h"
 #include "debug.h"
 #include "generic_timer.h"
 #include "entry.h"
-#include "peripherals/irq.h"
 #include "drivers/uart.h"
 
 const char *entry_error_messages[] = {
