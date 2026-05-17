@@ -58,7 +58,7 @@ static void initialize_hypervisor() {
     enable_legacy_interrupt_controller();
 
     // // システムタイマは全コアで共有されるのでここで初期化
-    // systimer_init();
+    // systimer_init(P2V(SYSTIMER_BASE), 20000);
 
     // ブロックデバイス（ストレージ）の初期化
     if (block_init() < 0) {

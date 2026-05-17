@@ -5,7 +5,7 @@
 #include "utils.h"
 #include "debug.h"
 #if defined(BOARD_RASPI3)
-#include "systimer.h"
+#include "peripherals/systimer.h"
 #endif
 
 // このハイパーバイザのエスケープ文字

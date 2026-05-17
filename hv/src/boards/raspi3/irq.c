@@ -1,7 +1,7 @@
 #include "board_config.h"
 #include "utils.h"
 #include "mm.h"
-#include "systimer.h"
+#include "peripherals/systimer.h"
 #if defined(BOARD_RASPI3)
 #include "generic_timer.h"
 #endif

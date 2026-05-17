@@ -1,12 +1,11 @@
 #include <inttypes.h>
 #include "board_config.h"
+#include "console.h"
 #include "board.h"
 #include "mm.h"
 #include "fifo.h"
 #include "utils.h"
-#include "peripherals/mailbox.h"
-#include "mini_uart.h"
-#include "systimer.h"
+#include "peripherals/systimer.h"
 
 // BCM2837 SoC を表現するデータ構造と関数群
 // ハイパーバイザでは BCM2837 をエミュレートする
@@ -115,10 +114,13 @@ const struct bcm2837_state initial_state = {
     },
 };
 
+// ゲストがアクセスしてきたアドレスがペリフェラルのどの部分に対応するかを調べるマクロ
+// ゲストは raspi3 の物理アドレスにアクセスしてくるので、物理アドレスを表す各定数と直接比較すればいい
 #define ADDR_IN_INTCTRL(a)  (IRQ_BASIC_PENDING <= (a) && (a) <= DISABLE_BASIC_IRQS)
 #define ADDR_IN_AUX(a)      (AUX_IRQ <= (a) && (a) <= AUX_MU_BAUD_REG)
-#define ADDR_IN_SYSTIMER(a) (TIMER_CS <= (a) && (a) <= TIMER_C3)
+#define ADDR_IN_SYSTIMER(a) (SYSTIMER_CS <= (a) && (a) <= SYSTIMER_C3)
 
+// 仮想マシン用に、中間物理アドレスのうち raspi3 のデバイス領域をアクセス不可(トラップ対象)に設定
 static void bcm2837_initialize(struct vm_struct2 *vm) {
     struct bcm2837_state *state = (struct bcm2837_state *)allocate_page();
 
@@ -187,9 +189,9 @@ static unsigned long handle_intctrl_read(struct vcpu_struct *vcpu, unsigned long
     }
     case IRQ_PENDING_1: {
         unsigned long systimer_match1 =
-            BIT(state->intctrl.irqs_1_enabled, 1) && (state->systimer.cs & TIMER_CS_M1);
+            BIT(state->intctrl.irqs_1_enabled, 1) && (state->systimer.cs & SYSTIMER_CS_M1);
         unsigned long systimer_match3 =
-            BIT(state->intctrl.irqs_1_enabled, 3) && (state->systimer.cs & TIMER_CS_M3);
+            BIT(state->intctrl.irqs_1_enabled, 3) && (state->systimer.cs & SYSTIMER_CS_M3);
         // IRQ 29: Aux int (UART1, SPI1, SPI2)
         unsigned long aux_int =
             BIT(state->intctrl.irqs_1_enabled, 29) && (handle_aux_read(vcpu, AUX_IRQ) & 0x01);
@@ -450,19 +452,19 @@ static unsigned long handle_systimer_read(struct vcpu_struct *vcpu, unsigned lon
     struct bcm2837_state *state = (struct bcm2837_state *)vcpu->vm->board_data;
 
     switch (addr) {
-    case TIMER_CS:
+    case SYSTIMER_CS:
         return state->systimer.cs;
-    case TIMER_CLO:
+    case SYSTIMER_CLO:
         return TO_VIRTUAL_COUNT(state, get_physical_systimer_count()) & 0xffffffff;
-    case TIMER_CHI:
+    case SYSTIMER_CHI:
         return TO_VIRTUAL_COUNT(state, get_physical_systimer_count()) >> 32;
-    case TIMER_C0:
+    case SYSTIMER_C0:
         return state->systimer.c0;
-    case TIMER_C1:
+    case SYSTIMER_C1:
         return state->systimer.c1;
-    case TIMER_C2:
+    case SYSTIMER_C2:
         return state->systimer.c2;
-    case TIMER_C3:
+    case SYSTIMER_C3:
         return state->systimer.c3;
     }
 
@@ -475,30 +477,30 @@ static void handle_systimer_write(struct vcpu_struct *vcpu, unsigned long addr, 
     //   Each channel has an output compare register, which is compared against
     //   the 32 least significant bits of the free running counter values.
 
-    uint32_t current_clo = handle_systimer_read(vcpu, TIMER_CLO);
+    uint32_t current_clo = handle_systimer_read(vcpu, SYSTIMER_CLO);
     // 次の発火までの時間が短すぎると通りこしてしまう
     const uint32_t min_expire = 10000;
 
     switch (addr) {
-    case TIMER_CS:
+    case SYSTIMER_CS:
         // クリアしたいビットに1をセットするとクリアされるとドキュメントに書かれているため、正しい
         state->systimer.cs &= ~val;
         break;
-    case TIMER_C0:
+    case SYSTIMER_C0:
         // 比較値をセットしたとき、次の tick までの残り時間を expire に保持しておく
         // val が unsigned なので min(1, val - handle_systimer_read()) にできない
         state->systimer.c0 = val;
         state->systimer.c0_expire = MAX((val > current_clo) ? val - current_clo : 1, min_expire);
         break;
-    case TIMER_C1:
+    case SYSTIMER_C1:
         state->systimer.c1 = val;
         state->systimer.c1_expire = MAX((val > current_clo) ? val - current_clo : 1, min_expire);
         break;
-    case TIMER_C2:
+    case SYSTIMER_C2:
         state->systimer.c2 = val;
         state->systimer.c2_expire = MAX((val > current_clo) ? val - current_clo : 1, min_expire);
         break;
-    case TIMER_C3:
+    case SYSTIMER_C3:
         state->systimer.c3 = val;
         state->systimer.c3_expire = MAX((val > current_clo) ? val - current_clo : 1, min_expire);
         break;
@@ -590,7 +592,7 @@ static void bcm2837_entering_vm(struct vcpu_struct *vcpu) {
     // todo: 複数のゲストからアクセスすると競合するのでは？
     if (upcoming != 0xffffffff) {
         // ハイパーバイザは C3 を使ってゲスト OS にシステムタイマ C0~C3 のすべてを提供している
-        put32(P2V(TIMER_C3), get32(P2V(TIMER_CLO)) + upcoming);
+        put32(P2V(SYSTIMER_C3), get32(P2V(SYSTIMER_CLO)) + upcoming);
     }
 
     // ~state->systimer.cs: 前回まだ発火していなかったタイマのビットが立っている

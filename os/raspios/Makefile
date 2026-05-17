@@ -52,8 +52,8 @@ LIB_SOURCES = \
 	printf.c common_utils.c common_utils.S smccc.S psci.c spinlock.c spinlock.S \
 	arm/irq.S
 # ボード固有のライブラリソース
-LIB_BOARD_SOURCES_C = $(wildcard $(LIB_SRC_DIR)/boards/$(BOARD)/*.c)
-LIB_BOARD_SOURCES_S = $(wildcard $(LIB_SRC_DIR)/boards/$(BOARD)/*.S)
+LIB_BOARD_SOURCES_C = $(shell find $(LIB_SRC_DIR)/boards/$(BOARD) -name "*.c")
+LIB_BOARD_SOURCES_S = $(shell find $(LIB_SRC_DIR)/boards/$(BOARD) -name "*.S")
 
 $(BUILD_DIR)/lib/%_c.o: $(LIB_SRC_DIR)/%.c
 	mkdir -p $(@D)

@@ -1,28 +1,14 @@
-#include "utils.h"
 #include "mm.h"
-#include "sched.h"
 #include "printf.h"
 #include "peripherals/systimer_regs.h"
-#include "peripherals/mailbox.h"
-#include "mini_uart.h"
-
-// これは system timer である
-// RPi3 には 1tick ごとにカウントアップするタイマが搭載されていて
-// 合計4個の比較用レジスタがあり、カウンタの値が一致すると対応する割込み線を発火させる
-
-const unsigned int interval = 20000;
-
-// void systimer_init () {
-//  // 今のカウンタ値から interval tick 後に発火するように2個目のレジスタに値をセットする
-//  put32(P2V(TIMER_C1), get32(P2V(TIMER_CLO)) + interval);
-// }
+#include "debug.h"
 
 // // VM スイッチ用
 // void handle_systimer1_irq() {
 //  // 定期的に呼び出されるよう、次の比較値をセットする
-//  put32(P2V(TIMER_C1), get32(P2V(TIMER_CLO)) + interval);
+//  put32(P2V(SYSTIMER_C1), get32(P2V(SYSTIMER_CLO)) + interval);
 //  // 割込みをクリア
-//  put32(P2V(TIMER_CS), TIMER_CS_M1);
+//  put32(P2V(SYSTIMER_CS), SYSTIMER_CS_M1);
 
 //  // CPU0 以外のコアに mbox 割込みを送ってタスクを切り替えさせる
 //  put32(P2V(MBOX_CORE1_SET_0), 0x1);
@@ -37,19 +23,13 @@ const unsigned int interval = 20000;
 // // VM の割込み用
 // void handle_systimer3_irq() {
 //  // 割込みをクリア
-//  put32(P2V(TIMER_CS), TIMER_CS_M3);
+//  put32(P2V(SYSTIMER_CS), SYSTIMER_CS_M3);
 // }
 
-// システムタイマのレジスタ CLO/CHI を読み、合わせて64ビット値として返す
-unsigned long get_physical_systimer_count() {
-    unsigned long clo = get32(P2V(TIMER_CLO));
-    unsigned long chi = get32(P2V(TIMER_CHI));
-    return clo | (chi << 32);
-}
-
+// todo: これは hv に残す
 void show_systimer_info() {
     acquire_lock(&console_lock);
     printf("HI: 0x%x\nLO: 0x%x\nCS: 0x%x\nC1: 0x%x\nC3: 0x%x\n",
-    get32(P2V(TIMER_CHI)), get32(P2V(TIMER_CLO)), get32(P2V(TIMER_CS)), get32(P2V(TIMER_C1)), get32(P2V(TIMER_C3)));
+    get32(P2V(SYSTIMER_CHI)), get32(P2V(SYSTIMER_CLO)), get32(P2V(SYSTIMER_CS)), get32(P2V(SYSTIMER_C1)), get32(P2V(SYSTIMER_C3)));
     release_lock(&console_lock);
 }
