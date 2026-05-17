@@ -178,7 +178,7 @@ void kernel_main(void)
         
     irq_vector_init();
     enable_interrupt_controller(0);
-    enable_irq();
+    unmask_irq();
 
     int count = 0;
     char buf[BUFFER_LENGTH];

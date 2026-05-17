@@ -22,7 +22,7 @@ extern struct spinlock console_lock;
 // panic 後も割り込みが入ると普通に動いてしまうので割り込みを禁止する
 #define PANIC(fmt, ...) do { \
     _LOG_COMMON("PANIC", fmt, ##__VA_ARGS__); \
-    disable_irq(); \
+    mask_irq(); \
     while(1); \
 } while(0)
 

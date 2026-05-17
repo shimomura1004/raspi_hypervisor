@@ -3,9 +3,9 @@
 
 #ifndef __ASSEMBLER__
 
-void enable_irq(void);
-void disable_irq(void);
-int is_interrupt_enabled(void);
+void unmask_irq(void);
+void mask_irq(void);
+int is_irq_unmasked(void);
 
 #endif
 

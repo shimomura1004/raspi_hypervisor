@@ -174,9 +174,9 @@ void timer_tick()
     }
 
     // 自分のカウンタが残っていも、より優先度の高いタスクがあれば切り替え
-    enable_irq();
+    unmask_irq();
     _schedule();
-    disable_irq();
+    mask_irq();
 }
 
 void exit_process(){

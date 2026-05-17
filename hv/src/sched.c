@@ -324,7 +324,7 @@ void scheduler(unsigned long cpuid) {
     //       その結果 vm_exit が実行されるが、まだ vm を実行していないので warn となっている
     //       先に idle vcpu に切り替えてから割込みを有効にするという方法を取る？
     // この CPU コアの割込みを有効化
-    enable_irq();
+    unmask_irq();
 
     // todo: 割込みをどうするか考える、ただしタスクスイッチは禁止しないといけない
     //       scheduler 実行中は割込み禁止でいいのでは

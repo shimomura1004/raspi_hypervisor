@@ -40,7 +40,7 @@ static void initialize_pcpu(unsigned long cpuid) {
     generic_timer_init();
 
     // 割込みコントローラの有効化
-    disable_irq();
+    mask_irq();
     enable_interrupt_controller(cpuid);
 }
 

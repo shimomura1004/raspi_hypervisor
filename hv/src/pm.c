@@ -13,7 +13,7 @@ void halt_current_cpu() {
     unsigned long cpuid = get_cpuid();
     INFO("CPU %d halted", cpuid);
 
-    disable_irq();
+    mask_irq();
     asm volatile("msr cnthp_ctl_el2, %0" : : "r"(0));
     while (1) { asm volatile("wfi"); }
 }

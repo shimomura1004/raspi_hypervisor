@@ -45,9 +45,9 @@ struct vm_struct2 *vms2[NUMBER_OF_VMS];
 struct vcpu_struct *vcpus[NUMBER_OF_VCPUS];
 
 // interrupt-related mocks
-int is_interrupt_enabled() { return 0; }
-void disable_irq() {}
-void enable_irq() {}
+int is_irq_unmasked() { return 0; }
+void mask_irq() {}
+void unmask_irq() {}
 void exit_vm() { while(1); }
 
 // System-wide log levels etc. (Passed via -DLOG_LEVEL=...)

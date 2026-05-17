@@ -66,7 +66,7 @@
         exit_vm(); \
     } \
     else { \
-        disable_irq(); \
+        mask_irq(); \
         while(1); \
     } \
 } while(0)

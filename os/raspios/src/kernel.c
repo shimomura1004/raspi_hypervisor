@@ -93,9 +93,9 @@ void kernel_main()
     // todo: virt 用の timer を実装する
 #endif
 
-    disable_irq();
-    enable_all_interrupts(cpuid);
-    enable_irq();
+    mask_irq();
+    enable_peripheral_irqs(cpuid);
+    unmask_irq();
 
     INFO("CPU %d started", cpuid);
 
@@ -109,7 +109,7 @@ void kernel_main()
     }
 
     if (cpuid >= 4) {
-        disable_all_interrupts(cpuid);
+        disable_peripheral_irqs(cpuid);
         while (1) {
             INFO("CPU %d sleeps", cpuid);
             asm volatile("wfi");
