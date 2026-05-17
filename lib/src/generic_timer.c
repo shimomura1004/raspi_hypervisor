@@ -33,7 +33,9 @@ void handle_timer_irq()
     // ゲストが仮想タイマ割込みを処理したタイミングを自分で知ることができない
     // よって明示的に IRQ_PENDING_1 にアクセスすることで MMIO によるトラップを発生させ、
     // ハイパーバイザに仮想割り込みの状態を更新(クリア)させる
+#if defined(BOARD_RASPI3)
     get32(irq_base_address + IRQ_PENDING_1_OFFSET);
+#endif
 
     timer_tick();
 }
