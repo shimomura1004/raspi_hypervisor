@@ -1,6 +1,6 @@
+#include "board_config.h"
 #include "utils.h"
 #include "sched.h"
-#include "peripherals/irq_regs.h"
 #include "debug.h"
 
 // todo: bcm2837 専用なので名前を変える

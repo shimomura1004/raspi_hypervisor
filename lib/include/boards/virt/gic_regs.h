@@ -1,5 +1,7 @@
-#ifndef _P_IRQ_REGS_H
-#define _P_IRQ_REGS_H
+#ifndef _P_GIC_REGS_H
+#define _P_GIC_REGS_H
+
+// todo: irq_regs.h ではなく gic_regs.h にするべきでは
 
 // GIC v2 (Standard for virt machine unless GICv3 is specified)
 #define GIC_BASE        DEVICE_BASE
@@ -67,9 +69,4 @@
 #define IRQ_ID_PPI_START        16
 #define IRQ_ID_SPI_START        32
 
-// todo: _regs.h で定義するべきではない
-#ifndef __ASSEMBLER__
-void clear_timer_irq(void);
-#endif
-
-#endif  /*_P_IRQ_REGS_H */
+#endif  /*_P_GIC_REGS_H */

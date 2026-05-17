@@ -31,11 +31,12 @@ const char *entry_error_messages[] = {
     "SYSCALL_ERROR"
 };
 
-// todo: init 関数を作り、ベースの仮想アドレスを受け取るようにする
-//       その上で、毎回 P2V マクロを呼び出すのではなく、ベースアドレスとオフセットで計算した値にアクセスするようにする
+// raspios 固有の割込みハンドラや、周辺ペリフェラルの割込みをまとめて有効化・無効化するユーティリティ関数を定義
 
 void enable_peripheral_irqs(unsigned long cpuid)
 {
+    // todo: ここで直接 generic timer のレジスタを操作せず、lib に入れたドライバを介するようにする
+
     // generic timer の割込みを有効化する
     // todo: BCM2837 には GIC がないため専用の割込みコントローラの設定が必要で、ゲスト環境ではトラップして処理する必要あり
     put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);

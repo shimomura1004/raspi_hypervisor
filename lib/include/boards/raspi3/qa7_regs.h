@@ -1,7 +1,7 @@
 #ifndef _GENERIC_TIMER_REGS_H
 #define _GENERIC_TIMER_REGS_H
 
-// todo: これは BCM2837 に依存したもの、名前を変えるべきかも
+// todo: これは BCM2837 の割込みコントローラに依存したもの、名前を変えるべきかも
 
 #define CORE0_TIMER_IRQCNTL 0x40000040
 #define CORE1_TIMER_IRQCNTL 0x40000044 

@@ -1,5 +1,5 @@
-#ifndef _P_IRQ_REGS_H
-#define _P_IRQ_REGS_H
+#ifndef _BCM2836_ARMCTRL_REGS_H
+#define _BCM2836_ARMCTRL_REGS_H
 
 #include "boards/raspi3/raspi3.h"
 
@@ -36,9 +36,4 @@
 #define PENDING_REGISTER_1_BIT      (1 << 8)
 #define PENDING_REGISTER_2_BIT      (1 << 9)
 
-// todo: _regs.h で定義するべきではない
-#ifndef __ASSEMBLER__
-void clear_timer_irq(void);
 #endif
-
-#endif  /*_P_IRQ_REGS_H */

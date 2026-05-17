@@ -29,6 +29,7 @@
 #define TIMER_C2_OFFSET     (0x14)
 #define TIMER_C3_OFFSET     (0x18)
 
+// todo: PBASE を使わないように直す(systimer は周辺デバイス(0x3f000000))
 #define TIMER_BASE          (PBASE      + 0x00003000)
 #define TIMER_CS            (TIMER_BASE + TIMER_CS_OFFSET)
 #define TIMER_CLO           (TIMER_BASE + TIMER_CLO_OFFSET)
