@@ -57,7 +57,7 @@ static void initialize_hypervisor() {
     // システム共通の割込み設定を有効化
     enable_legacy_interrupt_controller();
 
-    // // システムタイマは全コアで共有されるのでここで初期化
+    // システムタイマは全コアで共有されるのでここで初期化
     // systimer_init(P2V(SYSTIMER_BASE), 20000);
 
     // ブロックデバイス（ストレージ）の初期化

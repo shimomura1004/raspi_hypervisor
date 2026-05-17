@@ -116,7 +116,7 @@ after_page_table_setup:
     mul x1, x1, x2
     add x0, x0, x1
     // 最後に VA_START を足すことでカーネルの仮想アドレスにしている
-    ldr x1, =VA_START
+    ldr x1, =(VA_START + RAM_BASE)
     // sp には仮想アドレスが入っているので MMU が有効になってからじゃないと使えない
     add sp, x0, x1
 

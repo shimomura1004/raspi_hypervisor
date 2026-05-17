@@ -153,7 +153,7 @@ int sd_status(unsigned int mask)
 {
     int cnt = 500000;
     while ((get32(P2V(EMMC_STATUS)) & mask) && !(get32(P2V(EMMC_INTERRUPT)) & INT_ERROR_MASK) && cnt--) {
-        wait_msec_st(1);
+        wait_msec(1);
     }
     return (cnt <= 0 || (get32(P2V(EMMC_INTERRUPT)) & INT_ERROR_MASK)) ? SD_ERROR : SD_OK;
 }
@@ -166,7 +166,7 @@ int sd_int(unsigned int mask)
     unsigned int r, m = mask | INT_ERROR_MASK;
     int cnt = 1000000;
     while (!(get32(P2V(EMMC_INTERRUPT)) & m) && cnt--) {
-        wait_msec_st(1);
+        wait_msec(1);
     }
     r = get32(P2V(EMMC_INTERRUPT));
     if (cnt <= 0 || (r & INT_CMD_TIMEOUT) || (r & INT_DATA_TIMEOUT) ) {
@@ -207,10 +207,10 @@ int sd_cmd(unsigned int code, unsigned int arg)
     put32(P2V(EMMC_ARG1), arg);
     put32(P2V(EMMC_CMDTM), code);
     if (code == CMD_SEND_OP_COND) {
-        wait_msec_st(1000);
+        wait_msec(1000);
     }
     else if (code == CMD_SEND_IF_COND || code == CMD_APP_CMD) {
-        wait_msec_st(100);
+        wait_msec(100);
     }
 
     if ((r = sd_int(INT_CMD_DONE))) {
@@ -321,7 +321,7 @@ int sd_clk(unsigned int f) {
     unsigned int d, c = 41666666 / f, x, s = 32, h = 0;
     int cnt = 100000;
     while ((get32(P2V(EMMC_STATUS)) & (SR_CMD_INHIBIT | SR_DAT_INHIBIT)) && cnt--) {
-        wait_msec_st(1);
+        wait_msec(1);
     }
     if (cnt <= 0) {
         WARN("ERROR: timeout waiting for inhibit flag");
@@ -329,7 +329,7 @@ int sd_clk(unsigned int f) {
     }
 
     put32(P2V(EMMC_CONTROL1), get32(P2V(EMMC_CONTROL1)) & ~C1_CLK_EN);
-    wait_msec_st(10);
+    wait_msec(10);
     x = c - 1;
     if (!x) {
         s = 0;
@@ -378,12 +378,12 @@ int sd_clk(unsigned int f) {
     }
     d = (((d & 0x0ff) << 8) | h);
     put32(P2V(EMMC_CONTROL1), (get32(P2V(EMMC_CONTROL1)) & 0xffff003f) | d);
-    wait_msec_st(10);
+    wait_msec(10);
     put32(P2V(EMMC_CONTROL1), get32(P2V(EMMC_CONTROL1)) | C1_CLK_EN);
-    wait_msec_st(10);
+    wait_msec(10);
     cnt = 10000;
     while (!(get32(P2V(EMMC_CONTROL1)) & C1_CLK_STABLE) && cnt--) {
-        wait_msec_st(10);
+        wait_msec(10);
     }
     if (cnt <= 0) {
         WARN("ERROR: failed to get stable clock");
@@ -443,7 +443,7 @@ int sd_init() {
     put32(P2V(EMMC_CONTROL1), get32(P2V(EMMC_CONTROL1)) | C1_SRST_HC);
     cnt = 10000;
     do {
-        wait_msec_st(10);
+        wait_msec(10);
     } while ((get32(P2V(EMMC_CONTROL1)) & C1_SRST_HC) && cnt--);
     if (cnt <= 0) {
         WARN("ERROR: failed to reset EMMC");
@@ -451,7 +451,7 @@ int sd_init() {
     }
     // INFO("EMMC: reset OK");
     put32(P2V(EMMC_CONTROL1), get32(P2V(EMMC_CONTROL1)) | C1_CLK_INTLEN | C1_TOUNIT_MAX);
-    wait_msec_st(10);
+    wait_msec(10);
     // Set clock to setup frequency.
     if ((r = sd_clk(400000))) {
         return r;
@@ -535,7 +535,7 @@ int sd_init() {
             sd_scr[r++] = get32(P2V(EMMC_DATA));
         }
         else {
-            wait_msec_st(1);
+            wait_msec(1);
         }
     }
     if (r != 2) {
