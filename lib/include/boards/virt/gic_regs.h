@@ -1,27 +1,41 @@
 #ifndef _P_GIC_REGS_H
 #define _P_GIC_REGS_H
 
-// todo: irq_regs.h ではなく gic_regs.h にするべきでは
-
 // GIC v2 (Standard for virt machine unless GICv3 is specified)
-#define GIC_BASE        DEVICE_BASE
-#define GIC_DIST_BASE   (GIC_BASE + 0x00000)
-#define GIC_CPU_BASE    (GIC_BASE + 0x10000)
+#define GIC_DIST_BASE_OFFSET    (0x00000)
+#define GIC_CPU_BASE_OFFSET     (0x10000)
+
+#define GIC_BASE                (DEVICE_BASE)
+#define GIC_DIST_BASE           (GIC_BASE + 0x00000)
+#define GIC_CPU_BASE            (GIC_BASE + 0x10000)
 
 // GIC Distributor Registers
-#define GICD_CTLR       (GIC_DIST_BASE + 0x000)
-#define GICD_TYPER      (GIC_DIST_BASE + 0x004)
-#define GICD_ISENABLER  (GIC_DIST_BASE + 0x100)
-#define GICD_ICENABLER  (GIC_DIST_BASE + 0x180)
-#define GICD_IPRIORITYR (GIC_DIST_BASE + 0x400)
-#define GICD_ITARGETSR  (GIC_DIST_BASE + 0x800)
-#define GICD_ICFG       (GIC_DIST_BASE + 0xc00)
+#define GICD_CTLR_OFFSET        (0x000)
+#define GICD_TYPER_OFFSET       (0x004)
+#define GICD_ISENABLER_OFFSET   (0x100)
+#define GICD_ICENABLER_OFFSET   (0x180)
+#define GICD_IPRIORITYR_OFFSET  (0x400)
+#define GICD_ITARGETSR_OFFSET   (0x800)
+#define GICD_ICFG_OFFSET        (0xc00)
+
+#define GICD_CTLR               (GIC_DIST_BASE + GICD_CTLR_OFFSET)
+#define GICD_TYPER              (GIC_DIST_BASE + GICD_TYPER_OFFSET)
+#define GICD_ISENABLER          (GIC_DIST_BASE + GICD_ISENABLER_OFFSET)
+#define GICD_ICENABLER          (GIC_DIST_BASE + GICD_ICENABLER_OFFSET)
+#define GICD_IPRIORITYR         (GIC_DIST_BASE + GICD_IPRIORITYR_OFFSET)
+#define GICD_ITARGETSR          (GIC_DIST_BASE + GICD_ITARGETSR_OFFSET)
+#define GICD_ICFG               (GIC_DIST_BASE + GICD_ICFG_OFFSET)
 #define GICD_CTLR_ENABLE        (1 << 0)
 
-#define GICC_CTLR       (GIC_CPU_BASE + 0x000)
-#define GICC_PMR        (GIC_CPU_BASE + 0x004)
-#define GICC_IAR        (GIC_CPU_BASE + 0x00c)
-#define GICC_EOIR       (GIC_CPU_BASE + 0x010)
+#define GICC_CTLR_OFFSET        (0x000)
+#define GICC_PMR_OFFSET         (0x004)
+#define GICC_IAR_OFFSET         (0x00c)
+#define GICC_EOIR_OFFSET        (0x010)
+
+#define GICC_CTLR               (GIC_CPU_BASE + GICC_CTLR_OFFSET)
+#define GICC_PMR                (GIC_CPU_BASE + GICC_PMR_OFFSET)
+#define GICC_IAR                (GIC_CPU_BASE + GICC_IAR_OFFSET)
+#define GICC_EOIR               (GIC_CPU_BASE + GICC_EOIR_OFFSET)
 
 // GICD_ITARGETSR<n>: Interrupt Processor Targets Registers, n = 0 - 254
 //   ひとつひとつのレジスタは32ビットで、8ビットずつに区切って使う
