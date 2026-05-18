@@ -2,7 +2,7 @@
 #define _DEBUG_H
 
 #include "printf.h"
-#include "irq.h"
+#include "irq_handler.h"
 #include "drivers/uart.h"
 #include "spinlock.h"
 

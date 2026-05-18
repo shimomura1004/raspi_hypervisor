@@ -2,7 +2,6 @@
 #include "utils.h"
 #include "board_config.h"
 #include "generic_timer.h"
-#include "irq.h"
 #include "mm.h"
 
 static unsigned long base_address;

@@ -1,5 +1,5 @@
 #include "sched.h"
-#include "irq.h"
+#include "irq_handler.h"
 #include "printf.h"
 #include "utils.h"
 #include "mm.h"

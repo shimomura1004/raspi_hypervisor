@@ -1,7 +1,5 @@
-#ifndef _GENERIC_TIMER_REGS_H
-#define _GENERIC_TIMER_REGS_H
-
-// todo: これは BCM2837 の割込みコントローラに依存したもの、名前を変えるべきかも
+#ifndef _QA7_REGS_H
+#define _QA7_REGS_H
 
 #define CORE0_TIMER_IRQCNTL 0x40000040
 #define CORE1_TIMER_IRQCNTL 0x40000044 
@@ -17,4 +15,4 @@
 #define TIMER_IRQCNTL_CNTPNSIRQ_IRQ_ENABLED (1 << 1)
 #define TIMER_IRQCNTL_CNTPSIRQ_IRQ_ENABLED  (1 << 0)
 
-#endif  /*_GENERIC_TIMER_REGS_H */
+#endif  /*_QA7_REGS_H */

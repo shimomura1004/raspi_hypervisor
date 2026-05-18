@@ -33,6 +33,7 @@ const char *entry_error_messages[] = {
 
 // raspios 固有の割込みハンドラや、周辺ペリフェラルの割込みをまとめて有効化・無効化するユーティリティ関数を定義
 
+// todo: enable/disable のうち generic timer を操作している部分は共通コードなので lib に移す
 void enable_peripheral_irqs(unsigned long cpuid)
 {
     // todo: ここで直接 generic timer のレジスタを操作せず、lib に入れたドライバを介するようにする

@@ -1,7 +1,7 @@
 #include "spinlock.h"
 #include "sched.h"
 #include "utils.h"
-#include "irq.h"
+#include "irq_handler.h"
 #include "debug.h"
 
 // todo: sleeplock も実装したい
