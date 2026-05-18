@@ -1,5 +1,8 @@
 #include "board_config.h"
 #include "mm.h"
+#include "common_utils.h"
+#include "generic_timer.h"
+#include "console.h"
 
 void handle_irq(void) {
     unsigned int iar = get32(P2V(GICC_IAR));
