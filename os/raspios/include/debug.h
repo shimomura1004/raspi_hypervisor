@@ -1,6 +1,7 @@
 #ifndef _DEBUG_H
 #define _DEBUG_H
 
+#include "arm/irq.h"
 #include "printf.h"
 #include "irq_handler.h"
 #include "drivers/uart.h"

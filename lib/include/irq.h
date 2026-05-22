@@ -1,9 +1,7 @@
-#ifndef _IRQ_H
-#define _IRQ_H
+#ifndef _LIB_IRQ_H
+#define _LIB_IRQ_H
 
 #include "arm/irq.h"
-
-void irq_vector_init(void);
 
 void enable_interrupt_controller(unsigned long cpuid);
 void disable_interrupt_controller(unsigned long cpuid);
@@ -13,4 +11,4 @@ void enable_legacy_interrupt_controller(void);
 void enable_virtual_timer_irq(void);
 void disable_virtual_timer_irq(void);
 
-#endif  /*_IRQ_H */
+#endif  /*_LIB_IRQ_H */

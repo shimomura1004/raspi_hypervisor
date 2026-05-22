@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "generic_timer.h"
 #include "irq.h"
+#include "irq_handler.h"
 #include "vm.h"
 #include "console.h"
 #include "mm.h"
