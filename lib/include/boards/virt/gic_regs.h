@@ -1,7 +1,8 @@
 #ifndef _P_GIC_REGS_H
 #define _P_GIC_REGS_H
 
-// GIC v2 (Standard for virt machine unless GICv3 is specified)
+// GIC v2 Memory Map for QEMU virt board.
+// Distributor と CPU interface の相対位置はプラットフォーム依存(virt だと 0x10000 離れている)
 #define GIC_DIST_BASE_OFFSET    (0x00000)
 #define GIC_CPU_BASE_OFFSET     (0x10000)
 
