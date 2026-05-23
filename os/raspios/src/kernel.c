@@ -5,6 +5,8 @@
 #include "utils.h"
 #include "mm.h"
 #include "drivers/uart.h"
+#include "generic_timer.h"
+#include "irq.h"
 
 // todo: PSCI でシャットダウンする
 
@@ -16,12 +18,7 @@
 #include "user.h"
 #include "spinlock.h"
 #include "fork.h"
-
-#if defined(BOARD_RASPI3)
 #include "generic_timer.h"
-#elif defined(BOARD_VIRT)
-// todo: virt では generic_timer は gic 経由でアクセスする
-#endif
 
 struct spinlock console_lock;
 #include "debug.h"
@@ -87,11 +84,18 @@ void kernel_main()
 
     // 各コアで実施する初期化処理
     irq_vector_init();
+    // todo: virt のときは引数は無視されている
 #if defined(BOARD_RASPI3)
     timer_init(PHYS_TO_VIRT(IRQ_BASE));
 #elif defined(BOARD_VIRT)
-    // todo: virt 用の timer を実装する
+    timer_init(PHYS_TO_VIRT(0));
 #endif
+
+    if (cpuid == 0) {
+        enable_legacy_interrupt_controller();
+    }
+
+    enable_interrupt_controller(cpuid);
 
     mask_irq();
     enable_peripheral_irqs(cpuid);
