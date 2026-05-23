@@ -3,6 +3,7 @@
 #include "printf.h"
 #include "drivers/uart.h"
 
+// todo: lib を使いたい
 void enable_interrupt_controller(void)
 {
     // Initialize GIC Distributor
@@ -16,12 +17,14 @@ void enable_interrupt_controller(void)
     put32(GICC_CTLR, 1);           // Enable CPU interface
 }
 
+// todo: こっちは gic_handler として残す
 void handle_irq(void)
 {
     unsigned int iar = get32(GICC_IAR);
-    unsigned int irq = iar & 0x3ff;
+    unsigned int irq = iar & GICC_IAR_ID_MASK;
 
-    if (irq == 33) {
+    if (irq == IRQ_UART0) {
+        // todo: これは virt ボード用のコードだから handle_console_irq() が正しいのでは
         handle_uart_irq();
     }
 
