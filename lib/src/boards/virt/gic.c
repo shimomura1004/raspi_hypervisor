@@ -4,8 +4,8 @@
 
 // これらのオフセットは virt 専用
 // ベースアドレスは virt 向けに決め打ちなので、OS から仮想アドレスを渡してもらう必要はない
-static unsigned long base_gicc_address = GIC_CPU_BASE_OFFSET;
-static unsigned long base_gicd_address = GIC_DIST_BASE_OFFSET;
+static unsigned long base_gicc_address = GIC_CPU_BASE;
+static unsigned long base_gicd_address = GIC_DIST_BASE;
 
 // 各 CPU で実行する
 void enable_interrupt_controller(unsigned long cpuid) {
