@@ -1,7 +1,7 @@
 #include "sched.h"
 #include "irq.h"
 #include "utils.h"
-#include "generic_timer.h"
+#include "timer.h"
 #include "mm.h"
 #include "debug.h"
 #include "board.h"

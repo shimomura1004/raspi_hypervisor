@@ -3,6 +3,7 @@
 
 #include "utils.h"
 #include "generic_timer.h"
+#include "timer.h"
 #include "irq.h"
 #include "irq_handler.h"
 #include "vm.h"
@@ -38,7 +39,7 @@ static void initialize_pcpu(unsigned long cpuid) {
     irq_vector_init();
 
     // システムタイマ(Generic Timer)の初期化
-    generic_timer_init();
+    hv_timer_init(50);
 
     // 割込みコントローラの有効化
     mask_irq();

@@ -3,7 +3,7 @@
 #include "mm.h"
 #include "debug.h"
 #include "peripherals/mailbox.h"
-#include "generic_timer.h"
+#include "timer.h"
 
 static const unsigned int irq_sources[] = {
     CORE0_IRQ_SOURCE,

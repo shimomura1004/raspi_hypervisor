@@ -1,5 +1,5 @@
-#ifndef _GENERIC_TIMER_H
-#define _GENERIC_TIMER_H
+#ifndef _HV_TIMER_H
+#define _HV_TIMER_H
 
 // CNTP_CTL_EL0: Counter-timer Physical Timer Control register
 // Control register for the EL1 physical timer.
@@ -17,7 +17,8 @@
 #define CNTP_CTL_EL0_IMASK_MASKED       (1 << 1)
 #define CNTP_CTL_EL0_ENABLE_ENABLED     (1 << 0)
 
-void generic_timer_init(void);
+void hv_timer_init(unsigned int timer_interval_ms);
+
 void handle_generic_timer_irq(void);
 void handle_virtual_timer_irq(void);
 int sync_virtual_timer_irq(void);
