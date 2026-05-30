@@ -1,8 +1,7 @@
 #ifndef _GENERIC_TIMER_H
 #define _GENERIC_TIMER_H
 
-void timer_init(unsigned long irq_base_address);
-// todo: 移動させる、たぶん clear_timer みたいな関数になる
-void handle_timer_irq();
+void enable_virtual_timer_interrupt();
+void set_next_tick(unsigned int interval_ms);
 
 #endif  /*_GENERIC_TIMER_H */

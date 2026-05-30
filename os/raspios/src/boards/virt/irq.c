@@ -1,9 +1,9 @@
 #include "board_config.h"
 #include "utils.h"
-#include "debug.h"
-#include "generic_timer.h"
+#include "timer.h"
 #include "entry.h"
 #include "drivers/uart.h"
+#include "debug.h"
 
 const char *entry_error_messages[] = {
     "SYNC_INVALID_EL1t",
@@ -83,7 +83,7 @@ void handle_irq(void)
     unsigned long cntv_ctl;
     asm volatile("mrs %0, cntv_ctl_el0" : "=r"(cntv_ctl));
     if (cntv_ctl & 0x4) { // ISTATUS bit: 割込み条件が成立しているか
-        handle_timer_irq();
+        raspios_handle_timer_irq();
         timer_handled = 1;
     }
 
@@ -94,7 +94,7 @@ void handle_irq(void)
     if (irq == 27) {
         // すでにタイマレジスタのチェックで処理済みの場合はスキップ
         if (!timer_handled) {
-            handle_timer_irq();
+            raspios_handle_timer_irq();
         }
     } else if (irq == 33) {
         handle_uart_irq();

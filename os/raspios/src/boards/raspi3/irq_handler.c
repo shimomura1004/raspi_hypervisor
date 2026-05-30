@@ -1,7 +1,7 @@
 #include "board_config.h"
 #include "utils.h"
 #include "debug.h"
-#include "generic_timer.h"
+#include "timer.h"
 #include "entry.h"
 #include "mm.h"
 #include "drivers/uart.h"
@@ -76,7 +76,7 @@ void handle_irq(void)
     // [1] IMASK: Timer interrupt mask bit.
     // [0] ENABLE: Enables the timer.
     if (cntv_ctl & 0x4) {
-        handle_timer_irq();
+        raspios_handle_timer_irq();
         return;
     }
 
@@ -89,7 +89,7 @@ void handle_irq(void)
 
     // // システムタイマの割り込みを確認
     // if (irq & SYSTEM_TIMER_IRQ_1_BIT) {
-    //  handle_timer_irq();
+    //  raspios_handle_timer_irq();
     //  irq &= ~SYSTEM_TIMER_IRQ_1_BIT;
     // }
 

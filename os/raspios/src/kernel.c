@@ -5,7 +5,7 @@
 #include "utils.h"
 #include "mm.h"
 #include "drivers/uart.h"
-#include "generic_timer.h"
+#include "timer.h"
 #include "irq.h"
 
 // todo: PSCI でシャットダウンする
@@ -86,9 +86,9 @@ void kernel_main()
     irq_vector_init();
     // todo: virt のときは引数は無視されている
 #if defined(BOARD_RASPI3)
-    timer_init(PHYS_TO_VIRT(IRQ_BASE));
+    raspios_timer_init(PHYS_TO_VIRT(IRQ_BASE), 200);
 #elif defined(BOARD_VIRT)
-    timer_init(PHYS_TO_VIRT(0));
+    raspios_timer_init(PHYS_TO_VIRT(0), 200);
 #endif
 
     if (cpuid == 0) {
