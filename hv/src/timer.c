@@ -1,4 +1,4 @@
-#include "generic_timer.h"
+#include "arm/generic_timer.h"
 #include "timer.h"
 #include "sched.h"
 #include "utils.h"

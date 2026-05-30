@@ -2,7 +2,7 @@
 #include <stdint.h>
 
 #include "utils.h"
-#include "generic_timer.h"
+#include "arm/generic_timer.h"
 #include "timer.h"
 #include "irq.h"
 #include "irq_handler.h"

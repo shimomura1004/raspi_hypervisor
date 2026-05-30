@@ -1,7 +1,8 @@
 #include "board_config.h"
 #include "mm.h"
 #include "common_utils.h"
-#include "generic_timer.h"
+#include "arm/generic_timer.h"
+#include "timer.h"
 #include "console.h"
 
 void handle_irq(void) {

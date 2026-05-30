@@ -49,8 +49,8 @@ $(BUILD_DIR)/%_s.o: $(SRC_DIR)/%.S
 LIB_SRC_DIR = ../../lib/src
 # 使用するライブラリソースのリスト
 LIB_SOURCES = \
-	printf.c common_utils.c common_utils.S smccc.S psci.c spinlock.c spinlock.S generic_timer.c \
-	arm/irq.S
+	printf.c common_utils.c common_utils.S smccc.S psci.c spinlock.c spinlock.S \
+	arm/irq.S arm/generic_timer.c
 # ボード固有のライブラリソース
 LIB_BOARD_SOURCES_C = $(shell find $(LIB_SRC_DIR)/boards/$(BOARD) -name "*.c")
 LIB_BOARD_SOURCES_S = $(shell find $(LIB_SRC_DIR)/boards/$(BOARD) -name "*.S")

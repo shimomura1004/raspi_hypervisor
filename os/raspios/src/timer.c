@@ -1,7 +1,7 @@
 #include "board_config.h"
 #include "utils.h"
 #include "sched.h"
-#include "generic_timer.h"
+#include "arm/generic_timer.h"
 #include "debug.h"
 
 static unsigned long irq_base_address;

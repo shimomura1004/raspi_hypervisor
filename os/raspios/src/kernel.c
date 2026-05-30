@@ -18,7 +18,7 @@
 #include "user.h"
 #include "spinlock.h"
 #include "fork.h"
-#include "generic_timer.h"
+#include "arm/generic_timer.h"
 
 struct spinlock console_lock;
 #include "debug.h"
