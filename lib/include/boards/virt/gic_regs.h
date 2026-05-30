@@ -6,7 +6,7 @@
 #define GIC_DIST_BASE_OFFSET    (0x00000)
 #define GIC_CPU_BASE_OFFSET     (0x10000)
 
-#define GIC_BASE                (DEVICE_BASE)
+#define GIC_BASE                (0x08000000)
 #define GIC_DIST_BASE           (GIC_BASE + 0x00000)
 #define GIC_CPU_BASE            (GIC_BASE + 0x10000)
 
