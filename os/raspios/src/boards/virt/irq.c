@@ -65,9 +65,9 @@ void disable_peripheral_irqs(unsigned long cpuid)
     put32(GICC_CTLR, 0); // Disable CPU interface
 }
 
-void show_invalid_entry_message(int type, unsigned long esr, unsigned long address)
+void show_invalid_entry_message(int type, unsigned long esr, unsigned long address, unsigned long elr)
 {
-    WARN("%s, ESR_EL1: %x, address: %x", entry_error_messages[type], esr, address);
+    WARN("%s, ESR_EL1: %x, FAR_EL1: %x, ELR_EL1(PC): %x", entry_error_messages[type], esr, address, elr);
 }
 
 // このハンドラはベクタから呼び出される

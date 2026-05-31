@@ -6,7 +6,8 @@
     kernel_entry \el
     mov x0, #\type
     mrs x1, esr_el1
-    mrs x2, elr_el1
+    mrs x2, far_el1
+    mrs x3, elr_el1
     bl  show_invalid_entry_message
     b   err_hang
 .endm
@@ -98,7 +99,7 @@ vectors:
     ventry  el0_sync                    // Synchronous 64-bit EL0
     ventry  el0_irq                     // IRQ 64-bit EL0
     ventry  fiq_invalid_el0_64          // FIQ 64-bit EL0
-    ventry  error_invalid_el0_64            // Error 64-bit EL0
+    ventry  error_invalid_el0_64        // Error 64-bit EL0
 
     ventry  sync_invalid_el0_32         // Synchronous 32-bit EL0
     ventry  irq_invalid_el0_32          // IRQ 32-bit EL0
