@@ -1,5 +1,6 @@
 #include "board_config.h"
 #include "utils.h"
+#include "mm.h"
 #include "timer.h"
 #include "entry.h"
 #include "drivers/uart.h"
@@ -34,35 +35,35 @@ void enable_peripheral_irqs(unsigned long cpuid)
 {
     // Initialize GIC Distributor on core 0 only
     if (cpuid == 0) {
-        put32(GICD_CTLR, 0);       // Disable distributor
-        put32(GICD_ITARGETSR + 32, (1 << 0)); // Route SPI 1 (UART0) to CPU 0
-        put32(GICD_ISENABLER + 4, (1 << 1)); // Enable SPI 1 (intid=33, 33/32=1, 33%32=1 -> offset 4, bit 1)
-        put32(GICD_CTLR, 1);       // Enable distributor
+        put32(PHYS_TO_VIRT(GICD_CTLR), 0);       // Disable distributor
+        put32(PHYS_TO_VIRT(GICD_ITARGETSR) + 32, (1 << 8)); // Route SPI 1 (UART0) to CPU 0
+        put32(PHYS_TO_VIRT(GICD_ISENABLER) + 4, (1 << 1)); // Enable SPI 1 (intid=33, 33/32=1, 33%32=1 -> offset 4, bit 1)
+        put32(PHYS_TO_VIRT(GICD_CTLR), 1);       // Enable distributor
     }
 
     // Enable GIC CPU interface
-    put32(GICC_PMR, 0xff);         // Allow all priority levels
-    put32(GICC_CTLR, 1);           // Enable CPU interface
+    put32(PHYS_TO_VIRT(GICC_PMR), 0xff);         // Allow all priority levels
+    put32(PHYS_TO_VIRT(GICC_CTLR), 1);           // Enable CPU interface
 
     // Enable PPI for Virtual Timer (IRQ 27)
     // PPIs are enabled in GICD_ISENABLER0, which is banked per-CPU
-    unsigned int val = get32(GICD_ISENABLER);
-    put32(GICD_ISENABLER, val | (1 << 27));
+    unsigned int val = get32(PHYS_TO_VIRT(GICD_ISENABLER));
+    put32(PHYS_TO_VIRT(GICD_ISENABLER), val | (1 << 27));
 }
 
 void disable_peripheral_irqs(unsigned long cpuid)
 {
     // Disable Virtual Timer
-    unsigned int val = get32(GICD_ICENABLER);
-    put32(GICD_ICENABLER, val | (1 << 27));
+    unsigned int val = get32(PHYS_TO_VIRT(GICD_ICENABLER));
+    put32(PHYS_TO_VIRT(GICD_ICENABLER), val | (1 << 27));
 
     if (cpuid == 0) {
         // Disable UART interrupt
-        put32(GICD_ICENABLER + 4, (1 << 1));
-        put32(GICD_CTLR, 0); // Disable Distributor
+        put32(PHYS_TO_VIRT(GICD_ICENABLER) + 4, (1 << 1));
+        put32(PHYS_TO_VIRT(GICD_CTLR), 0); // Disable Distributor
     }
 
-    put32(GICC_CTLR, 0); // Disable CPU interface
+    put32(PHYS_TO_VIRT(GICC_CTLR), 0); // Disable CPU interface
 }
 
 void show_invalid_entry_message(int type, unsigned long esr, unsigned long address, unsigned long elr)
@@ -88,7 +89,7 @@ void handle_irq(void)
     }
 
     // 2. vGIC を使っている場合は GIC から割込み要因を取得
-    unsigned int iar = get32(GICC_IAR);
+    unsigned int iar = get32(PHYS_TO_VIRT(GICC_IAR));
     unsigned int irq = iar & 0x3ff;
 
     if (irq == 27) {
@@ -102,5 +103,5 @@ void handle_irq(void)
         WARN("Unknown pending irq: %x", irq);
     }
 
-    put32(GICC_EOIR, iar);
+    put32(PHYS_TO_VIRT(GICC_EOIR), iar);
 }
