@@ -11,4 +11,11 @@ else
     echo "Port 1234 is in use, skipping GDB mapping."
 fi
 
-docker run --rm -it -v ${PROJECT_ROOT}:/work -w /work${RELATIVE_PATH} ${PORT_MAPPING} -e BOARD=$BOARD raspvisor $*
+# 標準入出力がオープンされていたらコンテナを -it で起動する
+TTY_OPTS=""
+if [ -t 0 ] && [ -t 1 ]; then
+    TTY_OPTS="-it"
+fi
+
+docker run --rm ${TTY_OPTS} -v ${PROJECT_ROOT}:/work -w /work${RELATIVE_PATH} ${PORT_MAPPING} -e BOARD=$BOARD raspvisor $*
+
