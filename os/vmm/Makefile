@@ -56,6 +56,9 @@ LIB_SRC_DIR = ../../lib/src
 LIB_SOURCES = \
 	printf.c common_utils.c common_utils.S \
 	arm/irq.S
+# ボード固有のライブラリソース
+LIB_BOARD_SOURCES_C = $(shell find $(LIB_SRC_DIR)/boards/$(BOARD) -name "*.c")
+LIB_BOARD_SOURCES_S = $(shell find $(LIB_SRC_DIR)/boards/$(BOARD) -name "*.S")
 
 $(BUILD_DIR)/lib/%_c.o: $(LIB_SRC_DIR)/%.c
 	mkdir -p $(@D)
@@ -90,6 +93,8 @@ OBJ_FILES += $(BOARD_C_FILES:$(BOARD_SRC_DIR)/%.c=$(BUILD_DIR)/boards/$(BOARD)/%
 OBJ_FILES += $(BOARD_ASM_FILES:$(BOARD_SRC_DIR)/%.S=$(BUILD_DIR)/boards/$(BOARD)/%_s.o)
 OBJ_FILES += $(patsubst %.c,$(BUILD_DIR)/lib/%_c.o,$(filter %.c,$(LIB_SOURCES)))
 OBJ_FILES += $(patsubst %.S,$(BUILD_DIR)/lib/%_s.o,$(filter %.S,$(LIB_SOURCES)))
+OBJ_FILES += $(patsubst $(LIB_SRC_DIR)/%.c,$(BUILD_DIR)/lib/%_c.o,$(LIB_BOARD_SOURCES_C))
+OBJ_FILES += $(patsubst $(LIB_SRC_DIR)/%.S,$(BUILD_DIR)/lib/%_s.o,$(LIB_BOARD_SOURCES_S))
 OBJ_FILES += $(BUILD_DIR)/lib/drivers/uart/$(UART_DRV)_c.o
 
 DEP_FILES = $(OBJ_FILES:%.o=%.d)

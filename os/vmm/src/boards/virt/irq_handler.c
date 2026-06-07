@@ -3,18 +3,18 @@
 #include "printf.h"
 #include "drivers/uart.h"
 
-void enable_interrupt_controller(void)
-{
-    // Initialize GIC Distributor
-    put32(GICD_CTLR, 0);       // Disable distributor
-    put32(GICD_ITARGETSR + 32, (1 << 0)); // Route SPI 1 (UART0) to CPU 0
-    put32(GICD_ISENABLER + 4, (1 << 1));  // Enable SPI 1 (intid=33)
-    put32(GICD_CTLR, 1);       // Enable distributor
+// void enable_interrupt_controller(void)
+// {
+//     // Initialize GIC Distributor
+//     put32(GICD_CTLR, 0);       // Disable distributor
+//     put32(GICD_ITARGETSR + 32, (1 << 8)); // Route SPI 1 (UART0) to CPU 0
+//     put32(GICD_ISENABLER + 4, (1 << 1));  // Enable SPI 1 (intid=33)
+//     put32(GICD_CTLR, 1);       // Enable distributor
 
-    // Enable GIC CPU interface
-    put32(GICC_PMR, 0xff);         // Allow all priority levels
-    put32(GICC_CTLR, 1);           // Enable CPU interface
-}
+//     // Enable GIC CPU interface
+//     put32(GICC_PMR, 0xff);         // Allow all priority levels
+//     put32(GICC_CTLR, 1);           // Enable CPU interface
+// }
 
 void handle_irq(void)
 {

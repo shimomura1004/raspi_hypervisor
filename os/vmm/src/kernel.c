@@ -4,6 +4,8 @@
 #include "mm.h"
 #include "drivers/uart.h"
 #include "irq.h"
+#include "irq_handler.h"
+
 // todo: hv と vmm で共通なので lib に移動する
 //       使っているのは loader_args の定義だけ？
 #include "../../../hv/include/loader.h"
@@ -177,7 +179,15 @@ void kernel_main(void)
     init_printf(0, putc);
         
     irq_vector_init();
-    enable_interrupt_controller(0);
+#if defined(BOARD_RASPI3)
+    qa7_enable_generic_timer(QA7_BASE, 0);
+    qa7_enable_mailbox(QA7_BASE, 0);
+    qa7_init(QA7_BASE);
+#elif defined(BOARD_VIRT)
+    gicc_init(GIC_CPU_BASE);
+    gicd_init(GIC_DIST_BASE);
+    gic_enable_interrupt(GIC_DIST_BASE, IRQ_UART0, 0x01);
+#endif
     unmask_irq();
 
     int count = 0;
