@@ -182,7 +182,7 @@ void kernel_main(void)
 #if defined(BOARD_RASPI3)
     arm_local_timer_enable(QA7_BASE, 0);
     arm_local_ipi_enable(QA7_BASE, 0);
-    lic_init(IRQ_BASE);
+    lic_enable_aux(IRQ_BASE);
 #elif defined(BOARD_VIRT)
     gicc_init(GIC_CPU_BASE);
     gicd_init(GIC_DIST_BASE);

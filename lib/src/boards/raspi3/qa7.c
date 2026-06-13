@@ -20,19 +20,24 @@ static const unsigned long ipi_controls[] = {
 //   #define ENABLE_IRQS_2      (PBASE+0x0000B214)
 //   #define ENABLE_BASIC_IRQS  (PBASE+0x0000B218)
 //   BASIC IRQS はローカル割込み用
-// システム全体で共通の割込み設定 (UART, System Timer など)
-// 通常は Core 0 が一度だけ実行する
-void lic_init(unsigned long irq_base) {
-    // put32(P2V(ENABLE_IRQS_1), SYSTEM_TIMER_IRQ_1_BIT);
-    // put32(P2V(ENABLE_IRQS_1), SYSTEM_TIMER_IRQ_3_BIT);
-    put32(irq_base + ENABLE_IRQS_1_OFFSET, AUX_IRQ_BIT);
 
-    // Mailbox 割込みを有効化
-    // こちらは BCM2837 の Legacy Interrupt Controller のもの
-    // GPU との通信に使うもので、本来は有効化する必要はない
+// LIC (Legacy Interrupt Controller) で Mini UART の割込みを有効化する
+void lic_enable_aux(unsigned long irq_base) {
+    put32(irq_base + ENABLE_IRQS_1_OFFSET, AUX_IRQ_BIT);
+}
+
+// GPU と CPU の間の Mailbox 割込みを有効化する
+void lic_enable_mbox(unsigned long irq_base) {
     put32(irq_base + ENABLE_BASIC_IRQS_OFFSET, MBOX_IRQ_BIT);
 }
 
+// BCM2837 のシステムタイマの割込みを有効化する
+void lic_enable_systimer(unsigned long irq_base) {
+    put32(irq_base + ENABLE_IRQS_1_OFFSET, SYSTEM_TIMER_IRQ_1_BIT);
+    put32(irq_base + ENABLE_IRQS_1_OFFSET, SYSTEM_TIMER_IRQ_3_BIT);
+}
+
+// todo: arm_local と lic が混ざっている
 // Generic Timer (nCNTPNSIRQ) 割込みの有効化
 void arm_local_timer_enable(unsigned long qa7_base, unsigned long cpuid) {
     put32(qa7_base + timer_controls[cpuid], TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);

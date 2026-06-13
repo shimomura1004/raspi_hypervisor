@@ -1,9 +1,12 @@
 #ifndef _LIB_QA7
 #define _LIB_QA7
 
-void qa7_init(unsigned long qa7_base);
-void qa7_enable_generic_timer(unsigned long qa7_base, unsigned long cpuid);
-void qa7_enable_mailbox(unsigned long qa7_base, unsigned long cpuid);
+void lic_enable_aux(unsigned long irq_base);
+void lic_enable_mbox(unsigned long irq_base);
+void lic_enable_systimer(unsigned long irq_base);
+
+void arm_local_timer_enable(unsigned long qa7_base, unsigned long cpuid);
+void arm_local_ipi_enable(unsigned long qa7_base, unsigned long cpuid);
 
 void enable_virtual_timer_irq(void);
 void disable_virtual_timer_irq(void);
