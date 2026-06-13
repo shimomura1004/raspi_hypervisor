@@ -31,6 +31,11 @@ void arm_local_timer_enable(unsigned long cpuid) {
     put32(base_qa7_address + timer_controls[cpuid], TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);
 }
 
+// Generic Timer (nCNTPNSIRQ) 割込みの無効化
+void arm_local_timer_disable(unsigned long cpuid) {
+    put32(base_qa7_address + timer_controls[cpuid], 0);
+}
+
 // コア間割込み (IPI) 用 Mailbox 割込みの有効化
 void arm_local_ipi_enable(unsigned long cpuid) {
     // このレジスタは各コアが個別に持つ ARM Local interrupt controller (QA7) のもの
