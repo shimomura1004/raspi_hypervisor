@@ -8,6 +8,8 @@
 #include "timer.h"
 #include "irq.h"
 
+// todo: プログラム中の #if をボード固有の関数にまとめて切り替える？
+
 // todo: PSCI でシャットダウンする
 
 // todo: 今提供しているハイパーバイザの機能を smccc に準拠させる
@@ -84,7 +86,7 @@ void kernel_main()
 
     // 各コアで実施する初期化処理
     irq_vector_init();
-    // todo: virt のときは引数は無視されている
+
 #if defined(BOARD_RASPI3)
     raspios_timer_init(PHYS_TO_VIRT(IRQ_BASE), 200);
 #elif defined(BOARD_VIRT)
@@ -92,10 +94,19 @@ void kernel_main()
 #endif
 
     if (cpuid == 0) {
-        enable_legacy_interrupt_controller();
+#if defined(BOARD_RASPI3)
+        qa7_init(PHYS_TO_VIRT(QA7_BASE));
+#elif defined(BOARD_VIRT)
+        gicd_init(PHYS_TO_VIRT(GIC_DIST_BASE));
+#endif
     }
 
-    enable_interrupt_controller(cpuid);
+#if defined(BOARD_RASPI3)
+    qa7_enable_generic_timer(PHYS_TO_VIRT(QA7_BASE), cpuid);
+    qa7_enable_mailbox(PHYS_TO_VIRT(QA7_BASE), cpuid);
+#elif defined(BOARD_VIRT)
+    gicc_init(PHYS_TO_VIRT(GIC_CPU_BASE));
+#endif
 
     mask_irq();
     enable_peripheral_irqs(cpuid);
