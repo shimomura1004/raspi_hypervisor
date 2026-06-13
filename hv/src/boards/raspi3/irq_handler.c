@@ -13,10 +13,10 @@ static const unsigned int irq_sources[] = {
 };
 
 static const unsigned int mbox_rd_clrs[] = {
-    MBOX_CORE0_RD_CLR_0,
-    MBOX_CORE1_RD_CLR_0,
-    MBOX_CORE2_RD_CLR_0,
-    MBOX_CORE3_RD_CLR_0
+    IPI_CORE0_RD_CLR_0,
+    IPI_CORE1_RD_CLR_0,
+    IPI_CORE2_RD_CLR_0,
+    IPI_CORE3_RD_CLR_0
 };
 
 // LIC(Legacy Interrupt Controller) が発生させる割込みを処理する

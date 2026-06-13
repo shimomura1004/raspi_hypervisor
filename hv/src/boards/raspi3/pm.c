@@ -24,10 +24,10 @@ void system_shutdown() {
 
     // 他のコアを停止させるために Mailbox 割込み(IPI)を送る
     unsigned long cpuid = get_cpuid();
-    if (cpuid != 0) put32(P2V(MBOX_CORE0_SET_0), 1);
-    if (cpuid != 1) put32(P2V(MBOX_CORE1_SET_0), 1);
-    if (cpuid != 2) put32(P2V(MBOX_CORE2_SET_0), 1);
-    if (cpuid != 3) put32(P2V(MBOX_CORE3_SET_0), 1);
+    if (cpuid != 0) put32(P2V(IPI_CORE0_SET_0), 1);
+    if (cpuid != 1) put32(P2V(IPI_CORE1_SET_0), 1);
+    if (cpuid != 2) put32(P2V(IPI_CORE2_SET_0), 1);
+    if (cpuid != 3) put32(P2V(IPI_CORE3_SET_0), 1);
 
     halt_current_cpu();
 }

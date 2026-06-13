@@ -8,11 +8,11 @@ static const unsigned long timer_controls[] = {
     CORE3_TIMER_IRQCNTL_OFFSET
 };
 
-static const unsigned long mbox_controls[] = {
-    MBOX_CORE0_CONTROL_OFFSET,
-    MBOX_CORE1_CONTROL_OFFSET,
-    MBOX_CORE2_CONTROL_OFFSET,
-    MBOX_CORE3_CONTROL_OFFSET
+static const unsigned long ipi_controls[] = {
+    IPI_CORE0_CONTROL_OFFSET,
+    IPI_CORE1_CONTROL_OFFSET,
+    IPI_CORE2_CONTROL_OFFSET,
+    IPI_CORE3_CONTROL_OFFSET
 };
 
 // RPi は割込みの有効・無効の管理用に3つのレジスタを持つ
@@ -42,7 +42,7 @@ void arm_local_timer_enable(unsigned long qa7_base, unsigned long cpuid) {
 void arm_local_ipi_enable(unsigned long qa7_base, unsigned long cpuid) {
     // このレジスタは各コアが個別に持つ ARM Local interrupt controller (QA7) のもの
     // CPU コア間の通信に使う
-    put32(qa7_base + mbox_controls[cpuid], 1);
+    put32(qa7_base + ipi_controls[cpuid], 1);
 }
 
 // ベースアドレスは raspi3 向けに決め打ちなので、OS から仮想アドレスを渡してもらう必要はない
