@@ -108,6 +108,7 @@ void kernel_main()
     arm_local_ipi_enable(cpuid);
 #elif defined(BOARD_VIRT)
     gicc_init(PHYS_TO_VIRT(GIC_CPU_BASE));
+    gic_enable_interrupt(PHYS_TO_VIRT(GIC_DIST_BASE), IRQ_VIRT_TIMER, 0x01);
 #endif
     unmask_irq();
 
@@ -123,7 +124,9 @@ void kernel_main()
     }
 
     if (cpuid >= 4) {
+#if defined(BOARD_RASPI3)
         arm_local_timer_disable(cpuid);
+#endif
 
         while (1) {
             INFO("CPU %d sleeps", cpuid);
