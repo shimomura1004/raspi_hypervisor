@@ -22,6 +22,5 @@ void hv_timer_init(unsigned int timer_interval_ms);
 void handle_generic_timer_irq(void);
 void handle_virtual_timer_irq(void);
 int sync_virtual_timer_irq(void);
-void disable_virtual_timer_irq(void);
 
 #endif

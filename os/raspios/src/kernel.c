@@ -96,14 +96,15 @@ void kernel_main()
     if (cpuid == 0) {
 #if defined(BOARD_RASPI3)
         lic_enable_aux(PHYS_TO_VIRT(IRQ_BASE));
+        init_qa7(PHYS_TO_VIRT(QA7_BASE));
 #elif defined(BOARD_VIRT)
         gicd_init(PHYS_TO_VIRT(GIC_DIST_BASE));
 #endif
     }
 
 #if defined(BOARD_RASPI3)
-    arm_local_timer_enable(PHYS_TO_VIRT(QA7_BASE), cpuid);
-    arm_local_ipi_enable(PHYS_TO_VIRT(QA7_BASE), cpuid);
+    arm_local_timer_enable(cpuid);
+    arm_local_ipi_enable(cpuid);
 #elif defined(BOARD_VIRT)
     gicc_init(PHYS_TO_VIRT(GIC_CPU_BASE));
 #endif

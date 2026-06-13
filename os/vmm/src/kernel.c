@@ -180,8 +180,9 @@ void kernel_main(void)
         
     irq_vector_init();
 #if defined(BOARD_RASPI3)
-    arm_local_timer_enable(QA7_BASE, 0);
-    arm_local_ipi_enable(QA7_BASE, 0);
+    init_qa7(QA7_BASE);
+    arm_local_timer_enable(0);
+    arm_local_ipi_enable(0);
     lic_enable_aux(IRQ_BASE);
 #elif defined(BOARD_VIRT)
     gicc_init(GIC_CPU_BASE);

@@ -21,22 +21,22 @@ static const unsigned long ipi_controls[] = {
 //   #define ENABLE_BASIC_IRQS  (PBASE+0x0000B218)
 //   BASIC IRQS はローカル割込み用
 
-// todo: arm_local と lic が混ざっている
+static unsigned long base_qa7_address = QA7_BASE;
+void init_qa7(unsigned long qa7_virt_base) {
+    base_qa7_address = qa7_virt_base;
+}
+
 // Generic Timer (nCNTPNSIRQ) 割込みの有効化
-void arm_local_timer_enable(unsigned long qa7_base, unsigned long cpuid) {
-    put32(qa7_base + timer_controls[cpuid], TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);
+void arm_local_timer_enable(unsigned long cpuid) {
+    put32(base_qa7_address + timer_controls[cpuid], TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);
 }
 
 // コア間割込み (IPI) 用 Mailbox 割込みの有効化
-void arm_local_ipi_enable(unsigned long qa7_base, unsigned long cpuid) {
+void arm_local_ipi_enable(unsigned long cpuid) {
     // このレジスタは各コアが個別に持つ ARM Local interrupt controller (QA7) のもの
     // CPU コア間の通信に使う
-    put32(qa7_base + ipi_controls[cpuid], 1);
+    put32(base_qa7_address + ipi_controls[cpuid], 1);
 }
-
-// todo: ベースアドレスは raspi3 向けに決め打ちだが、これは物理アドレスになっているのでダメ
-static unsigned long base_qa7_address = QA7_BASE;
-// static unsigned long base_irq_address = IRQ_BASE;
 
 void enable_virtual_timer_irq(void) {
     unsigned long cpuid = get_cpuid();

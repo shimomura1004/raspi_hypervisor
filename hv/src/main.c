@@ -44,8 +44,8 @@ static void initialize_pcpu(unsigned long cpuid) {
     // 割込みコントローラの有効化
     mask_irq();
 #if defined(BOARD_RASPI3)
-    arm_local_timer_enable(P2V(QA7_BASE), cpuid);
-    arm_local_ipi_enable(P2V(QA7_BASE), cpuid);
+    arm_local_timer_enable(cpuid);
+    arm_local_ipi_enable(cpuid);
 #elif defined(BOARD_VIRT)
     gicc_init(P2V(GIC_CPU_BASE));
 #endif
@@ -88,6 +88,12 @@ static void prepare_vmm() {
 // hypervisor としてのスタート地点
 void hypervisor_main(unsigned long cpuid)
 {
+#if defined(BOARD_RASPI3)
+    if (cpuid == 0) {
+        init_qa7(P2V(QA7_BASE));
+    }
+#endif
+
     // 実行中の CPU コアを初期化
     initialize_pcpu(cpuid);
 
