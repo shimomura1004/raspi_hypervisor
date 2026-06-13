@@ -4,6 +4,7 @@
 #include "mm.h"
 #include "drivers/uart.h"
 #include "irq.h"
+#include "irq_handler.h"
 #include "hypercall_type.h"
 
 void kernel_main(void)
@@ -16,7 +17,16 @@ void kernel_main(void)
     init_printf(0, putc);
 
     irq_vector_init();
-    enable_interrupt_controller();
+#if defined(BOARD_RASPI3)
+    init_qa7(QA7_BASE);
+    arm_local_timer_enable(0);
+    arm_local_ipi_enable(0);
+    lic_enable_aux(IRQ_BASE);
+#elif defined(BOARD_VIRT)
+    gicc_init(GIC_CPU_BASE);
+    gicd_init(GIC_DIST_BASE);
+    gic_enable_interrupt(GIC_DIST_BASE, IRQ_UART0, 0x01);
+#endif
     unmask_irq();
 
     int el = get_el();
