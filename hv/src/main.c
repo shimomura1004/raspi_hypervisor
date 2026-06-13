@@ -44,8 +44,8 @@ static void initialize_pcpu(unsigned long cpuid) {
     // 割込みコントローラの有効化
     mask_irq();
 #if defined(BOARD_RASPI3)
-    qa7_enable_generic_timer(P2V(QA7_BASE), cpuid);
-    qa7_enable_mailbox(P2V(QA7_BASE), cpuid);
+    arm_local_timer_enable(P2V(QA7_BASE), cpuid);
+    arm_local_ipi_enable(P2V(QA7_BASE), cpuid);
 #elif defined(BOARD_VIRT)
     gicc_init(P2V(GIC_CPU_BASE));
 #endif
@@ -63,7 +63,7 @@ static void initialize_hypervisor() {
 
     // システム共通の割込み設定を有効化
 #if defined(BOARD_RASPI3)
-    qa7_init(P2V(IRQ_BASE));
+    lic_init(P2V(IRQ_BASE));
 #elif defined(BOARD_VIRT)
     gicd_init(P2V(GIC_DIST_BASE));
     gic_enable_interrupt(GIC_DIST_BASE, IRQ_UART0, 0x01);

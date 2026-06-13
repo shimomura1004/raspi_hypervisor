@@ -95,15 +95,15 @@ void kernel_main()
 
     if (cpuid == 0) {
 #if defined(BOARD_RASPI3)
-        qa7_init(PHYS_TO_VIRT(IRQ_BASE));
+        lic_init(PHYS_TO_VIRT(IRQ_BASE));
 #elif defined(BOARD_VIRT)
         gicd_init(PHYS_TO_VIRT(GIC_DIST_BASE));
 #endif
     }
 
 #if defined(BOARD_RASPI3)
-    qa7_enable_generic_timer(PHYS_TO_VIRT(QA7_BASE), cpuid);
-    qa7_enable_mailbox(PHYS_TO_VIRT(QA7_BASE), cpuid);
+    arm_local_timer_enable(PHYS_TO_VIRT(QA7_BASE), cpuid);
+    arm_local_ipi_enable(PHYS_TO_VIRT(QA7_BASE), cpuid);
 #elif defined(BOARD_VIRT)
     gicc_init(PHYS_TO_VIRT(GIC_CPU_BASE));
 #endif

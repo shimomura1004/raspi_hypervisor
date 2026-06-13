@@ -22,7 +22,7 @@ static const unsigned long mbox_controls[] = {
 //   BASIC IRQS はローカル割込み用
 // システム全体で共通の割込み設定 (UART, System Timer など)
 // 通常は Core 0 が一度だけ実行する
-void qa7_init(unsigned long irq_base) {
+void lic_init(unsigned long irq_base) {
     // put32(P2V(ENABLE_IRQS_1), SYSTEM_TIMER_IRQ_1_BIT);
     // put32(P2V(ENABLE_IRQS_1), SYSTEM_TIMER_IRQ_3_BIT);
     put32(irq_base + ENABLE_IRQS_1_OFFSET, AUX_IRQ_BIT);
@@ -34,12 +34,12 @@ void qa7_init(unsigned long irq_base) {
 }
 
 // Generic Timer (nCNTPNSIRQ) 割込みの有効化
-void qa7_enable_generic_timer(unsigned long qa7_base, unsigned long cpuid) {
+void arm_local_timer_enable(unsigned long qa7_base, unsigned long cpuid) {
     put32(qa7_base + timer_controls[cpuid], TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);
 }
 
-// Mailbox 割込みの有効化
-void qa7_enable_mailbox(unsigned long qa7_base, unsigned long cpuid) {
+// コア間割込み (IPI) 用 Mailbox 割込みの有効化
+void arm_local_ipi_enable(unsigned long qa7_base, unsigned long cpuid) {
     // このレジスタは各コアが個別に持つ ARM Local interrupt controller (QA7) のもの
     // CPU コア間の通信に使う
     put32(qa7_base + mbox_controls[cpuid], 1);
