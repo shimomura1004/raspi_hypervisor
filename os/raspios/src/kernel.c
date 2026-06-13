@@ -102,15 +102,13 @@ void kernel_main()
 #endif
     }
 
+    mask_irq();
 #if defined(BOARD_RASPI3)
     arm_local_timer_enable(cpuid);
     arm_local_ipi_enable(cpuid);
 #elif defined(BOARD_VIRT)
     gicc_init(PHYS_TO_VIRT(GIC_CPU_BASE));
 #endif
-
-    mask_irq();
-    enable_peripheral_irqs(cpuid);
     unmask_irq();
 
     INFO("CPU %d started", cpuid);
@@ -125,7 +123,8 @@ void kernel_main()
     }
 
     if (cpuid >= 4) {
-        disable_peripheral_irqs(cpuid);
+        arm_local_timer_disable(cpuid);
+
         while (1) {
             INFO("CPU %d sleeps", cpuid);
             asm volatile("wfi");

@@ -6,7 +6,7 @@
 #include "mm.h"
 #include "drivers/uart.h"
 
-const char *entry_error_messages[] = {
+static const char *entry_error_messages[] = {
     "SYNC_INVALID_EL1t",
     "IRQ_INVALID_EL1t",
     "FIQ_INVALID_EL1t",
@@ -30,36 +30,6 @@ const char *entry_error_messages[] = {
     "SYNC_ERROR",
     "SYSCALL_ERROR"
 };
-
-// raspios 固有の割込みハンドラや、周辺ペリフェラルの割込みをまとめて有効化・無効化するユーティリティ関数を定義
-
-// todo: enable/disable のうち generic timer を操作している部分は共通コードなので lib に移す
-void enable_peripheral_irqs(unsigned long cpuid)
-{
-    // todo: ここで直接 generic timer のレジスタを操作せず、lib に入れたドライバを介するようにする
-
-    // generic timer の割込みを有効化する
-    // todo: BCM2837 には GIC がないため専用の割込みコントローラの設定が必要で、ゲスト環境ではトラップして処理する必要あり
-    put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, TIMER_IRQCNTL_CNTHPIRQ_IRQ_ENABLED | TIMER_IRQCNTL_CNTVIRQ_IRQ_ENABLED);
-
-    // SYSTEM TIMER IRQ 1 を有効化する
-    // put32(ENABLE_IRQS_1, SYSTEM_TIMER_IRQ_1_BIT);
-
-    // UART を有効化する
-    put32(PHYS_TO_VIRT(ENABLE_IRQS_1), (1 << 29));
-}
-
-void disable_peripheral_irqs(unsigned long cpuid)
-{
-    // generic timer の割込みを無効化する
-    put32(CORE0_TIMER_IRQCNTL + 4 * cpuid, 0);
-
-    // システムタイマーの割り込みを無効化する
-    // put32(DISABLE_IRQS_1, SYSTEM_TIMER_IRQ_1_BIT);
-
-    // UART の割り込みを無効にする
-    put32(PHYS_TO_VIRT(DISABLE_IRQS_1), (1 << 29));
-}
 
 void show_invalid_entry_message(int type, unsigned long esr, unsigned long address, unsigned long elr)
 {
