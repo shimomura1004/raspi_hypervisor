@@ -43,7 +43,12 @@ static void initialize_pcpu(unsigned long cpuid) {
 
     // 割込みコントローラの有効化
     mask_irq();
-    enable_interrupt_controller(cpuid);
+#if defined(BOARD_RASPI3)
+    qa7_enable_generic_timer(P2V(QA7_BASE), cpuid);
+    qa7_enable_mailbox(P2V(QA7_BASE), cpuid);
+#elif defined(BOARD_VIRT)
+    gicc_init(P2V(GIC_CPU_BASE));
+#endif
 }
 
 // 全コア共通で一度だけ実施する初期化処理
@@ -57,7 +62,12 @@ static void initialize_hypervisor() {
     sm_log_dump();
 
     // システム共通の割込み設定を有効化
-    enable_legacy_interrupt_controller();
+#if defined(BOARD_RASPI3)
+    qa7_init(P2V(QA7_BASE));
+#elif defined(BOARD_VIRT)
+    gicd_init(P2V(GIC_DIST_BASE));
+    gic_enable_interrupt(GIC_DIST_BASE, IRQ_UART0, 0x01);
+#endif
 
     // システムタイマは全コアで共有されるのでここで初期化
     // systimer_init(P2V(SYSTIMER_BASE), 20000);
