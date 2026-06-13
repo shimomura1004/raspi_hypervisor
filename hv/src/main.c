@@ -63,7 +63,7 @@ static void initialize_hypervisor() {
 
     // システム共通の割込み設定を有効化
 #if defined(BOARD_RASPI3)
-    qa7_init(P2V(QA7_BASE));
+    qa7_init(P2V(IRQ_BASE));
 #elif defined(BOARD_VIRT)
     gicd_init(P2V(GIC_DIST_BASE));
     gic_enable_interrupt(GIC_DIST_BASE, IRQ_UART0, 0x01);

@@ -182,7 +182,7 @@ void kernel_main(void)
 #if defined(BOARD_RASPI3)
     qa7_enable_generic_timer(QA7_BASE, 0);
     qa7_enable_mailbox(QA7_BASE, 0);
-    qa7_init(QA7_BASE);
+    qa7_init(IRQ_BASE);
 #elif defined(BOARD_VIRT)
     gicc_init(GIC_CPU_BASE);
     gicd_init(GIC_DIST_BASE);

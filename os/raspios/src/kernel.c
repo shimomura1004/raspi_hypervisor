@@ -95,7 +95,7 @@ void kernel_main()
 
     if (cpuid == 0) {
 #if defined(BOARD_RASPI3)
-        qa7_init(PHYS_TO_VIRT(QA7_BASE));
+        qa7_init(PHYS_TO_VIRT(IRQ_BASE));
 #elif defined(BOARD_VIRT)
         gicd_init(PHYS_TO_VIRT(GIC_DIST_BASE));
 #endif

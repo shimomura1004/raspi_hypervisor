@@ -22,15 +22,15 @@ static const unsigned long mbox_controls[] = {
 //   BASIC IRQS はローカル割込み用
 // システム全体で共通の割込み設定 (UART, System Timer など)
 // 通常は Core 0 が一度だけ実行する
-void qa7_init(unsigned long qa7_base) {
+void qa7_init(unsigned long irq_base) {
     // put32(P2V(ENABLE_IRQS_1), SYSTEM_TIMER_IRQ_1_BIT);
     // put32(P2V(ENABLE_IRQS_1), SYSTEM_TIMER_IRQ_3_BIT);
-    put32(qa7_base + ENABLE_IRQS_1_OFFSET, AUX_IRQ_BIT);
+    put32(irq_base + ENABLE_IRQS_1_OFFSET, AUX_IRQ_BIT);
 
     // Mailbox 割込みを有効化
     // こちらは BCM2837 の Legacy Interrupt Controller のもの
     // GPU との通信に使うもので、本来は有効化する必要はない
-    put32(qa7_base + ENABLE_BASIC_IRQS_OFFSET, MBOX_IRQ_BIT);
+    put32(irq_base + ENABLE_BASIC_IRQS_OFFSET, MBOX_IRQ_BIT);
 }
 
 // Generic Timer (nCNTPNSIRQ) 割込みの有効化
