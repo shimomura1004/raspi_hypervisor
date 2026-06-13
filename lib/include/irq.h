@@ -5,6 +5,7 @@
 
 #if defined(BOARD_RASPI3)
 #include "qa7.h"
+#include "lic.h"
 #elif defined(BOARD_VIRT)
 #include "gic.h"
 #endif

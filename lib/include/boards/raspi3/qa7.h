@@ -1,10 +1,6 @@
 #ifndef _LIB_QA7
 #define _LIB_QA7
 
-void lic_enable_aux(unsigned long irq_base);
-void lic_enable_mbox(unsigned long irq_base);
-void lic_enable_systimer(unsigned long irq_base);
-
 void arm_local_timer_enable(unsigned long qa7_base, unsigned long cpuid);
 void arm_local_ipi_enable(unsigned long qa7_base, unsigned long cpuid);
 

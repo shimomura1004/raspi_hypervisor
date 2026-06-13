@@ -21,22 +21,6 @@ static const unsigned long ipi_controls[] = {
 //   #define ENABLE_BASIC_IRQS  (PBASE+0x0000B218)
 //   BASIC IRQS はローカル割込み用
 
-// LIC (Legacy Interrupt Controller) で Mini UART の割込みを有効化する
-void lic_enable_aux(unsigned long irq_base) {
-    put32(irq_base + ENABLE_IRQS_1_OFFSET, AUX_IRQ_BIT);
-}
-
-// GPU と CPU の間の Mailbox 割込みを有効化する
-void lic_enable_mbox(unsigned long irq_base) {
-    put32(irq_base + ENABLE_BASIC_IRQS_OFFSET, MBOX_IRQ_BIT);
-}
-
-// BCM2837 のシステムタイマの割込みを有効化する
-void lic_enable_systimer(unsigned long irq_base) {
-    put32(irq_base + ENABLE_IRQS_1_OFFSET, SYSTEM_TIMER_IRQ_1_BIT);
-    put32(irq_base + ENABLE_IRQS_1_OFFSET, SYSTEM_TIMER_IRQ_3_BIT);
-}
-
 // todo: arm_local と lic が混ざっている
 // Generic Timer (nCNTPNSIRQ) 割込みの有効化
 void arm_local_timer_enable(unsigned long qa7_base, unsigned long cpuid) {
@@ -50,7 +34,7 @@ void arm_local_ipi_enable(unsigned long qa7_base, unsigned long cpuid) {
     put32(qa7_base + ipi_controls[cpuid], 1);
 }
 
-// ベースアドレスは raspi3 向けに決め打ちなので、OS から仮想アドレスを渡してもらう必要はない
+// todo: ベースアドレスは raspi3 向けに決め打ちだが、これは物理アドレスになっているのでダメ
 static unsigned long base_qa7_address = QA7_BASE;
 // static unsigned long base_irq_address = IRQ_BASE;
 
