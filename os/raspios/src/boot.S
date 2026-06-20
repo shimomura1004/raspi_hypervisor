@@ -155,7 +155,7 @@ after_page_table_setup:
     add x0, x0, #1
     mul x0, x1, x0
     // todo: RAM の先頭を使ってもいいのか？最初のあたりは device tree 用になっていたのでは？
-    ldr x1, =(VA_START + RAM_BASE)
+    ldr x1, =(VA_START + PA_RAM_BASE)
     add sp, x0, x1
 
     adrp    x0, pg_dir
@@ -219,21 +219,21 @@ __create_page_tables:
 
 #if defined(BOARD_RASPI3)
     // PMD0 (0-1GB: DRAM + BCM Peripherals)
-    ldr x1, =RAM_BASE
-    ldr x2, =(VA_START + RAM_BASE)
-    ldr x3, =(VA_START + RAM_BASE + RAM_SIZE - SECTION_SIZE)
+    ldr x1, =PA_RAM_BASE
+    ldr x2, =(VA_START + PA_RAM_BASE)
+    ldr x3, =(VA_START + PA_RAM_BASE + RAM_SIZE - SECTION_SIZE)
     create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
 
-    ldr x1, =DEVICE_BASE
-    ldr x2, =(VA_START + DEVICE_BASE)
-    ldr x3, =(VA_START + DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE)
+    ldr x1, =PA_DEVICE_BASE
+    ldr x2, =(VA_START + PA_DEVICE_BASE)
+    ldr x3, =(VA_START + PA_DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE)
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
 
     // PMD1 (1-2GB: Local Peripherals)
     // PUD に PMD1 へのエントリを追加する
     adrp x2, pg_dir
     add x2, x2, #PAGE_SIZE          // x2 = PUD
-    ldr x1, =(VA_START + LOCAL_PERIPHERAL_BASE)
+    ldr x1, =(VA_START + PA_LOCAL_PERIPHERAL_BASE)
     lsr x1, x1, #PUD_SHIFT
     and x1, x1, #PTRS_PER_TABLE - 1 // インデックス計算
     add x3, x0, #PAGE_SIZE          // x3 = PMD1 (x0 は PMD0 を指している)
@@ -241,23 +241,23 @@ __create_page_tables:
     str x3, [x2, x1, lsl #3]
 
     add x0, x0, #PAGE_SIZE          // x0 を PMD1 のアドレスに進める
-    ldr x1, =LOCAL_PERIPHERAL_BASE
-    ldr x2, =(VA_START + LOCAL_PERIPHERAL_BASE)
-    ldr x3, =(VA_START + LOCAL_PERIPHERAL_BASE + LOCAL_PERIPHERAL_SIZE - SECTION_SIZE)
+    ldr x1, =PA_LOCAL_PERIPHERAL_BASE
+    ldr x2, =(VA_START + PA_LOCAL_PERIPHERAL_BASE)
+    ldr x3, =(VA_START + PA_LOCAL_PERIPHERAL_BASE + LOCAL_PERIPHERAL_SIZE - SECTION_SIZE)
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
 
 #elif defined(BOARD_VIRT)
     // PMD0 (0-1GB: Device 領域)
-    ldr x1, =DEVICE_BASE
-    ldr x2, =(VA_START + DEVICE_BASE)
-    ldr x3, =(VA_START + DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE)
+    ldr x1, =PA_DEVICE_BASE
+    ldr x2, =(VA_START + PA_DEVICE_BASE)
+    ldr x3, =(VA_START + PA_DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE)
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
 
     // PMD1 (1-2GB: RAM 領域)
     // PUD に PMD1 へのエントリを追加する
     adrp x2, pg_dir
     add x2, x2, #PAGE_SIZE          // x2 = PUD
-    ldr x1, =(VA_START + RAM_BASE)  // 物理アドレス上の RAM の位置を加算することでオフセットマッピングする
+    ldr x1, =(VA_START + PA_RAM_BASE)  // 物理アドレス上の RAM の位置を加算することでオフセットマッピングする
     lsr x1, x1, #PUD_SHIFT
     and x1, x1, #PTRS_PER_TABLE - 1
     add x3, x0, #PAGE_SIZE          // x3 = PMD1
@@ -265,9 +265,9 @@ __create_page_tables:
     str x3, [x2, x1, lsl #3]
 
     add x0, x0, #PAGE_SIZE          // x0 を PMD1 のアドレスに進める
-    ldr x1, =RAM_BASE
-    ldr x2, =(VA_START + RAM_BASE)
-    ldr x3, =(VA_START + RAM_BASE + RAM_SIZE - SECTION_SIZE)
+    ldr x1, =PA_RAM_BASE
+    ldr x2, =(VA_START + PA_RAM_BASE)
+    ldr x3, =(VA_START + PA_RAM_BASE + RAM_SIZE - SECTION_SIZE)
     create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
 #endif
 

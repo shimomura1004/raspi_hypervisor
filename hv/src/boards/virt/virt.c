@@ -22,9 +22,9 @@ static void virt_initialize(struct vm_struct2 *vm) {
 
     // stage2 のデバイスのメモリマッピング(MMIO ページの準備)
     // アクセスをトラップするためにアクセス不可に設定する
-    unsigned long begin = DEVICE_BASE;
-    // unsigned long end = DEVICE_BASE + DEVICE_SIZE;
-    unsigned long end = RAM_BASE;
+    unsigned long begin = PA_DEVICE_BASE;
+    // unsigned long end = PA_DEVICE_BASE + DEVICE_SIZE;
+    unsigned long end = PA_RAM_BASE;
     for (; begin < end; begin += PAGE_SIZE) {
         set_vm_page_notaccessable(vm, begin);
     }

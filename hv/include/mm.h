@@ -20,12 +20,12 @@
 #define PMD_SHIFT           (PAGE_SHIFT +     TABLE_SHIFT)
 
 #define VA_START            0x0000000000000000
-#define PBASE               (VA_START + DEVICE_BASE)
+#define PBASE               (VA_START + PA_DEVICE_BASE)
 
 // 現状ではすべてオフセットマッピングされることを想定している
 // 別のマッピングが必要であればこのマクロを修正する
-#define P2V(pa)             ((pa) - RAM_BASE + VA_START)
-#define V2P(va)             ((va) + RAM_BASE - VA_START)
+#define P2V(pa)             ((pa) - PA_RAM_BASE + VA_START)
+#define V2P(va)             ((va) + PA_RAM_BASE - VA_START)
 
 // todo: PHYS_MEMORY_SIZE はボードごとの定義にするべきでは？あとこれは DRAM ではなくメモリ全体の大きさでは？
 // DRAM のサイズ
@@ -33,8 +33,8 @@
 #define PHYS_MEMORY_SIZE    RAM_SIZE
 
 // 利用可能な物理メモリの開始アドレス(物理)
-// ハイパーバイザ自身がロードされる領域と各コアのスタックを避けるため RAM_BASE から8セクション(16MB)分ずらす
-#define LOW_MEMORY          (RAM_BASE + 8 * SECTION_SIZE)
+// ハイパーバイザ自身がロードされる領域と各コアのスタックを避けるため PA_RAM_BASE から8セクション(16MB)分ずらす
+#define LOW_MEMORY          (PA_RAM_BASE + 8 * SECTION_SIZE)
 
 // 利用可能な物理メモリの終端(物理)
 // 各ボードのヘッダ (raspi3.h, virt.h) で定義される HIGH_MEMORY を使用する

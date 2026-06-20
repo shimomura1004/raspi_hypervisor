@@ -14,7 +14,7 @@
 #define DISABLE_IRQS_2_OFFSET       (0x20)
 #define DISABLE_BASIC_IRQS_OFFSET   (0x24)
 
-#define IRQ_BASE                    (DEVICE_BASE + 0x0000B200)
+#define IRQ_BASE                    (PA_DEVICE_BASE + 0x0000B200)
 #define IRQ_BASIC_PENDING           (IRQ_BASE + IRQ_BASIC_PENDING_OFFSET)
 #define IRQ_PENDING_1               (IRQ_BASE + IRQ_PENDING_1_OFFSET)
 #define IRQ_PENDING_2               (IRQ_BASE + IRQ_PENDING_2_OFFSET)

@@ -134,12 +134,12 @@ static void bcm2837_initialize(struct vm_struct2 *vm) {
     // 二段階アドレス変換は VM で1つだけ必要で、vCPU ごとに設定する必要はない
 
     // BCM2837 の主要なペリフェラル領域 (0x3F000000 - 0x3FFFFFFF)
-    for (unsigned long addr = DEVICE_BASE; addr < DEVICE_BASE + DEVICE_SIZE; addr += PAGE_SIZE) {
+    for (unsigned long addr = PA_DEVICE_BASE; addr < PA_DEVICE_BASE + DEVICE_SIZE; addr += PAGE_SIZE) {
         set_vm_page_notaccessable(vm, addr);
     }
 
     // ARM Local Peripherals (0x40000000 - 0x401FFFFF)
-    for (unsigned long addr = LOCAL_PERIPHERAL_BASE; addr < LOCAL_PERIPHERAL_BASE + LOCAL_PERIPHERAL_SIZE; addr += PAGE_SIZE) {
+    for (unsigned long addr = PA_LOCAL_PERIPHERAL_BASE; addr < PA_LOCAL_PERIPHERAL_BASE + LOCAL_PERIPHERAL_SIZE; addr += PAGE_SIZE) {
         set_vm_page_notaccessable(vm, addr);
     }
 }

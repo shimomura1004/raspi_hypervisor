@@ -18,7 +18,7 @@
 #define PUD_SHIFT           (PAGE_SHIFT + 2 * TABLE_SHIFT)
 #define PMD_SHIFT           (PAGE_SHIFT +     TABLE_SHIFT)
 
-#define LOW_MEMORY          (RAM_BASE + 2 * SECTION_SIZE)
+#define LOW_MEMORY          (PA_RAM_BASE + 2 * SECTION_SIZE)
 #ifndef HIGH_MEMORY
 #error "HIGH_MEMORY must be defined in board header"
 #endif

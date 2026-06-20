@@ -22,7 +22,7 @@
 #define GPPUDCLK0_OFFSET    (0x98)
 #define GPPUDCLK1_OFFSET    (0x9C)
 
-#define GPIO_BASE           (DEVICE_BASE + 0x00200000)
+#define GPIO_BASE           (PA_DEVICE_BASE + 0x00200000)
 #define GPFSEL0             (GPIO_BASE + GPFSEL0_OFFSET)
 #define GPFSEL1             (GPIO_BASE + GPFSEL1_OFFSET)
 #define GPFSEL2             (GPIO_BASE + GPFSEL2_OFFSET)

@@ -17,7 +17,7 @@
 #define AUX_MU_STAT_REG_OFFSET  (0x64)
 #define AUX_MU_BAUD_REG_OFFSET  (0x68)
 
-#define AUX_BASE                (DEVICE_BASE + 0x00215000)
+#define AUX_BASE                (PA_DEVICE_BASE + 0x00215000)
 #define AUX_IRQ                 (AUX_BASE + AUX_IRQ_OFFSET)
 #define AUX_ENABLES             (AUX_BASE + AUX_ENABLES_OFFSET)
 #define AUX_MU_IO_REG           (AUX_BASE + AUX_MU_IO_REG_OFFSET)

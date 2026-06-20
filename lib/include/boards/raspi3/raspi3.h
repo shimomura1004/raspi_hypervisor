@@ -11,24 +11,23 @@
 //   0x3F000000 - 0x3FFFFFFF : General Purpose I/O
 //   0x40000000 - 0x401FFFFF : Local Peripherals
 
-// todo: これらが物理アドレスであることを名前で明示する
-#define RAM_BASE                0x00000000
-#define RAM_SIZE                0x3F000000
+#define PA_RAM_BASE                 0x00000000
+#define RAM_SIZE                    0x3F000000
 
 // 利用可能な物理メモリの終端
-// raspi3 では DRAM 末尾にデバイス領域(DEVICE_BASE~)が重なっているため、その手前までを RAM として扱う
-#define HIGH_MEMORY             0x3F000000
+// raspi3 では DRAM 末尾にデバイス領域(PA_DEVICE_BASE~)が重なっているため、その手前までを RAM として扱う
+#define HIGH_MEMORY                 0x3F000000
 
 // BCM2837 Peripheral Base
-#define PERIPHERAL_BASE         0x3F000000
-#define DEVICE_BASE             PERIPHERAL_BASE
-#define DEVICE_SIZE             0x01000000
+#define PA_PERIPHERAL_BASE          0x3F000000
+#define PA_DEVICE_BASE              PA_PERIPHERAL_BASE
+#define DEVICE_SIZE                 0x01000000
 
 // ARM Local Peripheral Base (QA7)
-#define LOCAL_PERIPHERAL_BASE   0x40000000
-#define LOCAL_PERIPHERAL_SIZE   0x00200000
+#define PA_LOCAL_PERIPHERAL_BASE    0x40000000
+#define LOCAL_PERIPHERAL_SIZE       0x00200000
 
 // Use Mini UART for Raspberry Pi 3
-#define UART_TYPE_MINI          1
+#define UART_TYPE_MINI              1
 
 #endif /* _BOARDS_RASPI3_H */
