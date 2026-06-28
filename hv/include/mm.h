@@ -22,10 +22,12 @@
 #define VA_START            0x0000000000000000
 #define PBASE               (VA_START + PA_DEVICE_BASE)
 
-// 現状ではすべてオフセットマッピングされることを想定している
-// 別のマッピングが必要であればこのマクロを修正する
-#define P2V(pa)             ((pa) - PA_RAM_BASE + VA_START)
-#define V2P(va)             ((va) + PA_RAM_BASE - VA_START)
+// todo: 現状使われてない
+#define VA_RAM_START        0x40000000
+// todo: RAM のサイズはボードごとに違うので、ボードごとに変わる
+#define VA_RAM_END          (VA_RAM_START + 0x40000000 - 1)
+#define VA_DEV_START        0x00000000
+#define VA_DEV_END          (0x40000000 - 1)
 
 // todo: PHYS_MEMORY_SIZE はボードごとの定義にするべきでは？あとこれは DRAM ではなくメモリ全体の大きさでは？
 // DRAM のサイズ

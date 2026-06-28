@@ -1,6 +1,19 @@
 #ifndef _BOARDS_VIRT_H
 #define _BOARDS_VIRT_H
 
+// ハイパーバイザが動作する仮想アドレスと virt の物理アドレスのマッピング
+//   - VA: 0x0000_0000-0x3fff_ffff (Device region)
+//       - PA: 0x0000_0000-0x3fff_ffff -> VA: 0x0000_0000-0x3fff_ffff
+//   - VA: 0x4000_0000-            (RAM)
+//       - PA: 0x4000_0000-            -> VA: 0x4000_0000-
+
+// virt ボード用の物理アドレス・仮想アドレスの変換マクロ
+//   virt ボードの物理アドレスとハイパーバイザの仮想アドレスは恒等マッピング
+#define P2V_RAM(pa)         (pa)
+
+#define P2V(pa)             (pa)
+#define V2P(va)             (va)
+
 // QEMU Virt Machine Specific Constants (物理アドレス)
 // qemu virt board のメモリマップは qemu のソースコードで定義されている
 // https://github.com/qemu/qemu/blob/master/hw/arm/virt.c
