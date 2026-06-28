@@ -66,7 +66,7 @@ static void initialize_hypervisor() {
     lic_enable_aux(P2V(IRQ_BASE));
 #elif defined(BOARD_VIRT)
     gicd_init(P2V(GIC_DIST_BASE));
-    gic_enable_interrupt(GIC_DIST_BASE, IRQ_UART0, 0x01);
+    gic_enable_interrupt(P2V(GIC_DIST_BASE), IRQ_UART0, 0x01);
 #endif
 
     // システムタイマは全コアで共有されるのでここで初期化
