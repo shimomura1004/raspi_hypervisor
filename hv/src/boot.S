@@ -115,8 +115,8 @@ after_page_table_setup:
     add x2, x0, #1
     mul x1, x1, x2
     add x0, x0, x1
-    // 最後に VA_START を足すことでカーネルの仮想アドレスにしている
-    ldr x1, =(VA_START + PA_RAM_BASE)
+    // x1 にはコアごとのオフセットが入っているので、RAM の先頭の仮想アドレスを足して最終的な仮想アドレスを計算
+    ldr x1, =(P2V_RAM(PA_RAM_BASE))
     // sp には仮想アドレスが入っているので MMU が有効になってからじゃないと使えない
     add sp, x0, x1
 
@@ -214,9 +214,12 @@ after_page_table_setup:
     // PMD は1エントリで1GBをカバーする
     // todo: ボードごとに初期化処理をわけるか、デバイスツリーを読んで切り替える
 #if defined(BOARD_RASPI3)
-    // raspi3 用のPUD作成
-    //   0x00000000: RAM / DEVICE (BCM Peripherals)
-    //   0x40000000: LOCAL_PERIPHERAL (ARM Control)
+    // raspi3 用の PUD 作成
+    // hypervisor の仮想メモリマップと raspi3 の物理メモリマップの関係
+    //   VA: 0x0000_0000-0x3fff_ffff [デバイス領域]
+    //     VA: 0x1000_0000-0x1fff_ffff <- PA: 0x4000_0000-0x4fff_ffff (BCM peripherals)
+    //     VA: 0x3f00_0000-0x3fff_ffff <- PA: 0x3f00_0000-0x3fff_ffff (Local peripherals)
+    //   VA: 0x4000_0000-            [RAM 領域]
 
     // 第4引数が #1 になっているので、PMD はすぐ次のページに作られることになる
     create_table_entry \tbl, \virt, PUD_SHIFT, #1, \tmp1, \tmp2, \tmp3
@@ -230,9 +233,12 @@ after_page_table_setup:
     add \tbl, \tbl, #PAGE_SIZE
 #elif defined(BOARD_VIRT)
     // virt 用のPUD作成
-    //   0x08000000: DEVICE -> 1つめの PMD(0x00000000-0x3fffffff)
-    //   0x40000000: RAM    -> 2つめの PMD(0x40000000-0x7fffffff)
+    // hypervisor の仮想メモリマップと virt の物理メモリマップの関係
+    //   VA: 0x0000_0000-0x3fff_ffff [デバイス領域]
+    //     VA: 0x0000_0000-0x3fff_ffff <- PA: 0x0000_0000-0x3fff_ffff (peripheral)
+    //   VA: 0x4000_0000-            [RAM 領域]
 
+// todo: ここを変更する
     // DEVICE_BASE(0GB〜1GB空間)用
     mov \virt, #0
     create_table_entry \tbl, \virt, PUD_SHIFT, #1, \tmp1, \tmp2, \tmp3
@@ -352,14 +358,22 @@ __create_page_tables:
     // memzero で x0 の値は更新されるので改めて設定
     adrp    x0, pg_dir
 
-    mov x1, #VA_START
+// todo: ここはハイパーバイザの仮想アドレス空間の先頭、つまり 0x00000000、マクロを用意したほうがわかりやすい
+// PUD 1つで 512GB 分をマップできるので十分
+    mov x1, 0
     // create_pgd_pud_entry は以下のように定義されたマクロ
     //   .macro  create_pgd_pud_entry, tbl, virt, tmp1, tmp2
     // x0 で指定したページテーブルに、x1 のアドレス以降を使ったマッピングを作る
     // x2, x3 は作業用に自由に使っていいレジスタ
     create_pgd_pud_entry x0, x1, x2, x3, x4
 
+    // 仮想アドレスを有効にした直後にクラッシュしないよう、カーネルコードがある最初の1ブロック分を恒等マッピングする
+    ldr x1, =(PA_RAM_BASE)
+    ldr x2, =(PA_RAM_BASE)
+    ldr x3, =(PA_RAM_BASE)
+    create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
 
+// todo: P2V_* マクロによりコードが共通化されたかも？
 #if defined(BOARD_RASPI3)
     // ---- 物理アドレス 0x0000_0000-0x3fff_ffff を仮想アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
     // 1GB のうち 0x3f000000 以降はデバイス用の領域なので2回目の create_block_map 呼び出しで対応
@@ -375,47 +389,46 @@ __create_page_tables:
     // end(x3) が SECTION_SIZE 分小さくなっているのは、
     // start=end となったアドレスまでマップしてからループを抜けるようになっているため
     // つまり1ブロック分小さくしておかないとオーバーランする
-    //
-    //  VA_START を単純に加算して仮想アドレスとしているのでリニアマッピングが前提になっている
-    //  todo: ↑P2V マクロを使うべき
-    mov x1, #PA_RAM_BASE
-    ldr x2, =(VA_START + PA_RAM_BASE)
-    ldr x3, =(VA_START + PA_RAM_BASE + RAM_SIZE - SECTION_SIZE)
-    create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
-
-    // デバイス領域(0x3f000000-0x3fffffff)のマッピング(リニアマッピング)
+hoge:
+    // ---- 仮想アドレス 0x0000_0000-0x3fff_ffff を物理アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
+    // デバイス領域(0x3f000000-0x3fffffff)のマッピング
     // create_block_map, tbl, phys, start, end, flags, tmp1
     // tbl   = x0 = pg_dir
     // phys  = x1 = PA_DEVICE_BASE (物理アドレス)
     // start = x2 = VA_START + PA_DEVICE_BASE (仮想アドレス)
     // end   = x3 = VA_START + PA_DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE (仮想アドレス)
     // flags      = MMU_DEVICE_FLAGS
-    mov x1, #PA_DEVICE_BASE
-    ldr x2, =(VA_START + PA_DEVICE_BASE)
-    ldr x3, =(VA_START + PA_DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE)
+    ldr x1, =(PA_LOCAL_PERIPHERAL_BASE)
+    ldr x2, =(P2V_QA7(PA_LOCAL_PERIPHERAL_BASE))
+    ldr x3, =(P2V_QA7(PA_LOCAL_PERIPHERAL_BASE + LOCAL_PERIPHERAL_SIZE - SECTION_SIZE))
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
-    // ---- 物理アドレス 0x0000_0000-0x3fff_ffff を仮想アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
+fuga:
+    // ローカルペリフェラル領域(0x40000000-)のマッピング
+    // ローカルペリフェラル領域は 2MB 分で十分
+    // todo: ↑ローカルペリフェラル領域のサイズを raspi3.h で定義する
+    ldr x1, =(PA_DEVICE_BASE)
+    ldr x2, =(P2V_ARMCTRL(PA_DEVICE_BASE))
+    ldr x3, =(P2V_ARMCTRL(PA_DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE))
+    create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
 
     // エントリの追加対象を次の PMD に進める
     add x0, x0, #PAGE_SIZE
 
-    // ---- 物理アドレス 0x4000_0000-0x7fff_ffff を仮想アドレス 0x4000_0000-0x7fff_ffff にマッピング ----
-    // ローカルペリフェラル領域のマッピング(リニアマッピング)
-    // ローカルペリフェラル領域は 2MB 分で十分
-    // todo: ↑ローカルペリフェラル領域のサイズを raspi3.h で定義する
-    mov x1, #PA_LOCAL_PERIPHERAL_BASE
-    ldr x2, =(VA_START + PA_LOCAL_PERIPHERAL_BASE)
-    ldr x3, =(VA_START + PA_LOCAL_PERIPHERAL_BASE + LOCAL_PERIPHERAL_SIZE - SECTION_SIZE)
-    create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
-    // ---- 物理アドレス 0x4000_0000-0x7fff_ffff を仮想アドレス 0x4000_0000-0x7fff_ffff にマッピング ----
+    // ---- 仮想アドレス 0x4000_0000-0x7fff_ffff を物理アドレス 0x4000_0000-0x7fff_ffff にマッピング ----
+    ldr x1, =(PA_RAM_BASE)
+    ldr x2, =(P2V_RAM(PA_RAM_BASE))
+    ldr x3, =(P2V_RAM(PA_RAM_BASE + RAM_SIZE - SECTION_SIZE))
+    create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
+
 #elif defined(BOARD_VIRT)
     // ---- 物理アドレス 0x0000_0000-0x3fff_ffff を仮想アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
     // デバイス領域のマッピング
     // virt の場合、デバイス領域は RAM より前にあり、サイズとしては 128MB(0x08000000) で十分
     //   GIC/UART/VirtIO など
-    mov x1, #PA_DEVICE_BASE
-    ldr x2, =(PA_DEVICE_BASE)
-    ldr x3, =(PA_DEVICE_BASE + 0x08000000 - SECTION_SIZE)
+    //mov x1, #PA_DEVICE_BASE
+    ldr x1, =(PA_DEVICE_BASE)
+    ldr x2, =(P2V(PA_DEVICE_BASE))
+    ldr x3, =(P2V(PA_DEVICE_BASE + 0x08000000 - SECTION_SIZE))
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
     // ---- 物理アドレス 0x0000_0000-0x3fff_ffff を仮想アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
 
@@ -425,9 +438,10 @@ __create_page_tables:
     // ---- 物理アドレス 0x4000_0000-0x7fff_ffff を仮想アドレス 0x4000_0000-0x7fff_ffff にマッピング ----
     // RAM 領域のマッピング
     // RAM 全体をマッピングしているが、QEMU の引数で RAM を 1GB 以上にする場合は PMD を増やす必要がある
-    mov x1, #PA_RAM_BASE
-    ldr x2, =(VA_START)
-    ldr x3, =(VA_START + RAM_SIZE - SECTION_SIZE)
+    //mov x1, #PA_RAM_BASE
+    ldr x1, =(PA_RAM_BASE)
+    ldr x2, =(P2V(PA_RAM_BASE))
+    ldr x3, =(P2V(PA_RAM_BASE + RAM_SIZE - SECTION_SIZE))
     create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
     // ---- 物理アドレス 0x4000_0000-0x7fff_ffff を仮想アドレス 0x4000_0000-0x7fff_ffff にマッピング ----
 #endif
