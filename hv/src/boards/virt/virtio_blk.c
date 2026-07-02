@@ -88,15 +88,15 @@ uint64_t blk_req_paddr;
 uint64_t blk_capacity;
 
 static uint32_t virtio_reg_read32(unsigned offset) {
-    return *((volatile uint32_t *) (P2V(VIRTIO_BLK_PADDR) + offset));
+    return *((volatile uint32_t *) ((uint64_t)P2V(VIRTIO_BLK_PADDR) + offset));
 }
 
 static void virtio_reg_write32(unsigned offset, uint32_t value) {
-    *((volatile uint32_t *) (P2V(VIRTIO_BLK_PADDR) + offset)) = value;
+    *((volatile uint32_t *) ((uint64_t)P2V(VIRTIO_BLK_PADDR) + offset)) = value;
 }
 
 static uint64_t virtio_reg_read64(unsigned offset) {
-    return *((volatile uint64_t *) (P2V(VIRTIO_BLK_PADDR) + offset));
+    return *((volatile uint64_t *) ((uint64_t)P2V(VIRTIO_BLK_PADDR) + offset));
 }
 
 static struct virtio_virtq *virtq_init(unsigned index) {
