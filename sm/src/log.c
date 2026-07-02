@@ -1,6 +1,6 @@
 #include "sm_shmem_log.h"
 
-static sm_shmem_log_t * const log_ptr = (sm_shmem_log_t *)SM_SHARED_MEM_ADDR;
+static sm_shmem_log_t * const log_ptr = (sm_shmem_log_t *)VA_SM_SHARED_MEM_ADDR;
 
 void sm_log_init(void) {
     log_ptr->write_pos = 0;

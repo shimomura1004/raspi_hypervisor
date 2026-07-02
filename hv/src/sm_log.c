@@ -5,8 +5,7 @@
 #include "debug.h"
 
 // 共有メモリへのポインタ
-// ハイパーバイザはリニアマッピングされているため、物理アドレス + VA_START でアクセス可能
-static sm_shmem_log_t * const log_ptr = (sm_shmem_log_t *)(SM_SHARED_MEM_ADDR + VA_START);
+static sm_shmem_log_t * const log_ptr = (sm_shmem_log_t *)(VA_SM_SHARED_MEM_ADDR);
 
 void sm_log_dump(void) {
     uint32_t write_pos = log_ptr->write_pos;

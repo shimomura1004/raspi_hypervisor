@@ -3,8 +3,8 @@
 
 #include <stdint.h>
 
-#define SM_SHARED_MEM_ADDR  0x3b800
-#define SM_LOG_BUFFER_SIZE  1024
+#define VA_SM_SHARED_MEM_ADDR   (0x3b800 + 0x40000000)
+#define SM_LOG_BUFFER_SIZE      1024
 
 typedef struct {
     volatile uint32_t write_pos;
