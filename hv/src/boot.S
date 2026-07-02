@@ -238,7 +238,6 @@ after_page_table_setup:
     //     VA: 0x0000_0000-0x3fff_ffff <- PA: 0x0000_0000-0x3fff_ffff (peripheral)
     //   VA: 0x4000_0000-            [RAM 領域]
 
-// todo: ここを変更する
     // DEVICE_BASE(0GB〜1GB空間)用
     mov \virt, #0
     create_table_entry \tbl, \virt, PUD_SHIFT, #1, \tmp1, \tmp2, \tmp3
@@ -389,7 +388,7 @@ __create_page_tables:
     // end(x3) が SECTION_SIZE 分小さくなっているのは、
     // start=end となったアドレスまでマップしてからループを抜けるようになっているため
     // つまり1ブロック分小さくしておかないとオーバーランする
-hoge:
+
     // ---- 仮想アドレス 0x0000_0000-0x3fff_ffff を物理アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
     // デバイス領域(0x3f000000-0x3fffffff)のマッピング
     // create_block_map, tbl, phys, start, end, flags, tmp1
@@ -402,7 +401,7 @@ hoge:
     ldr x2, =(P2V_QA7(PA_LOCAL_PERIPHERAL_BASE))
     ldr x3, =(P2V_QA7(PA_LOCAL_PERIPHERAL_BASE + LOCAL_PERIPHERAL_SIZE - SECTION_SIZE))
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
-fuga:
+
     // ローカルペリフェラル領域(0x40000000-)のマッピング
     // ローカルペリフェラル領域は 2MB 分で十分
     // todo: ↑ローカルペリフェラル領域のサイズを raspi3.h で定義する
@@ -425,10 +424,9 @@ fuga:
     // デバイス領域のマッピング
     // virt の場合、デバイス領域は RAM より前にあり、サイズとしては 128MB(0x08000000) で十分
     //   GIC/UART/VirtIO など
-    //mov x1, #PA_DEVICE_BASE
     ldr x1, =(PA_DEVICE_BASE)
     ldr x2, =(P2V(PA_DEVICE_BASE))
-    ldr x3, =(P2V(PA_DEVICE_BASE + 0x08000000 - SECTION_SIZE))
+    ldr x3, =(P2V(PA_DEVICE_BASE + DEVICE_SIZE - SECTION_SIZE))
     create_block_map x0, x1, x2, x3, MMU_DEVICE_FLAGS, x4
     // ---- 物理アドレス 0x0000_0000-0x3fff_ffff を仮想アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
 
@@ -438,10 +436,9 @@ fuga:
     // ---- 物理アドレス 0x4000_0000-0x7fff_ffff を仮想アドレス 0x4000_0000-0x7fff_ffff にマッピング ----
     // RAM 領域のマッピング
     // RAM 全体をマッピングしているが、QEMU の引数で RAM を 1GB 以上にする場合は PMD を増やす必要がある
-    //mov x1, #PA_RAM_BASE
     ldr x1, =(PA_RAM_BASE)
-    ldr x2, =(P2V(PA_RAM_BASE))
-    ldr x3, =(P2V(PA_RAM_BASE + RAM_SIZE - SECTION_SIZE))
+    ldr x2, =(P2V_RAM(PA_RAM_BASE))
+    ldr x3, =(P2V_RAM(PA_RAM_BASE + RAM_SIZE - SECTION_SIZE))
     create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
     // ---- 物理アドレス 0x4000_0000-0x7fff_ffff を仮想アドレス 0x4000_0000-0x7fff_ffff にマッピング ----
 #endif
