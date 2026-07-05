@@ -48,6 +48,7 @@ static void initialize_pcpu(unsigned long cpuid) {
     arm_local_ipi_enable(cpuid);
 #elif defined(BOARD_VIRT)
     gicc_init(P2V(GIC_CPU_BASE));
+    gic_enable_interrupt(P2V(GIC_DIST_BASE), IRQ_HYP_PHYS_TIMER, 1 << cpuid);
 #endif
 }
 
