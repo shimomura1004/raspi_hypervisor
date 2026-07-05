@@ -157,3 +157,10 @@
     - CPU 以外のバスマスタの場合は、起動時に静的に設定された Secure/Non-secure の情報をもとに判断
 - 同様に、メモリ以外のデバイスのレジスタや RAM へのアクセス制限は、TZASC と似た TZPC を使う
     - 独自にアクセス権制御のための IP を備えている SoC もある
+
+## Secure mode
+- QEMU の起動オプションで secure=on を指定すると、GIC は Security Extensions が有効な状態で起動する
+    - このとき、リセット時にはすべての割込みが Group 0 (セキュア割込み) に設定される
+    - **NS モードの CPU は Group 1 しか扱えず、結果として割込みがまったく配送されなくなる**
+- 一部の割込みを normal world に割り当てたい場合は、EL3 で GICD_IGROUPRn レジスタを設定する
+    - normal world で受けたい割込みを Group 1 に設定する
