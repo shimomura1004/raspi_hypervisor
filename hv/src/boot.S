@@ -388,6 +388,10 @@ __create_page_tables:
     // end(x3) が SECTION_SIZE 分小さくなっているのは、
     // start=end となったアドレスまでマップしてからループを抜けるようになっているため
     // つまり1ブロック分小さくしておかないとオーバーランする
+    ldr x1, =(PA_RAM_BASE)
+    ldr x2, =(PA_RAM_BASE)
+    ldr x3, =(PA_RAM_BASE + RAM_SIZE - SECTION_SIZE)
+    create_block_map x0, x1, x2, x3, MMU_FLAGS, x4
 
     // ---- 仮想アドレス 0x0000_0000-0x3fff_ffff を物理アドレス 0x0000_0000-0x3fff_ffff にマッピング ----
     // デバイス領域(0x3f000000-0x3fffffff)のマッピング
