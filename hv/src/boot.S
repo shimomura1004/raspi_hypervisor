@@ -388,6 +388,7 @@ __create_page_tables:
     // end(x3) が SECTION_SIZE 分小さくなっているのは、
     // start=end となったアドレスまでマップしてからループを抜けるようになっているため
     // つまり1ブロック分小さくしておかないとオーバーランする
+    // todo: DRAM 全体を恒等マッピングしているが、競合しないか？
     ldr x1, =(PA_RAM_BASE)
     ldr x2, =(PA_RAM_BASE)
     ldr x3, =(PA_RAM_BASE + RAM_SIZE - SECTION_SIZE)

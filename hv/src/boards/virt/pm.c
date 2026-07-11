@@ -1,5 +1,6 @@
 #include "pm.h"
 #include "debug.h"
+#include "psci.h"
 
 extern volatile int system_halted;
 
@@ -7,15 +8,17 @@ void system_shutdown() {
     INFO("System halting (virt)...");
     system_halted = 1;
 
-    // todo: PSCI を使用して QEMU にシャットダウンを通知する
-    
+    // PSCI SYSTEM_OFF を呼び出してシステム全体をシャットダウン
+    psci_system_off_smc();
+
     halt_current_cpu();
 }
 
 void system_reboot() {
     INFO("System rebooting (virt)...");
-    
-    // todo: PSCI を使用して QEMU にリブートを通知する
-    
+
+    // PSCI SYSTEM_RESET を呼び出してシステム全体をリブート
+    psci_system_reset_smc();
+
     while (1) { asm volatile("wfi"); }
 }

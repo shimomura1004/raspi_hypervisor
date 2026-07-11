@@ -20,4 +20,7 @@
 int psci_cpu_on_hvc(uint64_t target_cpu, uint64_t entry_point, uint64_t context_id);
 int psci_cpu_on_smc(uint64_t target_cpu, uint64_t entry_point, uint64_t context_id);
 
+int psci_system_off_smc(void);
+int psci_system_reset_smc(void);
+
 #endif /* _PSCI_H */
