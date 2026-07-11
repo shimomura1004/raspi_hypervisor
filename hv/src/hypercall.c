@@ -7,15 +7,17 @@
 #include "utils.h"
 #include "debug.h"
 
+// SMCCC に準拠する場合、hvc/smc 命令の引数(hvc_nr)は常に 0 となり、x0 に命令を入れる
 // todo: これは common に移す？
+// todo: SMCCC ではなく独自に追加した function_id があるので整理する
 void hypercall(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigned long a2, unsigned long a3) {
     struct pt_regs *regs = vcpu_pt_regs(current_pcpu()->current_vcpu);
-    unsigned long id = a0;
+    unsigned long function_id = a0;
 
     // todo: 修正する
     // PSCI 呼び出しのチェック
-    if ((id & 0xFF000000) == 0x84000000 || (id & 0xFF000000) == 0xC4000000) {
-        switch (id) {
+    if ((function_id & 0xFF000000) == 0x84000000 || (function_id & 0xFF000000) == 0xC4000000) {
+        switch (function_id) {
             case PSCI_0_2_FN_SYSTEM_OFF:
                 INFO("PSCI SYSTEM_OFF called");
                 system_shutdown();
@@ -28,32 +30,32 @@ void hypercall(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigne
                 regs->regs[0] = 0x00020000; // PSCI v2.0
                 return;
             default:
-                WARN("Unsupported PSCI call: 0x%lx", id);
+                WARN("Unsupported PSCI call: 0x%lx", function_id);
                 regs->regs[0] = -1; // NOT_SUPPORTED
                 return;
         }
     }
 
-    switch (id) {
+    switch (function_id) {
     case HYPERCALL_TYPE_WARN_LU: {
-        WARN("HVC #%lu(%lu)", id, a1);
+        WARN("HVC #%lu(%lu)", function_id, a1);
         break;
     }
     case HYPERCALL_TYPE_INFO_LX: {
-        INFO("HVC #%d: 0x%lx(%ld)", id, a1, a1);
+        INFO("HVC #%d: 0x%lx(%ld)", function_id, a1, a1);
         break;
     }
     case HYPERCALL_TYPE_INFO_LX_LX: {
-        INFO("HVC #%d: 0x%lx(%ld), 0x%lx(%ld)", id, a1, a1, a2, a2);
+        INFO("HVC #%d: 0x%lx(%ld), 0x%lx(%ld)", function_id, a1, a1, a2, a2);
         break;
     }
     case HYPERCALL_TYPE_INFO_LX_LX_LX: {
-        INFO("HVC #%d: 0x%lx(%ld), 0x%lx(%ld), 0x%lx(%ld)", id, a1, a1, a2, a2, a3, a3);
+        INFO("HVC #%d: 0x%lx(%ld), 0x%lx(%ld), 0x%lx(%ld)", function_id, a1, a1, a2, a2, a3, a3);
         break;
     }
 
     case HYPERCALL_TYPE_INFO_STR: {
-        INFO("HVC #%d: %s", id, (const char *)get_pa_2nd(a1));
+        INFO("HVC #%d: %s", function_id, (const char *)get_pa_2nd(a1));
         break;
     }
 
@@ -94,7 +96,7 @@ void hypercall(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigne
     }
 
     default:
-        WARN("uncaught hvc64 exception: %ld", id);
+        WARN("uncaught hvc64 exception: %ld", function_id);
         break;
     }
 }
