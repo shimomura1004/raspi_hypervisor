@@ -220,13 +220,17 @@ el01_irq:
 el01_sync:
     kernel_entry
 
-    // hvc/smc 命令による割込みかを判定し、el01_sync_hvc64/el01_sync_smc64 にジャンプ
-    mrs x4, esr_el2
-    lsr x4, x4, #ESR_EL2_EC_SHIFT
-    and x4, x4, #0x3f
-    cmp x4, #ESR_EL2_EC_HVC64
+    // 一時レジスタとして x9 と x10 を使い、hvc/smc かどうかを判定する
+    mrs x9, esr_el2
+    lsr x10, x9, #26
+    and x10, x10, #0x3F
+
+    // hvc 呼び出しの場合は専用ハンドラにジャンプ
+    cmp x10, #0x16
     b.eq el01_sync_hvc64
-    cmp x4, #ESR_EL2_EC_SMC64
+
+    // smc 呼び出しの場合は専用ハンドラにジャンプ
+    cmp x10, #0x17
     b.eq el01_sync_smc64
 
     // それ以外の割込み要因だった場合は handle_sync_exception にジャンプ
@@ -238,21 +242,22 @@ el01_sync:
     kernel_exit
 
 el01_sync_hvc64:
+    // 第1引数(x0)として esr から作った hvc_nr を渡す
     mrs x0, esr_el2
     and x0, x0, #0xffff
-    // 引数として x8-x11 を渡す (save_regs でスタックに退避された値をロードする)
-    // ハイパーコールのお作法に従う
-    ldp x1, x2, [sp, #16 * 4]
-    ldp x3, x4, [sp, #16 * 5]
+    // 第2-5引数(x1-x4)として、受け取った x0-x3 を渡す (save_regs でスタックに退避された値をロードする)
+    ldp x1, x2, [sp, #(16 * 0)]
+    ldp x3, x4, [sp, #(16 * 1)]
     bl handle_sync_exception_hvc64
     kernel_exit
 
 el01_sync_smc64:
-    // 引数として x0-x4 を渡す (save_regs でスタックに退避された値をロードする)
-    // SMCCC準拠: x0 が Function ID
-    ldp x0, x1, [sp, #16 * 0]
-    ldp x2, x3, [sp, #16 * 1]
-    ldr x4, [sp, #16 * 2]
+    // 第1引数(x0)として esr から作った smc_nr を渡す
+    mrs x0, esr_el3
+    and x0, x0, #0xffff
+    // 第2-5引数(x1-x4)として、受け取った x0-x3 を渡す (save_regs でスタックに退避された値をロードする)
+    ldp x1, x2, [sp, #(16 * 0)]
+    ldp x3, x4, [sp, #(16 * 1)]
     bl handle_sync_exception_smc64
     kernel_exit
 

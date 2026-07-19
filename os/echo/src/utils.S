@@ -1,6 +1,5 @@
 .globl issue_hvc
 issue_hvc:
-    mov x8, x0
     hvc #0
     ret
 

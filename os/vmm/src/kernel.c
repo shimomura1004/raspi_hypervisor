@@ -14,15 +14,8 @@
 #define BUFFER_LENGTH 128
 #define ARG_MAX 8
 #define HVC_ARG_MAX 4
-#define SMC_ARG_MAX 5
+#define SMC_ARG_MAX 4
 #define EQUAL(A, B) (strncmp(A, B, sizeof(B)) == 0)
-
-void new_vm();
-void destroy_vm(int vmid);
-void shutdown_hv();
-void reboot_hv();
-void issue_hvc(int hvc_nr, int arg1, int arg2, int arg3);
-void issue_smc(int smc_nr, int arg1, int arg2, int arg3, int arg4);
 
 struct loader_args vm_args = {
     .loader_addr = 0x0,
@@ -30,7 +23,26 @@ struct loader_args vm_args = {
     .sp = 0x100000,
     .filename = "",
 };
-struct loader_args *vm_args_p = &vm_args;
+
+// todo: このあたりは lib に移せる
+void issue_hvc(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3);
+void issue_smc(uint64_t arg0, uint64_t arg1, uint64_t arg2, uint64_t arg3);
+
+void new_vm(struct loader_args* args) {
+    issue_hvc(HYPERCALL_TYPE_CREATE_VM_FROM_ELF, (uint64_t)args, 0, 0);
+}
+
+void destroy_vm(int vmid) {
+    issue_hvc(HYPERCALL_TYPE_DESTOY_VM, vmid, 0, 0);
+}
+
+void shutdown_hv() {
+    issue_hvc(HYPERCALL_TYPE_SHUTDOWN_HV, 0, 0, 0);
+}
+
+void reboot_hv() {
+    issue_hvc(HYPERCALL_TYPE_REBOOT_HV, 0, 0, 0);
+}
 
 // "new RASPIOS.ELF 2" -> "new" "RASPIOS.ELF" "2"
 int command_parser(char *buf, char *args[]) {
@@ -95,19 +107,19 @@ void execute_debug_commands(char *args[], int arg_count) {
     }
     else if (EQUAL(args[1], "hvc")) {
         printf("Triggering HVC call...\r\n");
-        int int_args[HVC_ARG_MAX] = {0};
+        uint64_t hvc_args[HVC_ARG_MAX] = {0};
         for (int i=2; i < arg_count; i++) {
-            int_args[i - 2] = atoi(args[i]);
+            hvc_args[i - 2] = (uint64_t)atoi(args[i]);
         }
-        issue_hvc(int_args[0], int_args[1], int_args[2], int_args[3]);
+        issue_hvc(hvc_args[0], hvc_args[1], hvc_args[2], hvc_args[3]);
     }
     else if (EQUAL(args[1], "smc")) {
         printf("Triggering SMC call...\r\n");
-        int int_args[SMC_ARG_MAX] = {0};
+        uint64_t smc_args[SMC_ARG_MAX] = {0};
         for (int i=2; i < arg_count; i++) {
-            int_args[i - 2] = atoi(args[i]);
+            smc_args[i - 2] = (uint64_t)atoi(args[i]);
         }
-        issue_smc(int_args[0], int_args[1], int_args[2], int_args[3], int_args[4]);
+        issue_smc(smc_args[0], smc_args[1], smc_args[2], smc_args[3]);
     }
     else {
         printf("debug command error: %s\n", args[1]);
@@ -137,7 +149,7 @@ void execute_command(char *buf) {
         printf("create a new vm '%s' with vcpu_num %d\n", args[1], vcpu_num);
         for (int i=0; (vm_args.filename[i] = args[1][i]); i++);
         vm_args.vcpu_num = vcpu_num;
-        new_vm();
+        new_vm(&vm_args);
     }
     else if (EQUAL(args[0], "kill")) {
         if (arg_count != 2) {

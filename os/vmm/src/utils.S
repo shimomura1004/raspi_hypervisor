@@ -1,37 +1,7 @@
 #include "hypercall_type.h"
 
-.globl new_vm
-new_vm:
-    mov x8, #HYPERCALL_TYPE_CREATE_VM_FROM_ELF
-    ldr x9, vm_args_p
-    hvc #0
-    ret
-
-.globl destroy_vm
-destroy_vm:
-    mov x8, #HYPERCALL_TYPE_DESTOY_VM
-    mov x9, x0
-    hvc #0
-    ret
-
-.globl shutdown_hv
-shutdown_hv:
-    mov x8, #HYPERCALL_TYPE_SHUTDOWN_HV
-    hvc #0
-    ret
-
-.globl reboot_hv
-reboot_hv:
-    mov x8, #HYPERCALL_TYPE_REBOOT_HV
-    hvc #0
-    ret
-
 .globl issue_hvc
 issue_hvc:
-    mov x8, x0
-    mov x9, x1
-    mov x10, x2
-    mov x11, x3
     hvc #0
     ret
 
