@@ -29,6 +29,11 @@ void hypercall(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigne
             case PSCI_0_2_FN_PSCI_VERSION:
                 regs->regs[0] = 0x00020000; // PSCI v2.0
                 return;
+
+            case PSCI_0_2_FN64_CPU_ON:
+                // todo: CPU を有効にする
+                //       逆に言うと、これが実行されるまで vCPU は停止していないといけない
+                return;
             default:
                 WARN("Unsupported PSCI call: 0x%lx", function_id);
                 regs->regs[0] = -1; // NOT_SUPPORTED
