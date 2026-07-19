@@ -38,11 +38,11 @@ void kernel_main(void)
         char c = uart_recv();
         if (c == '!') {
             printf("Triggering exception...\r\n");
-            issue_hvc(HYPERCALL_TYPE_CAUSE_PANIC);
+            issue_hvc(HYPERCALL_TYPE_CAUSE_PANIC, 0, 0, 0);
         }
         else if (c == '#') {
-            printf("Triggering SMC #0 call...\r\n");
-            issue_smc(0);
+            printf("Triggering SMC #0 with args (0, 0, 0, 0) ...\r\n");
+            issue_smc(0, 0, 0, 0);
         }
         else {
             c = c == '\r' ? '\n' : c;

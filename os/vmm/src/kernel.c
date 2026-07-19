@@ -84,8 +84,8 @@ void print_help_reboot() {
     printf("  reboot\n");
 }
 void print_help_debug() {
-    printf("  debug hvc <hvc_nr>\n");
-    printf("  debug smc <smc_nr>\n");
+    printf("  debug hvc <hvc_nr> args...\n");
+    printf("  debug smc <smc_nr> args...\n");
 }
 void print_help_help() {
     printf("  help\n");
@@ -106,6 +106,7 @@ void execute_debug_commands(char *args[], int arg_count) {
         issue_hvc(HYPERCALL_TYPE_CAUSE_PANIC, 0, 0, 0);
     }
     else if (EQUAL(args[1], "hvc")) {
+        // todo: HVC_ARG_MAX を超えた引数が渡されると無限ループに入る？
         printf("Triggering HVC call...\r\n");
         uint64_t hvc_args[HVC_ARG_MAX] = {0};
         for (int i=2; i < arg_count; i++) {

@@ -36,6 +36,7 @@ void hypercall(unsigned long hvc_nr, unsigned long a0, unsigned long a1, unsigne
         }
     }
 
+    // todo: こちらの分岐は SMCCC に準拠していないので修正する必要あり
     switch (function_id) {
     case HYPERCALL_TYPE_WARN_LU: {
         WARN("HVC #%lu(%lu)", function_id, a1);
