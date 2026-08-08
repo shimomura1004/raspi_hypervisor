@@ -32,8 +32,8 @@
 
 #ifndef __ASSEMBLER__
 
-unsigned long hvc_call_4(unsigned long x0, unsigned long x1, unsigned long x2, unsigned long x3);
-unsigned long smc_call_4(unsigned long x0, unsigned long x1, unsigned long x2, unsigned long x3);
+uint64_t hvc_call_4(uint64_t x0, uint64_t x1, uint64_t x2, uint64_t x3);
+uint64_t smc_call_4(uint64_t x0, uint64_t x1, uint64_t x2, uint64_t x3);
 
 #endif
 

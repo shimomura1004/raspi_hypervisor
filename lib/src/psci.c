@@ -11,6 +11,7 @@ int psci_cpu_on_smc(uint64_t target_cpu, uint64_t entry_point, uint64_t context_
     return (int)smc_call_4(PSCI_0_2_FN64_CPU_ON, target_cpu, entry_point, context_id);
 }
 
+#if defined(BOARD_VIRT)
 int psci_system_off_smc(void) {
     smc_call_4(PSCI_0_2_FN_SYSTEM_OFF, 0, 0, 0);
     // ここには帰ってこないはずなので、帰ってきた場合はエラー
@@ -22,3 +23,4 @@ int psci_system_reset_smc(void) {
     // ここには帰ってこないはずなので、帰ってきた場合はエラー
     return -1;
 }
+#endif
