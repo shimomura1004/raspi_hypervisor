@@ -72,6 +72,7 @@ void map_stage2_page(struct vm_struct2 *vm, unsigned long ipa,
                      unsigned long page, unsigned long flags);
 unsigned long allocate_page();
 unsigned long allocate_vm_page(struct vm_struct2 *vm, unsigned long ipa);
+unsigned long ipa_to_pa(struct vm_struct2 *vm, unsigned long ipa);
 void set_vm_page_notaccessable(struct vm_struct2 *vm, unsigned long va);
 void free_vm_memory(struct mm_struct *mm);
 

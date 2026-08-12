@@ -311,3 +311,40 @@ int handle_mem_abort(unsigned long addr, unsigned long esr) {
     }
     return -1;
 }
+
+// stage2 ページテーブルをたどり IPA から PA に変換を行う
+// もしマップされていない場合は 0 を返す
+// 本関数は、IPA がマップされていない状態で呼び出される可能性があるので at 命令は使えない
+unsigned long ipa_to_pa(struct vm_struct2 *vm, unsigned long ipa) {
+    if (!vm->mm.first_table) {
+        return 0;
+    }
+    unsigned long *table = (unsigned long *)P2V(vm->mm.first_table);
+
+    // Level 1 table walk
+    unsigned long index = ipa >> LV1_SHIFT;
+    index &= (PTRS_PER_TABLE - 1);
+    if (!table[index]) {
+        return 0;
+    }
+    unsigned long next_table = table[index] & PAGE_MASK;
+
+    // Level 2 table walk
+    table = (unsigned long *)P2V(next_table);
+    index = ipa >> LV2_SHIFT;
+    index &= (PTRS_PER_TABLE - 1);
+    if (!table[index]) {
+        return 0;
+    }
+    next_table = table[index] & PAGE_MASK;
+
+    // Level 3 table walk
+    table = (unsigned long *)P2V(next_table);
+    index = ipa >> PAGE_SHIFT;
+    index &= (PTRS_PER_TABLE - 1);
+    if (!table[index]) {
+        return 0;
+    }
+    return table[index] & PAGE_MASK;
+}
+

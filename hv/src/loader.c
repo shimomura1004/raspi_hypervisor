@@ -143,22 +143,49 @@ int elf_binary_loader(void *args, unsigned long *pc, unsigned long *sp, struct v
         // 指定されたアドレスにセグメントをコピーする(ページ単位のコピーをループする)
         // todo: 関数化
         while (memory_size > 0) {
-            // コピー先となるゲストのメモリ空間にページを確保する
-            // allocate_vm_page の中の map_stage2_page で stage2 テーブルを更新している
-            // todo: 中途半端なアドレスな場合、うまく動かないかも
-            uint8_t *vm_buf = (uint8_t *)allocate_vm_page(vm, virtual_addr);
+            // ページテーブルのインデックスを計算
+            unsigned long ipa_page = virtual_addr & PAGE_MASK;
+            // ページ内オフセットを計算
+            unsigned long page_offset = virtual_addr & ~PAGE_MASK;
+            // 今回書き込むバイト数
+            unsigned long write_size = MIN(PAGE_SIZE - page_offset, memory_size);
 
-            // コピー元のデータをハイパーバイザのメモリ空間に読み込む
-            int actualsize = fat32_read(&file, vm_buf, offset, PAGE_SIZE);
-            // ゼロクリアする領域があるので、file_size より memory_size のほうが大きい
-            // file からコピーするデータがなくなったら、残りは 0 で埋める
-            if (actualsize != PAGE_SIZE) {
-                memzero(vm_buf + actualsize, PAGE_SIZE - actualsize);
+            // 書き込み先の IPA が既に確保・マップされているか調べる
+            unsigned long pa = ipa_to_pa(vm, ipa_page);
+            uint8_t *vm_buf;
+            if (pa) {
+                // 既に確保されている
+                vm_buf = (uint8_t *)P2V(pa);
+            } else {
+                // 未確保の場合は新規に確保し、stage2 テーブルに登録
+                // allocate_vm_page の中の map_stage2_page で stage2 テーブルを更新している
+                vm_buf = (uint8_t *)allocate_vm_page(vm, ipa_page);
             }
 
-            memory_size = memory_size < PAGE_SIZE ? 0 : memory_size - PAGE_SIZE;
-            virtual_addr += PAGE_SIZE;
-            offset += PAGE_SIZE;
+            // コピー元のデータをハイパーバイザのメモリ空間に読み込む
+            if (file_size > 0) {
+                // 今回のループで書き込めるサイズとファイルの残りサイズを比較して小さい方を選ぶ
+                int read_size = MIN(write_size, file_size);
+                // ページの途中からの場合でも正しくロードできるようオフセットを加味する
+                //   リンカスクリプトの指示(ALIGN(0x1000))は無視される可能性がある
+                int actualsize = fat32_read(&file, vm_buf + page_offset, offset, read_size);
+                if (actualsize != read_size) {
+                    WARN("failed to read file (segment data)");
+                    return -1;
+                }
+                // もし残りの書き込みサイズが file_size を超える場合、その分は 0 で埋める
+                if (write_size > read_size) {
+                    memzero(vm_buf + page_offset + read_size, write_size - read_size);
+                }
+                file_size -= read_size;
+                offset += read_size;
+            } else {
+                // ファイルからの読み込みが既に終わっている場合は 0 埋め
+                memzero(vm_buf + page_offset, write_size);
+            }
+
+            memory_size -= write_size;
+            virtual_addr += write_size;
         }
     }
 
